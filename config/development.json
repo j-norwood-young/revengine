@@ -1,0 +1,15 @@
+{
+    "name": "revengine",
+    "debug": true,
+    "kafka": {
+        "server": "localhost:9092",
+        "partitions": 1,
+        "replication_factor": 0
+    },
+    "tracker": {
+        "port": 3013,
+        "host": "95.216.245.172",
+        "cache_size": 1,
+        "kafka_topic": "revengine_events"
+    }
+}
