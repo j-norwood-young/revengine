@@ -1,5 +1,5 @@
 {
-  "name": "revengine-consolidator",
+  "name": "@revengine/consolidator",
   "version": "0.0.3",
   "description": "Consolidates RevEngine hits from Kafka to Elasticsearch",
   "main": "index.js",
@@ -13,6 +13,7 @@
   "dependencies": {
     "config": "^3.3.1",
     "elasticsearch": "^16.7.1",
-    "kafka-node": "^5.0.0"
+    "kafka-node": "^5.0.0",
+    "@revengine/common": "^0.0.1"
   }
 }
