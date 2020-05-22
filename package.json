@@ -9,6 +9,10 @@
   ],
   "scripts": {
     "test": "lerna run test --stream",
+    "consolidator-prod": "env NODE_ENV=production node packages/consolidator",
+    "tracker-prod": "env NODE_ENV=production node packages/tracker",
+    "consolidator-dev": "env NODE_ENV=development nodemon packages/consolidator",
+    "tracker-dev": "env NODE_ENV=development nodemon packages/tracker",
     "publish-all": "lerna publish"
   },
   "repository": {

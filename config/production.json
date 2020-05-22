@@ -1,5 +1,5 @@
 {
-    "name": "revengine-dev",
+    "name": "revengine-prod",
     "debug": true,
     "kafka": {
         "server": "localhost:9092",
@@ -7,7 +7,7 @@
         "replication_factor": 0
     },
     "tracker": {
-        "port": 3013,
+        "port": 4013,
         "host": "95.216.245.172",
         "cache_size": 1,
         "kafka_topic": "revengine_events"
@@ -18,7 +18,10 @@
         "cache_size": 1,
         "test_interval": 1000,
         "indexes": {
-            "pageviews": [ "pageviews", "concurrents_by_browser" ]
+            "pageviews": [
+                "pageviews",
+                "concurrents_by_browser"
+            ]
         }
     },
     "elasticsearch": {
