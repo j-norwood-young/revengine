@@ -88,5 +88,8 @@ consumer.on("error", err => {
 })
 
 const interval = config.consolidator.test_interval || 5000;
-console.log(`Listening for kafka messages; flushing cache every ${interval / 1000}s`);
+console.log(`===${config.name} Tracker Started===`);
+if (config.debug) {
+    console.log(`${config.name} Tracker listening for kafka messages; flushing cache every ${interval / 1000}s`);
+}
 setInterval(flush, interval);

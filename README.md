@@ -6,7 +6,13 @@ It gathers data from multiple sources to produce a single view of the reader, an
 
 It is developed by [Daily Maverick](https://dailymaverick.co.za) and Jason Norwood-Young, and funded by the Google News Initiative.
 
-It is currently in development and not ready for production use.
+**It is currently in development and not ready for production use.**
+
+## Installing
+
+## Running
+
+
 
 ## License
 

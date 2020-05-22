@@ -1,5 +1,5 @@
 {
-    "name": "revengine-prod",
+    "name": "RevEngine",
     "debug": true,
     "kafka": {
         "server": "localhost:9092",
@@ -26,5 +26,15 @@
     },
     "elasticsearch": {
         "server": "localhost:9200"
+    },
+    "api": {
+        "port": 4001,
+        "mongo": {
+            "connection_string": "mongodb://localhost/revengine-prod?retryWrites=true&w=majority",
+            "options": {}
+        },
+        "token_expiry": 86400,
+        "refresh_token_expiry": 2678400,
+        "shared_secret": "97a09d2567af0073855e786c428cfc322e5300ae"
     }
 }

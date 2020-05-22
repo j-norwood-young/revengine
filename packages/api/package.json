@@ -1,0 +1,15 @@
+{
+	"name": "@revengine/api",
+	"version": "0.0.1",
+	"description": "The RevEngine RESTful API",
+	"main": "bin/server.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "node bin/server.js"
+	},
+	"dependencies": {
+		"jxp": "^2.0.1-4"
+	},
+	"author": "Jason Norwood-Young <jason@10layer.com>",
+	"license": "MIT"
+}
