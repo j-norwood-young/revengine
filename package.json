@@ -1,0 +1,25 @@
+{
+  "name": "revengine",
+  "version": "0.0.1",
+  "description": "RevEngine is an open source Data Management Platform for news publishers wanting to leverage their reader and content data",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/j-norwood-young/revengine.git"
+  },
+  "keywords": [
+    "DMP",
+    "data",
+    "management",
+    "platform"
+  ],
+  "author": "Jason Norwood-Young <jason@10layer.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/j-norwood-young/revengine/issues"
+  },
+  "homepage": "https://github.com/j-norwood-young/revengine#readme"
+}
