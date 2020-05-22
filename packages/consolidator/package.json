@@ -1,6 +1,6 @@
 {
   "name": "revengine-consolidator",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Consolidates RevEngine hits from Kafka to Elasticsearch",
   "main": "index.js",
   "scripts": {
