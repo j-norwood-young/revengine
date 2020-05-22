@@ -1,0 +1,14 @@
+{
+    "name": "@revengine/common",
+    "version": "0.0.1",
+    "description": "RevEngine functions common to more than one component",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "dev": "env NODE_ENV=development nodemon index.js"
+    },
+    "author": "Jason Norwood-Young <jason@10layer.com>",
+    "license": "MIT",
+    "dependencies": {}
+}
