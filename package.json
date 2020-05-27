@@ -14,6 +14,7 @@
     "dev:consolidator": "env NODE_ENV=development nodemon packages/consolidator",
     "dev:tracker": "env NODE_ENV=development nodemon packages/tracker",
     "dev:api": "env NODE_ENV=development nodemon packages/api",
+    "test:pipeline": "env NODE_ENV=test mocha packages/pipeline/test/* --timeout=1000",
     "dev": "npm-run-all -p dev:*",
     "prod": "npm-run-all -p prod:*",
     "publish-all": "lerna publish"
