@@ -137,17 +137,17 @@ const get_hit = async (req, res) => {
         const url = req.url;
         if (!url) throw "No url";
         let parts = url.split("?");
-        if (parts.length !== 2) throw "Misformed url";
+        if (parts.length !== 2) throw `Misformed url ${url}`;
         let data = qs.parse(parts[1]);
-        if (!data) throw "No data";
-        if (!data.action) throw "No action";
+        if (!data) throw `No data ${url}`;
+        if (!data.action) throw `No action ${url}`;
         let index = null;
         if (data.action === "pageview") {
             index = "pageviews";
         }
         if (!index) throw `No index found for action ${data.action}`;
         const referer = req.headers.referer;
-        if (!referer) throw "No referer";
+        if (!referer) throw `No referer ${JSON.stringify(req.headers)}`;
         data.url = referer;
         data.user_agent = req.headers["user-agent"];
         const ua = Bowser.parse(data.user_agent);
