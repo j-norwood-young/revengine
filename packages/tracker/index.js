@@ -60,7 +60,8 @@ const hit = async (req, res) => {
                     error: JSON.stringify(err)
                 }))
                 res.end();
-                throw err;
+                console.error(err);
+                return null;
             }
             try {
                 if (!data) throw "No data";
@@ -75,7 +76,8 @@ const hit = async (req, res) => {
                 try {
                     utm = new utmExtractor(data.url).get();
                 } catch(err) {
-                    throw err;
+                    console.error(err);
+                    return null;
                 }
                 const esdata = {
                     index,
