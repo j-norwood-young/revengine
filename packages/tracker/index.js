@@ -126,10 +126,15 @@ const hit = async (req, res) => {
     }
 }
 
-
+console.log(`===${config.name} Tracker Started===`);
 http.createServer((req, res) => {
     if (req.url == '/favicon.ico') return;
+    if (config.debug) {
+        console.log(req.headers);
+    }
     hit(req, res)
 }).listen(port, host, () => {
-    console.log(`RevEngine Tracker listening ${host}:${port}`);
+    if (config.debug) {
+        console.log(`RevEngine Tracker listening ${host}:${port}`);
+    }
 });
