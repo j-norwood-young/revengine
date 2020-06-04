@@ -3,6 +3,7 @@ const http = require('http')
 const kafka = require('kafka-node');
 const Bowser = require("bowser");
 const utmExtractor = require("utm-extractor").Utm;
+const qs = require("qs");
 
 const name = config.name || "revengine";
 const port = config.tracker.port || 3012
@@ -34,7 +35,7 @@ client.createTopics([
     // console.log(result);
 });
 
-const hit = async (req, res) => {
+const post_hit = async (req, res) => {
     try {
         // console.log(req);
         let parts = [];
@@ -126,13 +127,92 @@ const hit = async (req, res) => {
     }
 }
 
+const get_hit = async (req, res) => {
+    res.writeHead(200, headers);
+    res.write(JSON.stringify({
+        status: "ok"
+    }))
+    res.end();
+    try {
+        const url = req.url;
+        if (!url) throw "No url";
+        let parts = url.split("?");
+        if (parts.length !== 2) throw "Misformed url";
+        let data = qs.parse(parts[1]);
+        if (!data) throw "No data";
+        if (!data.action) throw "No action";
+        let index = null;
+        if (data.action === "pageview") {
+            index = "pageviews";
+        }
+        if (!index) throw `No index found for action ${data.action}`;
+        const referer = req.headers.referer;
+        if (!referer) throw "No referer";
+        data.url = referer;
+        data.user_agent = req.headers["user-agent"];
+        const ua = Bowser.parse(data.user_agent);
+        let utm = {};
+        try {
+            utm = new utmExtractor(data.url).get();
+        } catch (err) {
+            console.error(err);
+            return null;
+        }
+        const esdata = {
+            index,
+            action: "hit",
+            article_id: data.post_id,
+            author_id: data.post_author,
+            derived_ua_browser: ua.browser.name,
+            derived_ua_browser_version: ua.browser.version,
+            derived_ua_device: ua.platform.type,
+            derived_ua_os: ua.os.name,
+            derived_ua_os_version: ua.os.version,
+            derived_ua_platform: ua.platform.vendor,
+            referer: data.referer,
+            signed_in: !!(data.user_id),
+            tags: data.post_tags,
+            sections: data.post_sections,
+            time: new Date(),
+            url: data.url,
+            user_agent: data.user_agent,
+            user_id: data.user_id,
+            utm_medium: utm.utm_medium,
+            utm_campaign: utm.utm_campaign,
+            utm_content: utm.utm_content,
+            utm_source: utm.utm_source,
+            utm_term: utm.utm_term,
+            browser_id: data.browser_id,
+        }
+        if (config.debug) {
+            console.log({ esdata });
+        }
+        await new Promise((resolve, reject) => {
+            producer.send([{
+                topic,
+                messages: JSON.stringify(esdata),
+            }], (err, data) => {
+                if (err) return reject(err);
+                return resolve(data);
+            });
+        });
+    } catch (err) {
+        console.error(err);
+    }
+}
+
 console.log(`===${config.name} Tracker Started===`);
 http.createServer((req, res) => {
     if (req.url == '/favicon.ico') return;
     if (config.debug) {
         console.log(req.headers);
     }
-    hit(req, res)
+    if (req.method === "POST" && req.headers["content-type"] === "application/json") {
+        post_hit(req, res)
+    }
+    if (req.method === "GET") {
+        get_hit(req, res);
+    }
 }).listen(port, host, () => {
     if (config.debug) {
         console.log(`RevEngine Tracker listening ${host}:${port}`);
