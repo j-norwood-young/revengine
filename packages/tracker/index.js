@@ -4,6 +4,7 @@ const kafka = require('kafka-node');
 const Bowser = require("bowser");
 const utmExtractor = require("utm-extractor").Utm;
 const qs = require("qs");
+const Referer = require('referer-parser');
 
 const name = config.name || "revengine";
 const port = config.tracker.port || 3012
@@ -34,6 +35,62 @@ client.createTopics([
     }
     // console.log(result);
 });
+
+const set_esdata = (index, data) => {
+    const ua = Bowser.parse(data.user_agent);
+    let utm = {};
+    try {
+        utm = new utmExtractor(data.url).get();
+    } catch (err) {
+        console.error(err);
+        return null;
+    }
+    let derived_referer_medium = "direct";
+    let derived_referer_source = "";
+    if (data.referer) {
+        let derived_referer = new Referer(data.referer, data.url);
+        derived_referer_medium = derived_referer.medium;
+        derived_referer_source = derived_referer.referer;
+        if (derived_referer_medium === "unknown") derived_referer_medium = "external";
+        if (config.debug) {
+            console.log({ known: derived_referer.known, referer: derived_referer.referer, medium: derived_referer.medium, search_parameter: derived_referer.search_parameter, search_term: derived_referer.search_term });
+        }
+    }
+    if (utm.utm_medium === "email") derived_referer_medium = "email";
+    const esdata = {
+        index,
+        action: "hit",
+        article_id: data.post_id,
+        author_id: data.post_author,
+        derived_ua_browser: ua.browser.name,
+        derived_ua_browser_version: ua.browser.version,
+        derived_ua_device: ua.platform.type,
+        derived_ua_os: ua.os.name,
+        derived_ua_os_version: ua.os.version,
+        derived_ua_platform: ua.platform.vendor,
+        derived_referer_medium,
+        derived_referer_source,
+        referer: data.referer,
+        signed_in: !!(data.user_id),
+        tags: data.post_tags,
+        sections: data.post_sections,
+        time: new Date(),
+        url: data.url,
+        user_agent: data.user_agent,
+        user_id: data.user_id,
+        utm_medium: utm.utm_medium,
+        utm_campaign: utm.utm_campaign,
+        utm_content: utm.utm_content,
+        utm_source: utm.utm_source,
+        utm_term: utm.utm_term,
+        browser_id: data.browser_id,
+    }
+    if (data.user_ip) esdata.user_ip = data.user_ip;
+    if (config.debug) {
+        console.log({ esdata });
+    }
+    return esdata;
+}
 
 const post_hit = async (req, res) => {
     try {
@@ -72,43 +129,7 @@ const post_hit = async (req, res) => {
                     index = "pageviews";
                 }
                 if (!index) throw `No index found for action ${data.action}`;
-                const ua = Bowser.parse(data.user_agent);
-                let utm = {};
-                try {
-                    utm = new utmExtractor(data.url).get();
-                } catch(err) {
-                    console.error(err);
-                    return null;
-                }
-                const esdata = {
-                    index,
-                    action: "hit",
-                    article_id: data.post_id,
-                    author_id: data.post_author,
-                    derived_ua_browser: ua.browser.name,
-                    derived_ua_browser_version: ua.browser.version,
-                    derived_ua_device: ua.platform.type,
-                    derived_ua_os: ua.os.name,
-                    derived_ua_os_version: ua.os.version,
-                    derived_ua_platform: ua.platform.vendor,
-                    referer: data.referer,
-                    signed_in: !!(data.user_id),
-                    tags: data.post_tags,
-                    sections: data.post_sections,
-                    time: new Date(),
-                    url: data.url,
-                    user_agent: data.user_agent,
-                    user_id: data.user_id,
-                    utm_medium: utm.utm_medium,
-                    utm_campaign: utm.utm_campaign,
-                    utm_content: utm.utm_content,
-                    utm_source: utm.utm_source,
-                    utm_term: utm.utm_term,
-                    browser_id: data.browser_id,
-                }
-                if (config.debug) {
-                    console.log({ esdata });
-                }
+                const esdata = set_esdata(index, data);
                 await new Promise((resolve, reject) => {
                     producer.send([{
                         topic,
@@ -150,43 +171,8 @@ const get_hit = async (req, res) => {
         if (!referer) throw `No referer ${JSON.stringify(req.headers)}`;
         data.url = referer;
         data.user_agent = req.headers["user-agent"];
-        const ua = Bowser.parse(data.user_agent);
-        let utm = {};
-        try {
-            utm = new utmExtractor(data.url).get();
-        } catch (err) {
-            console.error(err);
-            return null;
-        }
-        const esdata = {
-            index,
-            action: "hit",
-            article_id: data.post_id,
-            author_id: data.post_author,
-            derived_ua_browser: ua.browser.name,
-            derived_ua_browser_version: ua.browser.version,
-            derived_ua_device: ua.platform.type,
-            derived_ua_os: ua.os.name,
-            derived_ua_os_version: ua.os.version,
-            derived_ua_platform: ua.platform.vendor,
-            referer: data.referer,
-            signed_in: !!(data.user_id),
-            tags: data.post_tags,
-            sections: data.post_sections,
-            time: new Date(),
-            url: data.url,
-            user_agent: data.user_agent,
-            user_id: data.user_id,
-            utm_medium: utm.utm_medium,
-            utm_campaign: utm.utm_campaign,
-            utm_content: utm.utm_content,
-            utm_source: utm.utm_source,
-            utm_term: utm.utm_term,
-            browser_id: data.browser_id,
-        }
-        if (config.debug) {
-            console.log({ esdata });
-        }
+        if (req.headers["x-real-ip"]) data.user_ip = req.headers["x-real-ip"];
+        const esdata = set_esdata(index, data);
         await new Promise((resolve, reject) => {
             producer.send([{
                 topic,
