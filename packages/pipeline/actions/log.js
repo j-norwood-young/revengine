@@ -1,29 +1,17 @@
 const Action = require("./action")
-const _ = require("highland");
 
 class Log extends Action {
-    constructor(instructions, global_data) {
-        super(instructions, global_data);
-        console.log(`Log construct`);
-        return _.consume(this.main.bind(this));
+    constructor(...params) {
+        super(...params);
+        return this.run.bind(this);
     }
 
-    async main(err, val, push, next) {
-        console.log("Log main");
-        if (err) {
-            console.error(err);
-            push(err);
-            return next();
-        }
-        if (val === _.nil) {
-            console.log("End of stream");
-            return push(null, val);
-        }
-        console.log(val);
-        if (val) {
-            push(null, val);
-        }
-        next();
+    async run(...params) {
+        super.run(...params);
+        console.log({ index: this.index });
+        console.log({ global_data: this.global_data });
+        console.log({ data: this.data });
+        return await this.next(this.data);
     }
 }
 

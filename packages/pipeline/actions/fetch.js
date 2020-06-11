@@ -1,29 +1,39 @@
 const Action = require("./action")
 const fetch = require("node-fetch")
-const _ = require("highland");
 
 class Fetch extends Action {
-    constructor(instructions, global_data) {
-        super(instructions, global_data);
-        console.log(`Fetch construct`);
-        return _(this.main.bind(this));
+    constructor(...params) {
+        super(...params);
+        return this.run.bind(this);
     }
 
-    async main(push, next) {
-        console.log("main");
+    async run(...params) {
+        super.run(...params);
         try {
-            const result = await fetch(this.instructions.request);
-            let data = await result.json();
-            console.log({ data });
-            if (this.instructions.transform) {
-                data = await this.instructions.transform(data);
+            this.data = await fetch(this.instructions.request(this));
+            if (this.instructions.parse) {
+                console.log("Parsing", this.index);
+                this.data = await this.instructions.parse(this);
             }
-            this.data = data || [];
-            push(null, this.data);
-            push(null, _.nil);
-            // next();
+            if (this.instructions.transform) {
+                console.log("Transforming", this.index);
+                this.data = await this.instructions.transform(this);
+            }
+            if (this.instructions.map) {
+                console.log("Mapping", this.index);
+                this.data = this.data.map(this.instructions.map.bind(this));
+            }
+            if (this.instructions.reduce) {
+                console.log("Reducing", this.index);
+                this.data = this.data.reduce(...this.instructions.reduce)
+            }
+            if (!this.next_run) {
+                return await this.next(this.data);
+            }
+            return this.data;
         } catch(err) {
-            push(err);
+            console.error(err);
+            return Promise.reject(err);
         }
     }
 }
