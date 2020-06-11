@@ -33,5 +33,8 @@
         "token_expiry": 86400,
         "refresh_token_expiry": 2678400,
         "shared_secret": "97a09d2567af0073855e786c428cfc322e5300ae"
+    },
+    "content": {
+        "wordpress_api": "http://local.dailymaverick.com/wp-json/revengine/v1"
     }
 }

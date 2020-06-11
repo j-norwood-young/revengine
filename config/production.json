@@ -1,6 +1,6 @@
 {
     "name": "RevEngine",
-    "debug": false,
+    "debug": true,
     "kafka": {
         "server": "localhost:9092",
         "partitions": 1,
