@@ -11,7 +11,7 @@ const port = config.tracker.port || 3012
 const host = config.tracker.host || "127.0.0.1"
 const topic = config.tracker.kafka_topic || `${name}_events`;
 const headers = {
-    'Content-Type': 'text/json',
+    'Content-Type': 'text/html',
     'Content-Disposition': 'inline',
     'Access-Control-Allow-Origin': '*',
     'X-Powered-By': `${name}`
@@ -108,9 +108,7 @@ const post_hit = async (req, res) => {
                     console.log(data);
                 }
                 res.writeHead(200, headers);
-                res.write(JSON.stringify({
-                    status: "ok"
-                }))
+                res.write("");
                 res.end();
             } catch(err) {
                 res.writeHead(500, headers);
