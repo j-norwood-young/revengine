@@ -12,6 +12,7 @@ const host = config.tracker.host || "127.0.0.1"
 const topic = config.tracker.kafka_topic || `${name}_events`;
 const headers = {
     'Content-Type': 'text/json',
+    'Content-Disposition': 'inline',
     'Access-Control-Allow-Origin': '*',
     'X-Powered-By': `${name}`
 };
