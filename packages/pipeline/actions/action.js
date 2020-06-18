@@ -1,9 +1,10 @@
 class Action {
-    constructor(index, instructions, global_data) {
+    constructor(index, instructions, global_data, debug = false) {
         this.index = index;
         this.global_data = global_data || {};
         this.instructions = instructions;
         this.next_run = false;
+        this.debug = !!(debug);
     }
 
     run(pipeline, data) {
@@ -19,6 +20,10 @@ class Action {
         } else {
             return data;
         }
+    }
+
+    log(...params) {
+        if (this.debug) console.log(...params);
     }
 }
 

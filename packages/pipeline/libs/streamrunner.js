@@ -1,22 +1,20 @@
-const util = require("util");
-const stream = require("stream");
-
 const actions = {
     fetch: require("../actions/fetch"),
     map: require("../actions/map"),
     log: require("../actions/log"),
-
+    save: require("../actions/save"),
+    save_raw: require("../actions/save_raw"),
     // merge: highland.merge,
     // map: highland.map,
     // link: require("../actions/link"),
     // map: require("../actions/map"),
     // mock: require("../actions/mock"),
     // reduce: require("../actions/reduce"),
-    // save: require("../actions/save"),
+    
     // test: require("../actions/test"),
 }
 
-module.exports = async (pipeline) => {
+module.exports = async (pipeline, debug = false) => {
     try {
         if (!Array.isArray(pipeline)) throw("pipeline must be array");
         let data = [];
@@ -24,7 +22,7 @@ module.exports = async (pipeline) => {
         let pipeline_fns = [];
         for (let i in pipeline) {
             const stage = pipeline[i];
-            pipeline_fns.push(new actions[stage.action](i, stage.instructions, global_data));
+            pipeline_fns.push(new actions[stage.action](i, stage.instructions, global_data, debug));
         }
         const first = pipeline_fns.shift();
         data = await first(pipeline_fns, data);

@@ -10,21 +10,22 @@ class Fetch extends Action {
     async run(...params) {
         super.run(...params);
         try {
-            this.data = await fetch(this.instructions.request(this));
+            this.options = this.instructions.options || {};
+            this.data = await fetch(this.instructions.request(this), this.options);
             if (this.instructions.parse) {
-                console.log("Parsing", this.index);
+                this.log("Parsing", this.index);
                 this.data = await this.instructions.parse(this);
             }
             if (this.instructions.transform) {
-                console.log("Transforming", this.index);
+                this.log("Transforming", this.index);
                 this.data = await this.instructions.transform(this);
             }
             if (this.instructions.map) {
-                console.log("Mapping", this.index);
+                this.log("Mapping", this.index);
                 this.data = this.data.map(this.instructions.map.bind(this));
             }
             if (this.instructions.reduce) {
-                console.log("Reducing", this.index);
+                this.log("Reducing", this.index);
                 this.data = this.data.reduce(...this.instructions.reduce)
             }
             if (!this.next_run) {
@@ -32,6 +33,7 @@ class Fetch extends Action {
             }
             return this.data;
         } catch(err) {
+            console.log("Oops");
             console.error(err);
             return Promise.reject(err);
         }
