@@ -233,8 +233,7 @@ if (!config.mongo.options) config.mongo.options = {};
 const mongo_options = Object.assign(config.mongo.options, {
 	promiseLibrary: global.Promise,
 	useNewUrlParser: true,
-	useCreateIndex: true,
-	useUnifiedTopology: true
+	useCreateIndex: true
 });
 
 // mongodb connection
