@@ -1,29 +1,6 @@
 {
     "name": "RevEngine Dev",
     "debug": true,
-    "kafka": {
-        "server": "localhost:9092",
-        "partitions": 1,
-        "replication_factor": 0
-    },
-    "tracker": {
-        "port": 3013,
-        "host": "95.216.245.172",
-        "cache_size": 1,
-        "kafka_topic": "revengine_events"
-    },
-    "consolidator": {
-        "flush_timeout": 10000,
-        "consumer_group": "revengine_consumers",
-        "cache_size": 1,
-        "test_interval": 1000,
-        "indexes": {
-            "pageviews": [ "pageviews", "concurrents_by_browser" ]
-        }
-    },
-    "elasticsearch": {
-        "server": "localhost:9200"
-    },
     "api": {
         "port": 3002,
         "server": "http://localhost:3002",
@@ -35,7 +12,37 @@
         "refresh_token_expiry": 2678400,
         "shared_secret": "97a09d2567af0073855e786c428cfc322e5300ae"
     },
+    "consolidator": {
+        "flush_timeout": 10000,
+        "consumer_group": "revengine_consumers",
+        "cache_size": 1,
+        "test_interval": 1000,
+        "indexes": {
+            "pageviews": [ "pageviews", "concurrents_by_browser" ]
+        }
+    },
     "content": {
         "wordpress_api": "http://local.dailymaverick.com/wp-json/revengine/v1"
+    },
+    "elasticsearch": {
+        "server": "localhost:9200"
+    },
+    "frontend": {
+        "sitename": "DM RevEngine",
+        "secret": "VerySecret",
+        "shared_secret": "SharedSecret",
+        "url": "http://revengine.remp.dailymaverick.co.za/",
+        "port": 3014
+    },
+    "kafka": {
+        "server": "localhost:9092",
+        "partitions": 1,
+        "replication_factor": 0
+    },
+    "tracker": {
+        "port": 3013,
+        "host": "95.216.245.172",
+        "cache_size": 1,
+        "kafka_topic": "revengine_events"
     }
 }
