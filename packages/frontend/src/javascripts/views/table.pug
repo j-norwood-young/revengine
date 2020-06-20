@@ -1,0 +1,9 @@
+thead
+    tr
+        each field in table_fields
+            th= field.display
+tbody
+    each line in data
+        tr
+            each field, fieldname in table_fields
+                td= line[fieldname]

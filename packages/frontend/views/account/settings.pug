@@ -1,0 +1,44 @@
+extends ../layout
+
+block content
+    .container
+        h2= title
+        form(method="POST" autocomplete="off")
+            .card.mb-4
+                .card-body
+                    .form-group
+                        label Name
+                        input.form-control(name="name" value=user.name)
+                    .form-group
+                        label Email
+                        input.form-control(name="email" value=user.email)
+                    if (user.admin)
+                        .form-check
+                            input.form-check-input(type="checkbox" checked=user.admin)
+                            label.form-check-label Admin
+                .card-footer
+                    button.btn.btn-primary Save
+        form.change_password(method="POST" autocomplete="off")
+            .card.mb-4
+                .card-header
+                    h4 Change Password
+                .card-body
+                    .form-group
+                        label Password
+                        input.form-control(type="password" name="password")
+                    .form-group
+                        label Confirm Password
+                        input.form-control(type="password" name="confirm_password")
+                .card-footer
+                    button.btn.btn-primary(disabled) Save
+        .card.mb-4
+            .card-header
+                h4 API Key
+            .card-body
+                .form-group
+                    label User ID
+                    input.form-control(readonly="readonly" value=user._id)
+                .form-group
+                    label API Key
+                    input.form-control(readonly="readonly" value=apikey)
+

@@ -1,0 +1,56 @@
+extends ../layout
+
+block content
+    -
+        let labels = [];
+        for (label of reader.labels) {
+            labels.push(`<strong>${label.name}</strong>`);
+        }
+        if (labels.length > 1) {
+            labels[labels.length-1] = `and a ${labels[labels.length-1]}`
+        }
+    .container
+        h1= `${reader.display_name}`
+        .row
+            .col-sm-7
+                p
+                    - if (labels.length)
+                        != `${ reader.display_name } is a ${ labels.join(", ") }.`
+                p
+                    - if (reader.newsletters.length)
+                        != `${ reader.display_name } subscribes to <strong>${ reader.newsletters.length }</strong> newsletter${ reader.newsletters.length > 1 ? "s" : "" }.`
+                p
+                    - if (reader.visit_count)
+                        != `${ reader.display_name } has visited Daily Maverick's site <strong>${ reader.visit_count }</strong> time${ reader.visit_count > 1 ? "s" : "" }.`
+                p
+                    - if (reader.membership_product)
+                        != `They have an <strong>${reader.membership_status} ${reader.membership_product}</strong> subscription. This  subscription is worth <strong>ZAR${ reader.membership_value }</strong> per <strong>${ reader.membership_period }</strong>.`
+                p
+                    - if (reader.browser)
+                        != `${ reader.first_name } uses <strong>${ reader.browser }</strong> on <strong>${ reader.operating_system }</strong> on a <strong>${ reader.device.toLowerCase() }</strong> set to ${ reader.width }x${ reader.height }px. `
+                    - if (reader.email_client)
+                        != `They use <strong>${ reader.email_client }</strong> to read email.`
+                canvas#beamTimespentAvg.histogram
+                canvas#beamArticleProgress.histogram
+            .col-sm-3
+                img.img-fluid(src=`https://www.gravatar.com/avatar/${reader.email_hash}?s=200`)
+                .card.mt-2
+                    .card-body
+                        h2 Newsletters
+                        for newsletter in reader.newsletters
+                            .custom-control.custom-checkbox
+                                input.custom-control-input.list-checkbox-filter(type="checkbox" id=`newsletter-${newsletter}` value=newsletter checked="checked" readonly="readonly")
+                                label.custom-control-label(for=`newsletter-${newsletter}`)= newsletter
+        
+        #activitiesD3.mb-4
+        pre= JSON.stringify(activities, null, "\t")
+        pre= JSON.stringify(reader, null, "\t")
+    script.
+        const activities_d3 = new ActivitiesD3("#{reader._id}");
+        document.addEventListener("DOMContentLoaded", async (event) => {
+            const beam = new Beam();
+            let beamdata = await beam.getReader("#{reader._id}");
+            const charts = new Charts();
+            beam.drawCharts(beamdata);
+        })
+        

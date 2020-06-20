@@ -1,0 +1,15 @@
+doctype html
+html
+	head
+		title= title
+		link(rel='stylesheet', href='/stylesheets/style.css')
+		if apikey && apiserver
+			script.
+				var apikey = "#{apikey}";
+				var apiserver = "#{apiserver}";
+				var daemonserver = "#{daemonserver}";
+		script(src="/javascripts/main.bundle.js")
+	body
+		include navbar
+		block content
+		block scripts

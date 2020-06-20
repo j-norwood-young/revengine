@@ -1,0 +1,10 @@
+@import "./vars.scss";
+@import "./mixins";
+
+.big-number {
+    text-align: center;
+    .number {
+        font-size: 40px;
+        font-weight: bold;
+    }
+}

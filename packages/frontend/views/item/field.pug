@@ -1,0 +1,25 @@
+- if (!field.view) field.view = "text"
+- if (field.view === "text")
+    include text
+- if (field.view === "textarea")
+    include textarea
+- if (field.view === "number")
+    include number
+- if (field.view === "code")
+    include code
+- if (field.view === "multiselect")
+    include multiselect
+- if (field.view === "code_array")
+    include code_array
+- if (field.view === "checkbox")
+    include checkbox
+- if (field.view === "pre")
+    include pre
+- if (field.view === "json")
+    include json
+- if (field.view === "cron")
+    include cron
+if field.note
+    p
+        i.fa.fa-info-square.mr-2 
+        = field.note

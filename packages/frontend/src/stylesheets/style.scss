@@ -1,0 +1,70 @@
+@import "../../../../node_modules/codemirror/lib/codemirror";
+@import "./vars";
+@import "./mixins";
+
+@import "node_modules/bootstrap/scss/bootstrap";
+
+@import "./bignumber";
+
+.table {
+  background-color: $dark-bg;
+  td, th, tr, thead, tbody {
+    border-color: darken($color: $body-bg, $amount: 10);
+  }
+  thead th {
+    border-bottom-color: darken($color: $body-bg, $amount: 10);
+  }
+}
+
+pre {
+  background-color: $light;
+}
+
+.card {
+  background-color: $dark-bg;
+}
+
+.CodeMirror {
+  height: 100vh;
+}
+
+#primarySearchResults {
+    display: none;
+    width: 400px;
+    overflow-y: scroll;
+    max-height: 80vh;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    position: absolute;
+    right: 10px;
+    padding-right: 10px;
+}
+
+svg {
+    shape-rendering: crispEdges;
+}
+
+.day {
+  fill: #fff;
+  stroke: #ccc;
+}
+
+.month {
+  fill: none;
+  stroke: #000;
+  stroke-width: 2px;
+}
+
+.hide {
+  display: none;
+}
+
+.flex-horiz {
+  display: flex;
+  flex-direction: row;
+}
+
+.flex-vert {
+  display: flex;
+  flex-direction: column;
+}

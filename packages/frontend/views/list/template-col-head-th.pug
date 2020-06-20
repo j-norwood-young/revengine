@@ -1,0 +1,7 @@
+th.order-by(data-field=col.field)
+        | #{ col.name }
+        if (col.field === sortby)
+            if (sortdir === 1)
+                i.fa.fa-caret-down
+            else
+                i.fa.fa-caret-up

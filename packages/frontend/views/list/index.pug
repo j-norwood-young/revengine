@@ -1,0 +1,38 @@
+extends ../layout
+
+block content
+    .container
+        .container-flex
+            .d-md-flex
+                .flex-grow-1
+                    h2= title
+                    #countContainer.mb-3(style="opacity: 0")
+                        #count No #{ title } found
+                .input-group.col-md-3.col-sm-6.col-xs-12
+                    input#search_string.form-control(type="search")
+                    .input-group-append.mb-5
+                        button#btn_search.btn.btn-primary(type="button")
+                            i.fal.fa-search
+                div
+                    a.btn.btn-success(href="/item/add/"+type)
+                        i.fal.fa-plus
+            .d-md-flex.mb-4
+                .flex-grow-1#listActions
+            .d-md-flex.mb-4
+                .flex-grow-1#listFilters
+            .col-sm-1
+                .spinner-border.spinner-action.hide(role="status")
+                    span.sr-only Loading...
+            table#listTable.table.table-striped(data-type=type)
+
+    //-     <div class="row"><div class="col-md-12">{{> messages}}</div></div>
+    //-     <div id="listFilters" class="row mb-3"></div>
+    //-     <div id="listActions" class="row hide">
+    //-         <div class="col-sm-2 mb-3">
+    //-             <select id="group_actions" class="group-actions chzn" disabled="disabled">
+    //-                 <option value="" selected="selected">Group action</option>
+    //-                 <option value="delete">Delete</option>
+    //-             </select>
+    //-         </div>
+    //-         
+    //-     </div>

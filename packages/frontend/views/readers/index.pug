@@ -1,0 +1,37 @@
+extends ../layout
+
+block content
+    .container
+        h2 Readers
+        .row
+            .col
+                input.filter(data-field="search")
+            .col
+                select.filter(data-field="membership_status")
+                    option Insider
+                    option(value="active") Active
+            .col
+                select.filter(data-field="email_state")
+                    option Mail Subscription
+                    option(value="Active") Active
+                    option(value="Unsubscribed") Unsubscribed
+                    option(value="Bounced") Bounced
+                    
+        table.table.table-bordered.table-striped
+            thead
+                tr
+                    th Email
+                    th First Name
+                    th Last Name
+                    th Insider
+                    th Mail Subscription
+                    th Visit Count
+            tbody
+                each reader in readers
+                    tr
+                        td= reader.email
+                        td= reader.first_name
+                        td= reader.last_name
+                        td= reader.membership_status
+                        td= reader.email_state
+                        td= reader.visit_count

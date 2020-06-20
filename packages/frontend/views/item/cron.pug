@@ -1,0 +1,43 @@
+-
+    var parts = ["*", "*", "*", "*", "*"];
+    if (data[field.key]) {
+        parts = data[field.key].split(" ");
+    }
+    console.log(parts);
+.form-group.cron-group
+    label= field.name
+    .d-flex.flex-row
+        .d-flex.flex-column.mr-2
+            label= "Minute"
+            select.cron-select(data-part=0)
+                option(value="*" selected= parts[0]=="*") *
+                - var num = 0
+                while num < 60
+                    option(value=num selected= parts[0]==num)= num++
+        .d-flex.flex-column.mr-2
+            label= "Hour"
+            select.cron-select(data-part=1)
+                option(value="*"  selected= parts[1]=="*") *
+                - var num = 0
+                while num < 24
+                    option(value=num selected= parts[1]==num)= num++
+        .d-flex.flex-column.mr-2
+            label= "Day"
+            select.cron-select(data-part=2)
+                option(value="*"  selected= parts[2]=="*") *
+                - var num = 1
+                while num <= 31
+                    option(value=num selected= parts[2]==num)= num++
+        .d-flex.flex-column.mr-2
+            label= "Month"
+            select.cron-select(data-part=3)
+                option(value="*"  selected= parts[3]=="*") *
+                each val, index in ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+                    option(value=index+1 selected= parts[3]==num)= val
+        .d-flex.flex-column.mr-2
+            label= "Weekday"
+            select.cron-select(data-part=4)
+                option(value="*"  selected= parts[4]=="*") *
+                each val, index in ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+                    option(value=index selected= parts[4]==num)= val
+    input.form-control.mt-2(type="text" name=field.key value=data[field.key] readonly=field.readonly)

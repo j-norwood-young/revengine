@@ -1,0 +1,28 @@
+$body-bg: #343a40;
+$body-color: #adb0b2;
+
+$dark-bg: darken($color: $body-bg, $amount: 2);
+
+$blue: #007bff;
+$indigo: #674eec;
+$purple: #8445f7;
+$pink: #ff4169;
+$red: #c4183c;
+$orange: #fb7906;
+$yellow: #ffb400;
+$green: #17c671;
+$teal: #1adba2;
+$cyan: #00b8d8;
+$white: #fff;
+$gray: #868e96;
+$gray-dark: #343a40;
+$primary: lighten(#007bff, 15);
+$secondary: #5A6169;
+$success: #17c671;
+$info: #b8cdd0;
+$warning: #ffb400;
+$danger: #c4183c;
+$light: #FBFBFB;
+$dark: #212529;
+
+$font-size-base: 0.9rem;

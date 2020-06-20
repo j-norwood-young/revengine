@@ -1,0 +1,25 @@
+doctype html
+html
+    head
+        title= title
+        link(rel='stylesheet', href='/stylesheets/style.css')
+        script(src="/javascripts/main.bundle.js")
+    body
+        .container
+            h1 Maverick Insiders
+            h5 Login
+            if msg
+                .alert.alert-warning
+                    = msg
+            form(method="POST").card.mt-5.mb-5
+                input(type="hidden" name="login" value="1")
+                .card-body
+                    .form-group
+                        label(for="email") Email
+                        input(type="email" name="email").form-control
+                        label(for="password") Password
+                        input(type="password" name="password").form-control
+                .card-footer
+                    .form-group
+                        input(type="submit" value="Submit").btn.btn-primary
+            a(href="/login/forgot") Forgot password?

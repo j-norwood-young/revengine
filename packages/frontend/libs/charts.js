@@ -1,0 +1,167 @@
+// Inspiration for how to draw chart.js server-side from https://github.com/shellyln/chart.js-node-ssr-example
+const ChartJS = require("chart.js");
+const { createCanvas } = require('canvas');
+const Color = require("color");
+
+class Charts {
+    constructor(width, length) {
+        this.width = width || 800;
+        this.length = length || 400;
+        this.node = (typeof process !== 'undefined' && process.versions && process.versions.node);
+        if (this.node) {
+            this.canvas = createCanvas(this.width, this.length);
+            this.ctx = this.canvas.getContext('2d');
+            this.ctx.canvas = {
+                width: this.width,
+                height: this.length,
+                style: {
+                    width: `${this.width}px`,
+                    height: `${this.length}px`,
+                },
+            };
+        }
+    }
+
+    nodify(ctx, opts) {
+        let el = null;
+        if (this.node) {
+            opts.options.devicePixelRatio = 1;
+            // Disable animations.
+            opts.options.animation = false;
+            opts.options.events = [];
+            opts.options.responsive = false;
+            el = { getContext: () => this.ctx };
+        } else {
+            el = ctx;
+        }
+        return [el, opts];
+    }
+
+    drawHistogram(type, data, agg, colour, label, unit) {
+        unit = unit || "month";
+        type = type || "line";
+        const mapped = item => {
+            return {
+                x: item.key_as_string,
+                y: (item[agg].value) ? item[agg].value : 0
+            }
+        };
+        const prepared_data = data.buckets.map(mapped).filter(d => d.y);
+        let opts = {
+            type,
+            data: {
+                labels: prepared_data.map(d => d.x),
+                datasets: [{
+                    data: prepared_data.map(d => d.y),
+                    label,
+                    backgroundColor: Color(colour).alpha(0.5).rgb().string(),
+                    borderColor: Color(colour).alpha(0.8).rgb().string(),
+                    highlightFill: Color(colour).alpha(0.75).rgb().string(),
+                    highlightStroke: Color(colour).alpha(1).rgb().string(),
+                }]
+            },
+            options: {
+                scales: {
+                    xAxes: [{
+                        type: 'time',
+                        time: {
+                            unit
+                        }
+                    }],
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true,
+                        }
+                    }]
+                }
+            }
+        };
+        new ChartJS.Chart(...this.nodify(null, opts));
+    }
+
+    drawTimeSpent(timespent_avg, ctx, unit) {
+        unit = unit || "month";
+        const mapped = item => {
+            return {
+                x: item.key_as_string,
+                y: (item.timespent_avg.value) ? item.timespent_avg.value : 0
+            }
+        };
+        const data = timespent_avg.buckets.map(mapped).filter(d => d.y);
+        let opts = {
+            type: 'line',
+            data: {
+                labels: data.map(d => d.x),
+                datasets: [{
+                    data: data.map(d => d.y),
+                    label: "Avg Time Spent / Article",
+                    backgroundColor: "rgba(66, 245, 182, 0.5)",
+                    borderColor: "rgba(66, 245, 182, 0.8)",
+                    highlightFill: "rgba(66, 245, 182, 0.75)",
+                    highlightStroke: "rgba(66, 245, 182, 1)",
+                }]
+            },
+            options: {
+                scales: {
+                    xAxes: [{
+                        type: 'time',
+                        time: {
+                            unit
+                        }
+                    }]
+                }
+            }
+        };
+        new ChartJS.Chart(...this.nodify(ctx, opts));
+    }
+
+    drawArticleProgress(article_progress, ctx, unit) {
+        unit = unit || "month";
+        const mapped = item => {
+            console.log({ item })
+            return {
+                x: item.key_as_string,
+                y: (item.article_progress_avg.value) ? item.article_progress_avg.value : 0
+            }
+        };
+        console.log({ article_progress});
+        const data = article_progress.buckets.map(mapped).filter(d => d.y);
+        let opts = {
+            type: 'line',
+            data: {
+                labels: data.map(d => d.x),
+                datasets: [{
+                    data: data.map(d => d.y),
+                    label: "Article Progress",
+                    backgroundColor: "rgba(66, 135, 245, 0.5)",
+                    borderColor: "rgba(66, 135, 245, 0.8)",
+                    highlightFill: "rgba(66, 135, 245, 0.75)",
+                    highlightStroke: "rgba(66, 135, 245, 1)",
+                }]
+            },
+            options: {
+                scales: {
+                    xAxes: [{
+                        type: 'time',
+                        time: {
+                            unit
+                        }
+                    }],
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true,
+                            suggestedMax: 1
+                        }
+                    }]
+                }
+            }
+        }
+        new ChartJS.Chart(...this.nodify(ctx, opts));
+    }
+
+    toDataURL() {
+        return this.canvas.toDataURL();
+    }
+}
+
+module.exports = Charts;

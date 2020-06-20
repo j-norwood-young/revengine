@@ -1,0 +1,31 @@
+extends ../layout
+
+block content
+    .container
+        form(method="POST" autocomplete="off")
+            input(type="hidden" name="__save" value="true")
+            .container
+                .d-md-flex
+                    .flex-grow-1
+                        h2= title
+                    div.mr-2
+                        a.btn.btn-danger(href=`/item/delete/${type}/${data._id}`)
+                            i.fal.fa-trash
+                    div
+                        button.btn.btn-success(type="submit")
+                            i.fal.fa-save
+                if collection.note
+                    .alert.alert-primary
+                        h4 Note
+                        p= collection.note
+                .d-md-flex.mb-2
+                    .flex-grow-1
+                        if (collection.actions)
+                            each action, id in collection.actions
+                                a.list-action.btn.btn-primary.mr-2(href="#" data-id=id)= action.name
+                each field in collection.fields
+                    include ./field
+
+block scripts
+    script.
+        new Edit("#{data._id}", "#{type}");
