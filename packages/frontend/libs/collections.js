@@ -2,6 +2,7 @@
 const formatNumber = require("./utils").formatNumber;
 const $ = require("jquery");
 const moment = require("moment-timezone");
+const { data } = require("jquery");
 
 class Collections {
     constructor(opts) {
@@ -98,13 +99,11 @@ class Collections {
                 name: "Data Pipeline",
                 fields: [
                     { name: "Name", key: "name", d: data => data.name, link, list_view },
-                    { name: "Description", key: "description", d: data => data.description },
-                    { name: "UrlID", key: "urlid", readonly, d: data => data.urlid },
-                    { name: "Run Schedule", key: "run_schedule", d: data => data.run_schedule, view: "cron" },
+                    { name: "Cron", key: "cron", d: data => data.cron, view: "cron" },
                     { name: "Running", key: "running", view: "checkbox", readonly },
-                    { name: "Date Last Completed", key: "date_last_complete", readonly, d: data => data.date_last_complete },
-                    { name: "Stages", key: "stages", readonly, d: data => data.urlid },
-                    { name: "Globals", key: "globals", readonly, d: data => data.globals },
+                    { name: "Last run end", key: "last_run_end", readonly, d: data => data.last_run_end, list_view },
+                    { name: "Last run start", key: "last_run_start", readonly, d: data => data.last_run_start },
+                    { name: "Pipeline", key: "pipeline", d: data => data.pipeline, view: "code" },
                 ]
             },
             touchbaselist: {

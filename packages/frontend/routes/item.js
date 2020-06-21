@@ -38,7 +38,7 @@ router.use("/edit/:type/:id", getCollection, async (req, res) => {
         if (req.body.__save) {
             await req.apihelper.put(req.params.type, req.params.id, req.body);
         }
-        const data = await req.apihelper.getOne(req.params.type, req.params.id);
+        const data = (await req.apihelper.getOne(req.params.type, req.params.id)).data;
         res.render("item/edit", { title: data.name || res.locals.collection.name, data, type: req.params.type });
     } catch (err) {
         console.error(err);
