@@ -29,6 +29,7 @@
     },
     "api": {
         "port": 4001,
+        "server": "http://localhost:4001",
         "mongo": {
             "connection_string": "mongodb://localhost/revengine-prod?retryWrites=true&w=majority",
             "options": {}
@@ -36,5 +37,12 @@
         "token_expiry": 86400,
         "refresh_token_expiry": 2678400,
         "shared_secret": "97a09d2567af0073855e786c428cfc322e5300ae"
+    },
+    "frontend": {
+        "sitename": "DM RevEngine",
+        "secret": "VerySecret",
+        "shared_secret": "SharedSecret",
+        "url": "http://revengine.remp.dailymaverick.co.za/",
+        "port": 4014
     }
 }
