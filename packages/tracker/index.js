@@ -167,7 +167,7 @@ const get_hit = async (req, res) => {
         }
         if (!index) throw `No index found for action ${data.action}`;
         const referer = req.headers.referer;
-        if (!referer) throw `No referer ${JSON.stringify(req.headers)}`;
+        if (!referer) return; // This is common with bots or noreferrer policy, we can't track it anyway, so don't worry about throwing an error
         data.url = referer;
         data.user_agent = req.headers["user-agent"];
         if (req.headers["x-real-ip"]) data.user_ip = req.headers["x-real-ip"];
