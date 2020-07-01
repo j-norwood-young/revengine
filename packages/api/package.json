@@ -8,7 +8,7 @@
 		"start": "node bin/server.js"
 	},
 	"dependencies": {
-		"jxp": "^2.0.1-4"
+		"jxp": "^2.1.0-0"
 	},
 	"author": "Jason Norwood-Young <jason@10layer.com>",
 	"license": "MIT"
