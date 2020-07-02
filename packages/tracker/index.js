@@ -57,6 +57,9 @@ const set_esdata = (index, data) => {
             console.log({ known: derived_referer.known, referer: derived_referer.referer, medium: derived_referer.medium, search_parameter: derived_referer.search_parameter, search_term: derived_referer.search_term });
         }
     }
+    if (data.user_id === "0") {
+        data.user_id = null;
+    }
     if (utm.utm_medium === "email") derived_referer_medium = "email";
     const esdata = {
         index,
