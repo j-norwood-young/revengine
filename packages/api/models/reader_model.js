@@ -8,7 +8,7 @@ const Segment = require("./segment_model");
 const TouchbaseSubscriber = require("./touchbasesubscriber_model");
 const TouchbaseList = require("./touchbaselist_model");
 const WoocommerceCustomer = require("./woocommercecustomer_model");
-const WoocommerceSubscription = require("./woocommercesubscription_model");
+const WoocommerceSubscription = require("./woocommerce_subscription_model");
 const WordpressUser = require("./wordpressuser_model");
 const Rempuserhit = require("./rempuserhit_model");
 
