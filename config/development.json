@@ -12,6 +12,10 @@
         "refresh_token_expiry": 2678400,
         "shared_secret": "97a09d2567af0073855e786c428cfc322e5300ae"
     },
+    "bigquery": {
+        "keyFilename": "/root/daily-maverick-265110-0b8301e84f36.json",
+        "projectId": "revengine"
+    },
     "consolidator": {
         "flush_timeout": 10000,
         "consumer_group": "revengine_consumers",
