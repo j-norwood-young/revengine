@@ -16,9 +16,9 @@ class Collections {
                 sortby: "published_at",
                 sortdir: -1,
                 fields: [
-                    { name: "Date Published", key: "published_at", d: data => moment(data.published_at).format("YYYY-MM-DD HH:mm"), list_view },
-                    { name: "Headline", key: "headline", d: data => `<a href="/article/view/${data._id}">${data.headline}</a>`, list_view },
-                    { name: "Link", key: "url", d: data => `<a href="${data.url}" target="_blank"><i class="fa fa-link"></i></a>` || "", list_view },
+                    { name: "Date Published", key: "date_published", d: data => moment(data.date_published).format("YYYY-MM-DD HH:mm"), list_view },
+                    { name: "Headline", key: "title", d: data => `<a href="/article/view/${data._id}">${data.title}</a>`, list_view },
+                    { name: "Link", key: "url", d: data => `<a href="https://www.dailymaverick.co.za/article/${data.urlid}" target="_blank"><i class="fa fa-link"></i></a>` || "", list_view },
                     { name: "Author", key: "author", d: data => data.author || "", list_view },
                     // { name: "Sections", key: "sections", d: data => data.sections || "", list_view },
                 ],
@@ -100,9 +100,9 @@ class Collections {
                 fields: [
                     { name: "Name", key: "name", d: data => data.name, link, list_view },
                     { name: "Cron", key: "cron", d: data => data.cron, view: "cron" },
-                    { name: "Running", key: "running", view: "checkbox", readonly },
+                    { name: "Running", key: "running", view: "checkbox", readonly, d: data => (data) ? "Yes" : "No", list_view },
+                    { name: "Last run start", key: "last_run_start", readonly, d: data => data.last_run_start, list_view },
                     { name: "Last run end", key: "last_run_end", readonly, d: data => data.last_run_end, list_view },
-                    { name: "Last run start", key: "last_run_start", readonly, d: data => data.last_run_start },
                     { name: "Pipeline", key: "pipeline", d: data => data.pipeline, view: "code" },
                 ]
             },
