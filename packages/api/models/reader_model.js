@@ -12,10 +12,40 @@ const WoocommerceSubscription = require("./woocommerce_subscription_model");
 const WordpressUser = require("./wordpressuser_model");
 const Rempuserhit = require("./rempuserhit_model");
 
-const ReaderSchema = new Schema({
-    email: { type: String, index: true, unique: true, lowercase: true, trim: true },
+const ReaderSchema = new JXPSchema({
+    id: { type: Number, index: true, unique: true, sparse: true },
+    current_login: Date,
+    description: String,
+    display_name: String,
     first_name: { type: String, trim: true },
     last_name: { type: String, trim: true },
+    last_login: Date,
+    last_update: Date,
+    nickname: String,
+    session_tokens: [ Mixed ],
+    paying_customer: Boolean,
+    user_email: String,
+    user_login: String,
+    user_nicename: String,
+    user_pass: String,
+    user_registered: Date,
+    user_url: String,
+    wc_last_active: Date,
+    wp_capabilities: [ Mixed ],
+    wp_user_level: Number,
+    wsl_current_provider: String,
+    wsl_current_user_image: String,
+    billing_phone: String,
+    "dm-ad-free-interacted": Boolean,
+    "dm-ad-free-toggle": Boolean,
+    gender: String,
+    user_dob: String,
+    user_industry: String,
+    user_facebook: String,
+    user_twitter: String,
+
+    email: { type: String, index: true, unique: true, lowercase: true, trim: true },
+    
     touchbasesubscriber: [{ type: ObjectId, ref: "TouchbaseSubscriber" }],
     woocommercecustomer: [{ type: ObjectId, ref: "WoocommerceCustomer" }],
     woocommercesubscription: [{ type: ObjectId, ref: "WoocommerceSubscription" }],
@@ -91,29 +121,16 @@ const ReaderSchema = new Schema({
     _owner_id: ObjectId
 },
 {
-    toObject: {
-        virtuals: true
-    },
-    toJSON: {
-        virtuals: true
-    },
-    timestamps: true,
-    writeConcern: {
-        w: 'majority',
-        j: true,
-        wtimeout: 1000
-    },
-});
-
-// We can set permissions for different user types and user groups
-ReaderSchema.set("_perms", {
-    admin: "crud", // CRUD = Create, Retrieve, Update and Delete
-    owner: "crud",
-    user: "r",
+    perms: {
+        admin: "crud",
+        owner: "crud",
+        user: "r",
+    }
 });
 
 // Lowercase email
 ReaderSchema.pre("save", function() {
+    if (this.user_email) this.email = this.user_email;
     this.email = this.email.toLowerCase();
 })
 
@@ -158,27 +175,7 @@ ReaderSchema.pre("save", async function () {
         if (user.first_name) item.first_name = user.first_name;
         if (user.last_name) item.last_name = user.last_name;
     }
-    if (item.wordpressuser.length) {
-        let user = await WordpressUser.findById(item.wordpressuser[0]);
-        if (!user) continue;
-        if (user.first_name) item.first_name = user.first_name;
-        if (user.last_name) item.last_name = user.last_name;
-    }
-    // await item.save();
 });
-
-// Wordpress data
-ReaderSchema.pre("save", async function () {
-    const item = this;
-    if (!item.wordpressuser.length) return;
-    for (let wordpressuser_id of item.wordpressuser) {
-        let user = await WordpressUser.findById(wordpressuser_id);
-        if (!user) continue;
-        item.date_created = user.date_created;
-        item.wordpress_id = user.id;
-        item.wordpress_roles = user.roles;
-    }
-})
 
 // Touchbase data
 ReaderSchema.pre("save", async function () {
@@ -216,4 +213,5 @@ ReaderSchema.pre("save", async function () {
 });
 
 // const Reader 
-module.exports = Reader = mongoose.model('Reader', ReaderSchema)
+const Reader = mongoose.model('Reader', ReaderSchema);
+module.exports = Reader;
