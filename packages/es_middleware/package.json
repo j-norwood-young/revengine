@@ -1,0 +1,20 @@
+{
+  "name": "@revengine/es_middleware",
+  "version": "0.0.1",
+  "description": "An API that gives an end-user perspective on hit data stored in ElasticSearch",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jason Norwood-Young <jason@10layer.com>",
+  "license": "MIT",
+  "dependencies": {
+    "config": "^3.3.1",
+    "elasticsearch": "^16.7.1",
+    "jxp-helper": "^1.2.0",
+    "restify": "^8.5.1",
+    "restify-cors-middleware": "^1.1.1",
+    "restify-plugins": "^1.6.0",
+    "restler-q": "^0.1.1"
+  }
+}
