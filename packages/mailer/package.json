@@ -1,0 +1,18 @@
+{
+  "name": "@revengine/mailer",
+  "version": "0.0.1",
+  "description": "Sends out regular email reports",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jason Norwood-Young <jason@10layer.com>",
+  "license": "MIT",
+  "dependencies": {
+    "config": "^3.3.1",
+    "jxp-helper": "^1.2.0",
+    "nodemailer": "^6.4.10",
+    "pug": "3.0.0",
+    "moment": "2.27.0"
+  }
+}
