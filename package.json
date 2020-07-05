@@ -20,6 +20,7 @@
     "dev:content": "env NODE_ENV=development nodemon packages/content",
     "dev:pipeline": "env NODE_ENV=development nodemon packages/pipeline",
     "dev:frontend": "env NODE_ENV=development nodemon --trace-uncaught packages/frontend/bin/www --config packages/frontend/nodemon.json",
+    "dev:mailer": "env NODE_ENV=development nodemon --trace-uncaught packages/mailer",
     "test:pipeline": "env NODE_ENV=test mocha packages/pipeline/test/* --timeout=1000",
     "dev": "npm-run-all -p dev:*",
     "prod": "npm-run-all -p prod:*",
