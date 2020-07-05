@@ -16,10 +16,10 @@ class Save extends Action {
         try {
             if (Array.isArray(this.data)) {
                 for (let data of this.data) {
-                    await this.postput(this.instructions.contenttype, this.instructions.key, data);
+                    await this.postput(this.instructions.collection, this.instructions.key, data);
                 }
             } else {
-                await this.postput(this.instructions.contenttype, this.instructions.key, this.data);
+                await this.postput(this.instructions.collection, this.instructions.key, this.data);
             }
             return this.data;
         } catch (err) {
@@ -29,8 +29,8 @@ class Save extends Action {
         }
     }
 
-    async postput(contenttype, key, data) {
-        const result = await jxphelper.postput(contenttype, key, data);
+    async postput(collection, key, data) {
+        const result = await jxphelper.postput(collection, key, data);
         this.log(result);
     }
 }
