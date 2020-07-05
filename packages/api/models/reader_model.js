@@ -44,7 +44,7 @@ const ReaderSchema = new JXPSchema({
     user_facebook: String,
     user_twitter: String,
 
-    email: { type: String, index: true, unique: true, lowercase: true, trim: true },
+    email: { type: String, index: true, unique: true, lowercase: true, trim: true, sparse: true },
     
     touchbasesubscriber: [{ type: ObjectId, ref: "TouchbaseSubscriber" }],
     woocommercecustomer: [{ type: ObjectId, ref: "WoocommerceCustomer" }],
