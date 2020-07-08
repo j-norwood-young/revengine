@@ -7,6 +7,7 @@ const Woocommerce_MembershipSchema = new JXPSchema({
     "start_date": Date,
     "end_date": Date,
     "cancelled_date": Date,
+    "paused_date": Date,
     "paused_intervals": [ Mixed ],
     "date_created": Date,
     "date_modified": Date,
