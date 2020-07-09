@@ -1,7 +1,7 @@
 /* global JXPSchema ObjectId Mixed */
 
 const Woocommerce_OrderSchema = new JXPSchema({
-    id: Number, 
+    id: { type: Number, index: true }, 
     customer_id: Number, 
     customer_ip_address: String, 
     customer_user_agent: String, 
