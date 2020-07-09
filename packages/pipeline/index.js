@@ -1,4 +1,5 @@
 const cron = require("node-cron");
+const http = require("http");
 const streamrunner = require("./libs/streamrunner");
 const Apihelper = require("jxp-helper");
 const config = require("config");
@@ -6,12 +7,12 @@ require("dotenv").config();
 const apihelper = new Apihelper({ server: config.api.server, apikey: process.env.APIKEY });
 const schedule = "* * * * *";
 const crypto = require('crypto');
+const server = require("@revengine/http_server");
 
-const main = () => {
+const scheduler = () => {
     let schedules = [];
     let hash = "";
     cron.schedule(schedule, async () => {
-        // console.log("Checking pipeline...");
         const pipelines = (await apihelper.get("pipeline", { fields: "pipeline,cron,name" })).data;
         const newhash = crypto.createHash('md5').update(JSON.stringify(pipelines)).digest("hex");
         if (newhash !== hash) {
@@ -22,38 +23,49 @@ const main = () => {
                 schedule.destroy();
             }
             for (let pipeline of pipelines) {
-                let schedule = cron.schedule(pipeline.cron, async () => {
-                    let running = (await apihelper.getOne("pipeline", pipeline._id)).running;
-                    if (running) return;
-                    console.log(`Running ${pipeline.name}`);
-                    const d_start = new Date();
-                    await apihelper.put("pipeline", pipeline._id, { running: true, run_start: d_start });
-                    const result = await streamrunner(eval(pipeline.pipeline));
-                    const d_end = new Date();
-                    await apihelper.put("pipeline", pipeline._id, { running: false, last_run_start: d_start, last_run_end: d_end, last_run_result: result.slice(0, 3) });
-                    console.log(`Completed ${pipeline.name}, took ${d_end - d_start}`);
-                });
+                let schedule = cron.schedule(pipeline.cron, run_pipeline(pipeline._id));
                 schedules.push(schedule);
             }
         }
     })
-    
-    // const schedules = [];
-    // for (let pipeline of pipelines) {
-    //     console.log(`Scheduling ${pipeline.name} for ${pipeline.cron}`)
-    //     let schedule = cron.schedule(pipeline.cron, async () => {
-    //         let running = (await apihelper.getOne("pipeline", pipeline._id)).running;
-    //         if (running) continue;
-    //         console.log(`Running ${pipeline.name}`);
-    //         const d_start = new Date();
-    //         await apihelper.put("pipeline", pipeline._id, { running: true, run_start: d_start });
-    //         const result = await streamrunner(eval(pipeline.pipeline));
-    //         const d_end = new Date();
-    //         await apihelper.put("pipeline", pipeline._id, { running: false, last_run_start: d_start, last_run_end: d_end, last_run_result: result.slice(0,3) });
-    //         console.log(`Completed ${pipeline.name}, took ${d_end - d_start}`);
-    //     })
-    //     schedules.push(schedule);
-    // }
 }
 
-main();
+const run_pipeline = async pipeline_id => {
+    const pipeline = (await apihelper.getOne("pipeline", pipeline_id)).data;
+    if (pipeline.running) return {
+        result: "warning",
+        msg: "Pipeline already running"
+    };
+    console.log(`Running ${pipeline.name}`);
+    const d_start = new Date();
+    await apihelper.put("pipeline", pipeline._id, { running: true, run_start: d_start });
+    const result = await streamrunner(eval(pipeline.pipeline));
+    const d_end = new Date();
+    await apihelper.put("pipeline", pipeline._id, { running: false, last_run_start: d_start, last_run_end: d_end, last_run_result: result.slice(0, 3) });
+    console.log(`Completed ${pipeline.name}, took ${d_end - d_start}`);
+    return {
+        result: "success",
+        msg: `Completed ${pipeline.name}, took ${d_end - d_start}`,
+        pipeline,
+        last_run_start: d_start, 
+        last_run_end: d_end, 
+        last_run_result: result.slice(0, 3)
+    }
+}
+
+server.get("/run/:pipeline_id", async (req, res, next) => {
+    try {
+        const pipeline_id = req.params.pipeline_id;
+        const result = await run_pipeline(pipeline_id);
+        res.send(result);
+    } catch(err) {
+        console.error(err);
+        res.send("An error occured");
+    }
+});
+
+server.listen(config.pipeline.port || 3018, function () {
+    console.log('%s listening at %s', server.name, server.url);
+});
+
+scheduler();
