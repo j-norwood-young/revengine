@@ -1,3 +1,4 @@
+const _ = require("lodash");
 const Action = require("./action");
 const JXPHelper = require("jxp-helper");
 const config = require("config");
@@ -14,6 +15,7 @@ class Get extends Action {
     async run(...params) {
         super.run(...params);
         try {
+            const tmp = _.cloneDeep(this.data);
             this.options = this.instructions.options || {};
             this.data = await jxphelper.get(this.instructions.collection, this.options);
             if (this.instructions.parse) {
@@ -33,7 +35,9 @@ class Get extends Action {
                 this.data = this.data.reduce(...this.instructions.reduce)
             }
             if (this.instructions.global) {
+                this.log("Setting global data");
                 this.global_data = this.data;
+                this.data = tmp;
             }
             if (!this.next_run) {
                 return await this.next(this.data, this.global_data);

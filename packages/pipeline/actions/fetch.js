@@ -1,5 +1,6 @@
 const Action = require("./action")
 const fetch = require("node-fetch")
+const _ = require("lodash");
 
 class Fetch extends Action {
     constructor(...params) {
@@ -10,6 +11,7 @@ class Fetch extends Action {
     async run(...params) {
         super.run(...params);
         try {
+            const tmp = _.cloneDeep(this.data);
             this.options = this.instructions.options || {};
             this.data = await fetch(this.instructions.request(this), this.options);
             if (this.instructions.parse) {
@@ -29,14 +31,15 @@ class Fetch extends Action {
                 this.data = this.data.reduce(...this.instructions.reduce)
             }
             if (this.instructions.global) {
+                this.log("Setting global data");
                 this.global_data = this.data;
+                this.data = tmp;
             }
             if (!this.next_run) {
                 return await this.next(this.data, this.global_data);
             }
             return this.data;
         } catch(err) {
-            console.log("Oops");
             console.error(err);
             return Promise.reject(err);
         }

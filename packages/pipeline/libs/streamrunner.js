@@ -26,7 +26,7 @@ module.exports = async (pipeline, debug = false) => {
             pipeline_fns.push(new actions[stage.action](i, stage.instructions, global_data, debug));
         }
         const first = pipeline_fns.shift();
-        data = await first(pipeline_fns, data);
+        data = await first(pipeline_fns, data, global_data);
         return data;
     } catch(err) {
         return Promise.reject(err);

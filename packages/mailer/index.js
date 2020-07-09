@@ -34,7 +34,7 @@ const main = async () => {
 const daily_churn = async () => {
     try {
         console.log( moment().subtract(1, "day").startOf("day").format("YYYY-MM-DD") );
-        const subscriptions = (await jxphelper.get("woocommerce_subscription", { "sort[date_created]": -1, limit: 1000, "filter[date_created]": `$gte: ${moment().subtract(1, "day").startOf("day").format("YYYY-MM-DD")}` })).data;
+        const subscriptions = (await jxphelper.get("woocommerce_subscription", { "sort[date_created]": -1, limit: 1000, "filter[date_created]": `$gte: ${moment().subtract(2, "day").startOf("day").format("YYYY-MM-DD")}` })).data;
         console.log(subscriptions);
         const template = pug.compileFile(path.join(__dirname, "./templates/daily_churn.pug"));
         return template({ subscriptions });

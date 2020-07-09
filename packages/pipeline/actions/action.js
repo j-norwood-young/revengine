@@ -7,17 +7,18 @@ class Action {
         this.debug = !!(debug);
     }
 
-    run(pipeline, data) {
+    run(pipeline, data, global_data) {
         this.pipeline = pipeline;
         this.data = data;
+        this.global_data = Object.assign(global_data || {}, this.global_data);
     }
 
     async next(data, global_data) {
         this.next_run = true;
-        this.global_data = Object.assign(global_data, this.global_data);
+        this.global_data = Object.assign(global_data || {}, this.global_data);
         if (this.pipeline.length) {
             const fn = this.pipeline[0];
-            return await fn(this.pipeline.slice(1), data);
+            return await fn(this.pipeline.slice(1), data, this.global_data);
         } else {
             return data;
         }
