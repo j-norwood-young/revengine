@@ -31,25 +31,31 @@ const scheduler = () => {
 }
 
 const run_pipeline = async pipeline_id => {
-    const pipeline = (await apihelper.getOne("pipeline", pipeline_id)).data;
-    if (pipeline.running) return {
-        result: "warning",
-        msg: "Pipeline already running"
-    };
-    console.log(`Running ${pipeline.name}`);
     const d_start = new Date();
-    await apihelper.put("pipeline", pipeline._id, { running: true, run_start: d_start });
-    const result = await streamrunner(eval(pipeline.pipeline));
-    const d_end = new Date();
-    await apihelper.put("pipeline", pipeline._id, { running: false, last_run_start: d_start, last_run_end: d_end, last_run_result: result.slice(0, 3) });
-    console.log(`Completed ${pipeline.name}, took ${d_end - d_start}`);
-    return {
-        result: "success",
-        msg: `Completed ${pipeline.name}, took ${d_end - d_start}`,
-        pipeline,
-        last_run_start: d_start, 
-        last_run_end: d_end, 
-        last_run_result: result.slice(0, 3)
+    try {
+        const pipeline = (await apihelper.getOne("pipeline", pipeline_id)).data;
+        if (pipeline.running) return {
+            result: "warning",
+            msg: "Pipeline already running"
+        };
+        console.log(`Running ${pipeline.name}`);
+        await apihelper.put("pipeline", pipeline._id, { running: true, run_start: d_start });
+        const result = await streamrunner(eval(pipeline.pipeline));
+        const d_end = new Date();
+        await apihelper.put("pipeline", pipeline._id, { running: false, last_run_start: d_start, last_run_end: d_end, last_run_result: result.slice(0, 3) });
+        console.log(`Completed ${pipeline.name}, took ${d_end - d_start}`);
+        return {
+            result: "success",
+            msg: `Completed ${pipeline.name}, took ${d_end - d_start}`,
+            pipeline,
+            last_run_start: d_start, 
+            last_run_end: d_end, 
+            last_run_result: result.slice(0, 3)
+        }
+    } catch(err) {
+        const d_end = new Date();
+        await apihelper.put("pipeline", pipeline_id, { running: false, last_run_start: d_start, last_run_end: d_end, last_run_result: err });
+        throw(err);
     }
 }
 
