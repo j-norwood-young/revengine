@@ -28,8 +28,11 @@ class Fetch extends Action {
                 this.log("Reducing", this.index);
                 this.data = this.data.reduce(...this.instructions.reduce)
             }
+            if (this.instructions.global) {
+                this.global_data = this.data;
+            }
             if (!this.next_run) {
-                return await this.next(this.data);
+                return await this.next(this.data, this.global_data);
             }
             return this.data;
         } catch(err) {

@@ -12,8 +12,9 @@ class Action {
         this.data = data;
     }
 
-    async next(data) {
+    async next(data, global_data) {
         this.next_run = true;
+        this.global_data = Object.assign(global_data, this.global_data);
         if (this.pipeline.length) {
             const fn = this.pipeline[0];
             return await fn(this.pipeline.slice(1), data);
