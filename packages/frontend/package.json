@@ -44,7 +44,8 @@
     "promised-mongo": "^1.2.0",
     "redis": "^2.8.0",
     "webpack": "^4.41.2",
-    "wpapi": "^1.2.1"
+    "wpapi": "^1.2.1",
+    "checkbox-fix-post": "^0.0.2"
   },
   "devDependencies": {
     "@fortawesome/fontawesome-free": "^5.13.0",

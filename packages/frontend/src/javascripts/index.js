@@ -1,9 +1,9 @@
-require("../../node_modules/bootstrap/dist/js/bootstrap.bundle.js")
-require("../../node_modules/@fortawesome/fontawesome-pro/js/all")
+require("bootstrap/dist/js/bootstrap.bundle.js")
 require("./libs/confirm_passwords");
-
+const CheckboxFixPost = require("checkbox-fix-post");
 const List = require("./list");
 global.Edit = require("./edit");
+const checkboxfixpost = new CheckboxFixPost();
 
 window.ActivitiesD3 = require("./libs/activities_d3");
 window.Beam = require("../../libs/beam");
