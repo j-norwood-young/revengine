@@ -9,27 +9,6 @@ const schedule = "* * * * *";
 const crypto = require('crypto');
 const server = require("@revengine/http_server");
 
-const scheduler = () => {
-    let schedules = [];
-    let hash = "";
-    cron.schedule(schedule, async () => {
-        const pipelines = (await apihelper.get("pipeline", { fields: "pipeline,cron,name" })).data;
-        const newhash = crypto.createHash('md5').update(JSON.stringify(pipelines)).digest("hex");
-        if (newhash !== hash) {
-            console.log("Pipeline changed");
-            hash = newhash;
-            while (schedules.length) {
-                let schedule = schedules.pop();
-                schedule.destroy();
-            }
-            for (let pipeline of pipelines) {
-                let schedule = cron.schedule(pipeline.cron, run_pipeline(pipeline._id));
-                schedules.push(schedule);
-            }
-        }
-    })
-}
-
 const run_pipeline = async pipeline_id => {
     const d_start = new Date();
     try {
@@ -48,15 +27,42 @@ const run_pipeline = async pipeline_id => {
             result: "success",
             msg: `Completed ${pipeline.name}, took ${d_end - d_start}`,
             pipeline,
-            last_run_start: d_start, 
-            last_run_end: d_end, 
+            last_run_start: d_start,
+            last_run_end: d_end,
             last_run_result: result.slice(0, 3)
         }
-    } catch(err) {
+    } catch (err) {
         const d_end = new Date();
         await apihelper.put("pipeline", pipeline_id, { running: false, last_run_start: d_start, last_run_end: d_end, last_run_result: err });
-        throw(err);
+        throw (err);
     }
+}
+
+const scheduler = () => {
+    let schedules = [];
+    let hash = "";
+    cron.schedule(schedule, async () => {
+        const pipelines = (await apihelper.get("pipeline", { fields: "pipeline,cron,name" })).data;
+        const newhash = crypto.createHash('md5').update(JSON.stringify(pipelines)).digest("hex");
+        if (newhash !== hash) {
+            console.log("Pipeline changed");
+            hash = newhash;
+            while (schedules.length) {
+                let schedule = schedules.pop();
+                schedule.destroy();
+            }
+            for (let pipeline of pipelines) {
+                let schedule = cron.schedule(pipeline.cron, () => {
+                    try {
+                        run_pipeline(pipeline._id)
+                    } catch(err) {
+                        console.error(err);
+                    }
+                });
+                schedules.push(schedule);
+            }
+        }
+    })
 }
 
 server.get("/run/:pipeline_id", async (req, res, next) => {
