@@ -4,11 +4,13 @@ const ArticleSchema = new JXPSchema({
     urlid: { type: String, index: true },
     author: String,
     date_published: Date,
-    date_updated: Date,
+    date_modified: Date,
     content: String,
     title: String,
     excerpt: String,
-    type: String
+    type: String,
+    tags: [ String ],
+    sections: [ String ]
 },
 {
     perms: {
