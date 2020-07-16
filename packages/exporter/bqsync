@@ -16,6 +16,6 @@ mongoexport -d revengine-prod -c woocommerce_memberships -o ~/data/memberships.c
 
 /usr/bin/bq load --replace --skip_leading_rows=1 --allow_quoted_newlines=1 --source_format=CSV revengine_prod.woocommerce_memberships ~/data/memberships.csv id:INT64,customer_id:INT64,status:STRING,start_date:TIMESTAMP,end_date:TIMESTAMP,cancelled_date:TIMESTAMP,date_created:TIMESTAMP,date_modified:TIMESTAMP,order_id:INT64,order_total:FLOAT64,order_date_paid:TIMESTAMP,product_id:INT64,product_name:STRING,paused_date:TIMESTAMP
 
-mongoexport -d revengine-prod -c articles -o ~/data/articles.csv --type csv --fields urlid,author,date_published,date_modified,excerpt,title,type,tags.0,tags.1,tags.2,sections.0,sections.1,sections.2
+mongoexport -d revengine-prod -c articles -o ~/data/articles.csv --type csv --fields id,urlid,author,date_published,date_modified,excerpt,title,type,tags.0,tags.1,tags.2,sections.0,sections.1,sections.2
 
-/usr/bin/bq load --replace --skip_leading_rows=1 --allow_quoted_newlines=1 --source_format=CSV revengine_prod.articles ~/data/articles.csv urlid:STRING,author:STRING,date_published:TIMESTAMP,date_modified:TIMESTAMP,excerpt:STRING,title:STRING,type:STRING,tag_1,tag_2,tag_3,section_1,section_2,section_3
+/usr/bin/bq load --replace --skip_leading_rows=1 --allow_quoted_newlines=1 --source_format=CSV revengine_prod.articles ~/data/articles.csv id:INT64,urlid:STRING,author:STRING,date_published:TIMESTAMP,date_modified:TIMESTAMP,excerpt:STRING,title:STRING,type:STRING,tag_1,tag_2,tag_3,section_1,section_2,section_3
