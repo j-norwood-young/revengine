@@ -5,6 +5,7 @@ const actions = {
     save: require("../actions/save"),
     save_raw: require("../actions/save_raw"),
     get: require("../actions/get"),
+    es: require("../actions/es"),
     // merge: highland.merge,
     // map: highland.map,
     // link: require("../actions/link"),
