@@ -15,7 +15,7 @@ class ES extends Action {
         try {
             const tmp = _.cloneDeep(this.data);
             this.options = this.instructions.options || {};
-            this.data = await esclient.search(this.instructions.query);
+            this.data = await esclient.search(this.instructions.query(data));
             if (this.instructions.parse) {
                 this.log("Parsing", this.index);
                 this.data = await this.instructions.parse(this);
