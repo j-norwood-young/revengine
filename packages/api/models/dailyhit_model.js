@@ -1,6 +1,7 @@
 /* global JXPSchema */
 
 const DailyHitSchema = new JXPSchema({
+    uid: String,
     article_id: Number,
     urlid: String,
     date: Date,
