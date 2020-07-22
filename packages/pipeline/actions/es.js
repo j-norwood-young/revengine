@@ -2,7 +2,10 @@ const config = require("config")
 const Action = require("./action")
 const _ = require("lodash");
 const elasticsearch = require("elasticsearch")
-const esclient = new elasticsearch.Client(config.elasticsearch.server);
+const esclient = new elasticsearch.Client({
+    host: config.elasticsearch.server,
+    // log: "trace"
+});
 
 class ES extends Action {
     constructor(...params) {
@@ -15,7 +18,7 @@ class ES extends Action {
         try {
             const tmp = _.cloneDeep(this.data);
             this.options = this.instructions.options || {};
-            this.data = await esclient.search(this.instructions.query(data));
+            this.data = await esclient.search(this.instructions.query(this.data));
             if (this.instructions.parse) {
                 this.log("Parsing", this.index);
                 this.data = await this.instructions.parse(this);
