@@ -1,6 +1,7 @@
 /* global JXPSchema */
 
 const ArticleSchema = new JXPSchema({
+    post_id: Number,
     urlid: { type: String, index: true },
     author: String,
     date_published: Date,
