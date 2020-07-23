@@ -5,8 +5,7 @@ const DailyHitSchema = new JXPSchema({
     article_id: Number,
     urlid: String,
     date: Date,
-    hits: Number,
-    logged_in_hits: Number
+    hits: [ Mixed ],
 },
 {
     perms: {
