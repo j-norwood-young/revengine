@@ -1,5 +1,6 @@
 {
     "events": {
         "crash": "sh -c 'lsof -i :${PORT:-3002} -t | xargs kill'"
-    }
+    },
+    "watch": ["models/*", "packages/api/*"]
 }
