@@ -1,5 +1,19 @@
 extends layout.pug
 block content
-    p Hello World
-    each subscription of subscriptions
-        p= subscription.id
+    ul
+        li Average count: #{avg_count_weekly}
+        li This week's count: #{memberships_week.length}
+        li Averate value: #{avg_total_weekly}
+        li This week's value: #{total}
+    table
+        tr
+            th Name
+            th Email
+            th Date
+            th Value
+        each membership of memberships_week
+            tr
+                td= membership.name
+                td= membership.email
+                td= date
+                td= total

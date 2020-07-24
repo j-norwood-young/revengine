@@ -1,0 +1,7 @@
+.article
+    .article-date= moment(article.date_published).format("ddd D MMM YYYY HH:mm")
+    if (article.peak)
+        .article-count.big_num= numberFormat.format(article.peak.count)
+    .article-title 
+        a(href=article.urlid) #{article.title}
+    .article-author= article.author

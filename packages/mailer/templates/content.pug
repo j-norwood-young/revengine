@@ -1,0 +1,71 @@
+extends layout.pug
+block content
+    h1 RevEngine Content Report
+    .cards
+        .card
+            .card-title
+                h2 Top Performers (one day)
+            .card-body
+                each article, i in top_articles_one_day
+                    include article 
+                p * Calculated by the article's peak day
+        .card
+            .card-title
+                h2 Worst Performers (one day)
+            .card-body
+                each article, i in bottom_articles_one_day
+                    include article
+                p * Calculated by the article's peak day
+        .card
+            .card-title
+                h2 Top Performers (one week)
+            .card-body
+                each article, i in top_articles_one_week
+                    include article
+                p * Calculated by the article's peak day
+        .card
+            .card-title
+                h2 Worst Performers (one week)
+            .card-body
+                each article, i in bottom_articles_one_week
+                    include article
+                p * Calculated by the article's peak day
+    .cards
+        .card
+            .card-title
+                h2 Top Tags (one week)
+            .card-body
+                each tag in tags_one_week.slice(0,5)
+                    include tag
+        .card
+            .card-title
+                h2 Bottom Tags (one week)
+            .card-body
+                each tag in tags_one_week.slice(-5)
+                    include tag
+        .card
+            .card-title
+                h2 Top Sections (one week)
+            .card-body
+                each section in sections_one_week.slice(0,5)
+                    include section
+        .card
+            .card-title
+                h2 Bottom Sections (one week)
+            .card-body
+                each section in sections_one_week.slice(-5)
+                    include section
+        .card
+            .card-title
+                h2 Top Tags (one month)
+            .card-body
+                each tag in tags_one_month.slice(0,5)
+                    include tag
+    .cards
+        .card
+            .card-title
+                h2 Long Tail Articles
+            .card-body
+                each article in long_tails
+                    include article
+        

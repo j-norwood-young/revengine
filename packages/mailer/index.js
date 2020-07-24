@@ -8,6 +8,8 @@ const http = require("http");
 const JXPHelper = require("jxp-helper");
 const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
 const moment = require("moment");
+const Reports = require("@revengine/reports");
+const numberFormat = new Intl.NumberFormat(config.locale || "en-GB");
 
 const main = async () => {
     const smtp = Object.assign({
@@ -33,12 +35,55 @@ const main = async () => {
 
 const daily_churn = async () => {
     try {
-        console.log( moment().subtract(1, "day").startOf("day").format("YYYY-MM-DD") );
-        const subscriptions = (await jxphelper.get("woocommerce_subscription", { "sort[date_created]": -1, limit: 1000, "filter[date_created]": `$gte: ${moment().subtract(2, "day").startOf("day").format("YYYY-MM-DD")}` })).data;
-        console.log(subscriptions);
+        // const memberships_week = (await jxphelper.get("woocommerce_membership", { "sort[date_created]": -1, limit: 1000, "filter[start_date:]": `$gte: ${moment().subtract(2, "day").startOf("day").format("YYYY-MM-DD")}` })).data;
+        // console.log({ memberships_week });
+        // const memberships_month = (await jxphelper.get("woocommerce_membership", { "sort[date_created]": -1, limit: 1000, "filter[start_date:]": `$gte: ${moment().subtract(28, "day").startOf("day").format("YYYY-MM-DD")}` })).data;
+        // const avg_total_weekly = memberships_month.reduce((prev, cur) => {
+        //     prev += cur.total;
+        // }, 0) / 4;
+        // const total = memberships_week.reduce((prev, cur) => {
+        //     console.log(cur);
+        //     prev += cur.total;
+        // }, 0);
+        // const avg_count_weekly = memberships_month.length / 4;
         const template = pug.compileFile(path.join(__dirname, "./templates/daily_churn.pug"));
-        return template({ subscriptions });
+        return template({ memberships_week: 1, memberships_month: 1, avg_count_weekly: 1, avg_total_weekly: 1, total: 1 });
     } catch(err) {
+        console.error(err);
+        return "";
+    }
+}
+
+const content = async () => {
+    try {
+        // Articles
+        const article_report = new Reports.ArticleHits();
+        const one_day = await article_report.run(1, 1);
+        const one_week = await article_report.run(8, 1);
+        const template = pug.compileFile(path.join(__dirname, "./templates/content.pug"));
+        const top_articles_one_day = one_day.slice(0,5);
+        const bottom_articles_one_day = one_day.slice(-5);
+        const top_articles_one_week = one_week.slice(0, 5);
+        const bottom_articles_one_week = one_week.slice(-5);
+        
+        // Tags
+        const tag_report = new Reports.ArticleTags();
+        let tags_one_week = await tag_report.run(8, 1);
+        const tags_one_month = await tag_report.run(31, 1);
+        const compare_report = new Reports.CompareFeatures();
+        tags_one_week = compare_report.compare_position(tags_one_week, tags_one_month);
+
+        // Sections
+        const section_report = new Reports.ArticleSections();
+        const sections_one_week = await section_report.run(8, 1);
+        const sections_one_month = await section_report.run(31, 1);
+
+        // Long Tail Articles
+        const long_tail_report = new Reports.ArticleLongTails()
+        const long_tails = await long_tail_report.run();
+        console.log(long_tails);
+        return template({ moment, numberFormat, top_articles_one_day, bottom_articles_one_day, top_articles_one_week, bottom_articles_one_week, tags_one_week, tags_one_month, sections_one_week, sections_one_month, long_tails });
+    } catch (err) {
         console.error(err);
         return "";
     }
@@ -46,7 +91,7 @@ const daily_churn = async () => {
 
 main().catch(console.error);
 http.createServer(async (req, res) => {
-    const s = await daily_churn();
+    const s = await content();
     res.setHeader('Content-type', 'text/html');
     res.end(s);
 }).listen(config.mailer.port || 3017)

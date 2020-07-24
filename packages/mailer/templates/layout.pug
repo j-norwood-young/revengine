@@ -1,6 +1,109 @@
 html
     head
+        meta(charset="utf-8")
+        meta(name="viewport" content="width=device-width, initial-scale=1.0")
+        style.
+            body {
+                background: white;
+                font-family: helvetica, arial, sans-serif;
+                font-size: 10pt;
+                color: #4e4e4e;
+                margin: 0px;
+                padding: 0px;
+            }
+            a {
+                text-decoration: none;
+                color: #c22727;
+            }
+            h1, h2, h3 {
+                margin: 0px;
+            }
+            h1 {
+                padding-bottom: 10px;
+                margin-bottom: 20px;
+            }
+            h1, h2 {
+                border-bottom: 1px #343a40 solid;
+                width: 100%;
+            }
+            li {
+                margin-bottom: 10px;
+            }
+            #footer {
+                background: #343a40;
+                color: white;
+                padding: 10px;
+                display: flex;
+                flex-flow: column wrap;
+                justify-content: space-between;
+                align-content: center;
+            }
+            #content {
+                display: flex;
+                flex-flow: column wrap;
+                align-content: flex-start;
+                justify-content: space-between;
+                padding: 10px 20px;
+            }
+            .cards {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: flex-start;
+            }
+            .card {
+                flex: 0 1 calc(50% - 1em);
+                box-sizing: border-box;
+                margin: 1rem .25em;
+                border: 1px #e4e4e4 solid;
+                padding: 15px;
+                -webkit-box-shadow: 2px 2px 3px 0px rgba(0,0,0,0.2);
+                -moz-box-shadow: 2px 2px 3px 0px rgba(0,0,0,0.2);
+                box-shadow: 2px 2px 3px 0px rgba(0,0,0,0.2);
+            }
+            .article {
+                margin: 10px;
+                padding-bottom: 10px;
+                border-bottom: 1px #ccc solid;
+                width: 100%;
+            }
+            .big_num {
+                font-size: 18pt;
+                float: left;
+                margin-right: 3px;
+            }
+            .article-date {
+                color: #6e6e6e;
+                margin-bottom: 3px;
+            }
+            .article-author {
+                margin-top: 3px;
+            }
+            .tag, .section {
+                font-size: 18pt;
+                color: #6e6e6e;
+            }
+            .change {
+                float: left;
+            }
+            .red {
+                color: red;
+            }
+            .green {
+                color: green;
+            }
+            @media screen and (min-width: 40em) {
+                .card {
+                    max-width: calc(50% -  1em);
+                }
+            }
+            
+            @media screen and (min-width: 60em) {
+                .card {
+                    max-width: calc(25% - 1em);
+                }
+            }
     body
-        block content
+        #content
+            block content
         #footer
             p Delivered by Revengine

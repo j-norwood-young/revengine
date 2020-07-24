@@ -4,7 +4,8 @@
   "description": "Sends out regular email reports",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": ""
   },
   "author": "Jason Norwood-Young <jason@10layer.com>",
   "license": "MIT",
@@ -14,5 +15,9 @@
     "nodemailer": "^6.4.10",
     "pug": "3.0.0",
     "moment": "2.27.0"
+  },
+  "devDependencies": {
+    "less":"^3.12.2",
+    "less-watch-compiler": "1.14.6"
   }
 }
