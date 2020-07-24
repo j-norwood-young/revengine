@@ -191,6 +191,8 @@ And then later, say in your pre- or post-save...
 
 Add the parameter `_silence` to supress callbacks. Useful to avoid infinite loops.
 */
+const SegfaultHandler = require('segfault-handler');
+SegfaultHandler.registerHandler("crash.log"); // With no argument, SegfaultHandler will generate a generic log file name
 
 const mongoose = require("mongoose");
 const JXP = require("jxp");
