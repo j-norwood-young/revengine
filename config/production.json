@@ -1,6 +1,7 @@
 {
     "name": "RevEngine",
     "debug": true,
+    "locale": "en-GB",
     "kafka": {
         "server": "localhost:9092",
         "partitions": 1,
@@ -44,5 +45,14 @@
         "shared_secret": "SharedSecret",
         "url": "http://revengine.remp.dailymaverick.co.za/",
         "port": 4014
+    },
+    "mailer": {
+        "port": 4017,
+        "from": "Revengine <revengine@dailymaverick.co.za>",
+        "to": "Recipient <recipient@dailymaverick.co.za>",
+        "smtp": {
+            "host": "smtp.mailtrap.io",
+            "port": 2525
+        }
     }
 }
