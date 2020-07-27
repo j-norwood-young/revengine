@@ -10,6 +10,21 @@ const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env
 const moment = require("moment");
 const Reports = require("@revengine/reports");
 const numberFormat = new Intl.NumberFormat(config.locale || "en-GB");
+const program = require('commander');
+
+program
+    .option('-v, --verbose', 'verbose debugging')
+    .option('-w, --watch', 'start up a server to watch template')
+    .option('-p, --port <number>', 'port for server')
+    .option('-t, --to <items>', 'emails to send to (comma-seperated)')
+    .option('-f, --from <email>', 'email to send from')
+    .option('-s, --subject <subject>', 'email subject')
+    .option('-r, --report <mail-template>', 'report to send');
+
+program.parse(process.argv);
+
+console.log('Options: ', program.opts());
+console.log('Remaining arguments: ', program.args);
 
 const main = async () => {
     const smtp = Object.assign({
@@ -20,17 +35,17 @@ const main = async () => {
     }, config.mailer.smtp);
     let transporter = nodemailer.createTransport(smtp);
 
-    // let html = await daily_churn();
+    let html = await content();
     // console.log(html);
-    // let info = await transporter.sendMail({
-    //     from: config.mailer.from,
-    //     to: config.mailer.to,
-    //     subject: "Daily Churn",
-    //     text: "A Revengine Report",
-    //     html
-    // });
+    let info = await transporter.sendMail({
+        from: config.mailer.from,
+        to: program.to,
+        subject: program.subject || "Revengine",
+        text: "A Revengine Report",
+        html
+    });
 
-    // console.log("Message sent: %s", info.messageId);
+    console.log("Message sent: %s", info.messageId);
 }
 
 const daily_churn = async () => {
@@ -89,9 +104,14 @@ const content = async () => {
     }
 }
 
-main().catch(console.error);
-http.createServer(async (req, res) => {
-    const s = await content();
-    res.setHeader('Content-type', 'text/html');
-    res.end(s);
-}).listen(config.mailer.port || 3017)
+if (program.watch) {
+    http.createServer(async (req, res) => {
+        const s = await content();
+        res.setHeader('Content-type', 'text/html');
+        res.end(s);
+    }).listen(program.port || config.mailer.port || 3017);
+};
+
+if (!program.watch) {
+    main().catch(console.error);
+}
