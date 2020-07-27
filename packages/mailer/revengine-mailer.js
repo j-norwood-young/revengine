@@ -37,7 +37,7 @@ const main = async () => {
     let html = await content();
     // console.log(html);
     let info = await transporter.sendMail({
-        from: config.mailer.from,
+        from: program.from || config.mailer ? config.mailer.from : "revengine@revengine.dailymaverick.co.za",
         to: program.to,
         subject: program.subject || "Revengine",
         text: "A Revengine Report",
