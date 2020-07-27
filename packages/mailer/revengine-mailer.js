@@ -28,10 +28,9 @@ console.log('Remaining arguments: ', program.args);
 
 const main = async () => {
     const smtp = Object.assign({
-        auth: {
-            user: process.env.MAILUSER,
-            pass: process.env.MAILPASS,
-        }
+        sendmail: true,
+        newline: 'unix',
+        path: '/usr/sbin/sendmail'
     }, config.mailer.smtp);
     let transporter = nodemailer.createTransport(smtp);
 
