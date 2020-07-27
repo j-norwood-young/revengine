@@ -31,7 +31,7 @@ const main = async () => {
         sendmail: true,
         newline: 'unix',
         path: '/usr/sbin/sendmail'
-    }, config.mailer.smtp);
+    }, config.mailer.smtp || {});
     let transporter = nodemailer.createTransport(smtp);
 
     let html = await content();
