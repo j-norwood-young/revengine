@@ -60,5 +60,8 @@
             },
             "sendmail": false
         }
+    },
+    "pipeline": {
+        "port": 4018
     }
 }
