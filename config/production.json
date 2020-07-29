@@ -2,6 +2,7 @@
     "name": "RevEngine",
     "debug": true,
     "locale": "en-GB",
+    "timezone": "SAST",
     "kafka": {
         "server": "localhost:9092",
         "partitions": 1,
@@ -51,8 +52,13 @@
         "from": "Revengine <revengine@dailymaverick.co.za>",
         "to": "Recipient <recipient@dailymaverick.co.za>",
         "smtp": {
-            "host": "smtp.mailtrap.io",
-            "port": 2525
+            "host": "smtp.api.createsend.com",
+            "port": 587,
+            "secure": false,
+            "tls": {
+                "rejectUnauthorized": false
+            },
+            "sendmail": false
         }
     }
 }

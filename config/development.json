@@ -1,6 +1,7 @@
 {
     "name": "RevEngine Dev",
     "debug": true,
+    "timezone": "SAST",
     "api": {
         "port": 3002,
         "server": "http://revengine.dailymaverick.co.za:3002",

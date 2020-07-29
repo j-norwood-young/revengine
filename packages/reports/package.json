@@ -11,6 +11,6 @@
     "dependencies": {
         "config": "^3.3.1",
         "jxp-helper": "^1.2.1",
-        "moment": "2.27.0"
+        "moment-timezone": "0.5.31"
     }
 }

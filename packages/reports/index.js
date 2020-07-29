@@ -2,11 +2,12 @@
 const config = require("config");
 const JXPHelper = require("jxp-helper");
 require("dotenv").config();
-const moment = require("moment");
+const moment = require("moment-timezone");
 const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
+moment.tz.setDefault(config.timezone || "UTC");
 
 const get_hits = async (start_date, end_date) => {
-    const result = (await jxphelper.get("article", { "filter[date_published]": `$lte:${end_date.format("YYYY-MM-DD")}`, "filter[date_published]": `$gte:${start_date.format("YYYY-MM-DD")}`, "filter[hits]": "$exists:1" })).data.filter(article => article.hits.length);
+    const result = (await jxphelper.get("article", { "filter[date_published]": `$lte:${end_date.toISOString()}`, "filter[date_published]": `$gte:${start_date.toISOString()}`, "filter[hits]": "$exists:1" })).data.filter(article => article.hits.length);
     return result;
 }
 
@@ -24,8 +25,8 @@ class ArticleHits {
     }
 
     async run(start_days_ago = 1, end_days_ago = 1) {
-        const start_date = moment().subtract(start_days_ago, "days");
-        const end_date = moment().subtract(end_days_ago, "days");
+        const start_date = moment().subtract(start_days_ago, "days").startOf("day");
+        const end_date = moment().subtract(end_days_ago, "days").endOf("day");
         let articles = await get_hits(start_date, end_date)
         for (let article of articles) {
             article.peak = await this.peak(article.hits);
@@ -59,8 +60,8 @@ class ArticleTags {
     }
 
     async run(start_days_ago = 1, end_days_ago = 1) {
-        const start_date = moment().subtract(start_days_ago, "days");
-        const end_date = moment().subtract(end_days_ago, "days");
+        const start_date = moment().subtract(start_days_ago, "days").startOf("day");
+        const end_date = moment().subtract(end_days_ago, "days").endOf("day");
         let articles = await get_hits(start_date, end_date)
         let tags = this.get_tags(articles);
         let tag_count = {};
@@ -96,8 +97,8 @@ class ArticleSections {
     }
 
     async run(start_days_ago = 1, end_days_ago = 1) {
-        const start_date = moment().subtract(start_days_ago, "days");
-        const end_date = moment().subtract(end_days_ago, "days");
+        const start_date = moment().subtract(start_days_ago, "days").startOf("day");
+        const end_date = moment().subtract(end_days_ago, "days").endOf("day");
         let articles = await get_hits(start_date, end_date)
         let sections = this.get_sections(articles);
         let section_count = {};
@@ -141,7 +142,6 @@ class ArticleLongTails {
         var month = new Date();
         month.setDate(month.getDate() - 30);
         const month_str = month.toISOString();
-        console.log(month_str);
         var week = new Date();
         week.setDate(week.getDate() - 7);
         const week_str = week.toISOString();
