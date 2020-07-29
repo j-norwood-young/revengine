@@ -1,6 +1,6 @@
 {
     "name": "RevEngine",
-    "debug": true,
+    "debug": false,
     "locale": "en-GB",
     "timezone": "SAST",
     "kafka": {
