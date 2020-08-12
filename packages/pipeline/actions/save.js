@@ -16,10 +16,12 @@ class Save extends Action {
         try {
             if (Array.isArray(this.data)) {
                 for (let data of this.data) {
-                    await this.postput(this.instructions.collection, this.instructions.key, data);
+                    const resolved_data = await Promise.resolve(data);
+                    await this.postput(this.instructions.collection, this.instructions.key, resolved_data);
                 }
             } else {
-                await this.postput(this.instructions.collection, this.instructions.key, this.data);
+                const resolved_data = await Promise.resolve(this.data);
+                await this.postput(this.instructions.collection, this.instructions.key, resolved_data);
             }
             return this.data;
         } catch (err) {
