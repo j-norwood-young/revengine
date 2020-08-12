@@ -4,6 +4,11 @@ const config = require("config");
 const jwt = require("jsonwebtoken")
 const Mail = require("../libs/mail")
 
+router.use((req, res, next) => {
+    res.locals.sitename = config.frontend.sitename;
+    next();
+});
+
 router.get("/logout", async (req, res) => {
     try {
         await axios.get(`${config.api_root}/login/logout?apikey=${req.session.apikey}`);
