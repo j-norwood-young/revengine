@@ -1,16 +1,9 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
-const ObjectId = mongoose.Schema.Types.ObjectId;
-const Mixed = mongoose.Schema.Types.Mixed;
+/* global JXPSchema ObjectId Mixed */
 
-const Label = require("./label_model");
-const Segment = require("./segment_model");
 const TouchbaseSubscriber = require("./touchbasesubscriber_model");
 const TouchbaseList = require("./touchbaselist_model");
 const WoocommerceCustomer = require("./woocommercecustomer_model");
 const WoocommerceSubscription = require("./woocommerce_subscription_model");
-const WordpressUser = require("./wordpressuser_model");
-const Rempuserhit = require("./rempuserhit_model");
 
 const ReaderSchema = new JXPSchema({
     id: { type: Number, index: true, unique: true, sparse: true },
@@ -214,5 +207,5 @@ ReaderSchema.pre("save", async function () {
 });
 
 // const Reader 
-const Reader = mongoose.model('Reader', ReaderSchema);
+const Reader = JXPSchema.model('Reader', ReaderSchema);
 module.exports = Reader;
