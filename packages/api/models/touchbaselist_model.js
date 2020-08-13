@@ -1,15 +1,14 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
-const ObjectId = mongoose.Schema.Types.ObjectId;
+/* global JXPSchema ObjectId Mixed */
 
-const TouchbaseListSchema = new Schema({
+const TouchbaseListSchema = new JXPSchema({
     name: { type: String, unique: true },
     list_id: String,
+},
+{
+    perms: {
+        admin: "crud",
+    }
 });
 
-// We can set permissions for different user types and user groups
-TouchbaseListSchema.set("_perms", {
-    admin: "crud",
-});
-
-module.exports = mongoose.model('TouchbaseList', TouchbaseListSchema);
+const TouchbaseList = JXPSchema.model('TouchbaseList', TouchbaseListSchema);
+module.exports = TouchbaseList;
