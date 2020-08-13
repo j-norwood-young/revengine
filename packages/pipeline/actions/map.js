@@ -9,7 +9,7 @@ class Map extends Action {
     async run(...params) {
         super.run(...params);
         try {
-            this.data.map(this.instructions);
+            this.data.map(this.instructions.bind(this));
             if (!this.next_run) {
                 return await this.next(this.data);
             }
