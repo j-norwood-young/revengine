@@ -13,7 +13,9 @@ class Fetch extends Action {
         try {
             const tmp = _.cloneDeep(this.data);
             this.options = this.instructions.options || {};
-            this.data = await fetch(this.instructions.request(this), this.options);
+            const url = this.instructions.request(this);
+            if (!url) return null;
+            this.data = await fetch(url, this.options);
             if (this.instructions.parse) {
                 this.log("Parsing", this.index);
                 this.data = await this.instructions.parse(this);
