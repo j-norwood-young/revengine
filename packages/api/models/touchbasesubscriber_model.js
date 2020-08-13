@@ -1,26 +1,26 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
-const ObjectId = mongoose.Schema.Types.ObjectId;
-const Mixed = mongoose.Schema.Types.Mixed;
-const TouchbaseList = require("./touchbaselist_model");
-const shared = require("../libs/shared");
+/* global JXPSchema ObjectId Mixed */
+// const shared = require("../libs/shared");
 
-const TouchbaseSubscriberSchema = new Schema({
+const TouchbaseSubscriberSchema = new JXPSchema({
     name: String,
-    list_id: { type: ObjectId, ref: "TouchbaseList" },
+    list_id: { type: ObjectId, link: "TouchbaseList" },
     email: String,
     date: Date,
     state: String,
     data: Mixed,
     email_client: String,
-    uid: String, //md5 of list_id + email
+    uid: { type: String, unique: true }, //md5 of list_id + email
+},
+{
+    perms: {
+        admin: "crud",
+        owner: "crud",
+        user: "",
+        all: ""
+    }
 });
 
-// We can set permissions for different user types and user groups
-TouchbaseSubscriberSchema.set("_perms", {
-    admin: "crud",
-});
+// TouchbaseSubscriberSchema.post("save", shared.datasource_post_save);
 
-TouchbaseSubscriberSchema.post("save", shared.datasource_post_save);
-
-module.exports = mongoose.model('TouchbaseSubscriber', TouchbaseSubscriberSchema);
+const TouchbaseSubscriber = JXPSchema.model('TouchbaseSubscriber', TouchbaseSubscriberSchema);
+module.exports = TouchbaseSubscriber;
