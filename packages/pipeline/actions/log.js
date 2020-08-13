@@ -10,7 +10,13 @@ class Log extends Action {
         super.run(...params);
         console.log({ index: this.index });
         console.log({ global_data: this.global_data });
-        console.log({ data: this.data });
+        if (Array.isArray(this.data)) {
+            for (let data of this.data) {
+                const resolved_data = await Promise.resolve(data);
+            } 
+        } else {
+            console.log({ data: Promise.resolve(this.data) });
+        }
         return await this.next(this.data);
     }
 }
