@@ -3,9 +3,9 @@
 const ArticleSchema = new JXPSchema({
     post_id: Number,
     urlid: { type: String, index: true },
-    author: String,
-    date_published: Date,
-    date_modified: Date,
+    author: { type: String, index: true },
+    date_published: { type: Date, index: true },
+    date_modified: { type: Date, index: true },
     content: String,
     title: String,
     excerpt: String,
