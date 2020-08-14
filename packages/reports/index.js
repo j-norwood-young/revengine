@@ -7,7 +7,12 @@ const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env
 moment.tz.setDefault(config.timezone || "UTC");
 
 const get_hits = async (start_date, end_date) => {
-    const result = (await jxphelper.get("article", { "filter[date_published]": `$lte:${end_date.toISOString()}`, "filter[date_published]": `$gte:${start_date.toISOString()}`, "filter[hits]": "$exists:1" })).data.filter(article => article.hits.length);
+    let params = {
+        "filter[date_published]": `$lte:${end_date.toISOString()}`,
+        "filter[date_published]": `$gte:${start_date.toISOString()}`,
+        "filter[hits]": "$exists:1"
+    }
+    const result = (await jxphelper.get("article", params)).data.filter(article => article.hits.length);
     return result;
 }
 
@@ -24,9 +29,9 @@ class ArticleHits {
         return peak;
     }
 
-    async run(start_days_ago = 1, end_days_ago = 1) {
-        const start_date = moment().subtract(start_days_ago, "days").startOf("day");
-        const end_date = moment().subtract(end_days_ago, "days").endOf("day");
+    async run(start_days_ago = 1, end_days_ago = 2) {
+        const start_date = moment().subtract(start_days_ago, "days");
+        const end_date = moment().subtract(end_days_ago, "days");
         let articles = await get_hits(start_date, end_date)
         for (let article of articles) {
             article.peak = await this.peak(article.hits);
@@ -96,7 +101,7 @@ class ArticleSections {
         return sections;
     }
 
-    async run(start_days_ago = 1, end_days_ago = 1) {
+    async run(start_days_ago = 3, end_days_ago = 2) {
         const start_date = moment().subtract(start_days_ago, "days").startOf("day");
         const end_date = moment().subtract(end_days_ago, "days").endOf("day");
         let articles = await get_hits(start_date, end_date)
@@ -138,34 +143,38 @@ class ArticleLongTails {
         });
     }
 
-    async run() {
+    async run(section) {
         var month = new Date();
         month.setDate(month.getDate() - 30);
         const month_str = month.toISOString();
         var week = new Date();
         week.setDate(week.getDate() - 7);
         const week_str = week.toISOString();
+        let filters = [
+            {
+                $lte: [
+                    "$date_published",
+                    {
+                        $dateFromString: {
+                            dateString: month_str
+                        }
+                    }
+                ]
+            },
+        ];
+        if (section) filters.push({
+            "$section": section
+        });
         const result = await jxphelper.aggregate("article", [
             {
                 $match: {
                     "hits.count": { $gte: 1000 }
                 }
             },
-            { 
+            {
                 $match: { 
                     $expr: {
-                        $and: [
-                            { 
-                                $lte: [
-                                    "$date_published",
-                                    { 
-                                        $dateFromString: { 
-                                            dateString: month_str 
-                                        } 
-                                    }
-                                ] 
-                            },
-                        ]
+                        $and: filters
                     }
                 }
             },

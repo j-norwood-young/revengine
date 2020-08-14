@@ -81,8 +81,8 @@ const content = async () => {
     try {
         // Articles
         const article_report = new Reports.ArticleHits();
-        const one_day = await article_report.run(1, 1);
-        const one_week = await article_report.run(8, 1);
+        const one_day = await article_report.run(3, 2);
+        const one_week = await article_report.run(9, 2);
         const template = pug.compileFile(path.join(__dirname, "./templates/content.pug"));
         const top_articles_one_day = one_day.slice(0,5);
         const bottom_articles_one_day = one_day.slice(-5);
@@ -104,7 +104,26 @@ const content = async () => {
         // Long Tail Articles
         const long_tail_report = new Reports.ArticleLongTails()
         const long_tails = await long_tail_report.run();
-        return template({ moment, numberFormat, top_articles_one_day, bottom_articles_one_day, top_articles_one_week, bottom_articles_one_week, tags_one_week, tags_one_month, sections_one_week, sections_one_month, long_tails });
+
+        // Per Section
+        const sectionset = new Set();
+        for (let article of article_report.articles) {
+            sectionset.add(...article.sections);
+        }
+        let sections = [...sectionset].sort();
+        const top_articles_per_section = {};
+        const bottom_articles_per_section = {};
+        for (let section of sections) {
+            top_articles_per_section[section] = one_week.filter(article => article.sections.includes(section)).slice(0, 5);
+            bottom_articles_per_section[section] = one_week.filter(article => article.sections.includes(section)).slice(-5);
+        }
+
+        // console.log(top_articles_per_section);
+
+        return template({ moment, numberFormat, top_articles_one_day, bottom_articles_one_day, top_articles_one_week, bottom_articles_one_week, tags_one_week, tags_one_month, sections_one_week, sections_one_month, long_tails, sections, top_articles_per_section, bottom_articles_per_section });
+
+        
+        
     } catch (err) {
         console.error(err);
         return "";

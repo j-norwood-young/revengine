@@ -79,4 +79,22 @@ block content
                     .card-body
                         each article in long_tails
                             include article
-        
+        each section in sections
+            tr.cards
+                td
+                    .card
+                        .card-title
+                            h2 #{section} Top Performers (one week)
+                        .card-body
+                            each article, i in top_articles_per_section[section]
+                                include article
+                            p * Ranked by the article's peak day
+                td
+                    .card
+                        .card-title
+                            h2 #{section} Worst Performers (one week)
+                        .card-body
+                            each article, i in bottom_articles_per_section[section]
+                                include article
+                            p * Ranked by the article's peak day
+                
