@@ -100,7 +100,7 @@ class Collections {
                 fields: [
                     { name: "Name", key: "name", d: data => data.name, link, list_view },
                     { name: "Cron", key: "cron", d: data => data.cron, view: "cron" },
-                    { name: "Running", key: "running", view: "checkbox", readonly, d: data => (data) ? "Yes" : "No", list_view },
+                    { name: "Running", key: "running", view: "checkbox", readonly, d: data => (data.running) ? "Yes" : "No", list_view },
                     { name: "Last run start", key: "last_run_start", readonly, d: data => data.last_run_start, list_view },
                     { name: "Last run end", key: "last_run_end", readonly, d: data => data.last_run_end, list_view },
                     { name: "Pipeline", key: "pipeline", d: data => data.pipeline, view: "code" },
