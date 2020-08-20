@@ -9,7 +9,6 @@ const actions = {
     // merge: highland.merge,
     // map: highland.map,
     // link: require("../actions/link"),
-    // map: require("../actions/map"),
     // mock: require("../actions/mock"),
     // reduce: require("../actions/reduce"),
     
