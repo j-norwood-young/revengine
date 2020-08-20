@@ -3,7 +3,7 @@
 const TouchbaseCampaignSchema = new JXPSchema({
     name: String,
     campaign_id: { type: String, unique: true },
-    sent_date: Date,
+    sent_date: { type: Date, index: true },
     from_name: String,
     from_email: String,
     reply_to: String,
