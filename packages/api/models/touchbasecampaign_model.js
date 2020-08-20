@@ -1,8 +1,8 @@
 /* global JXPSchema ObjectId Mixed */
 
 const TouchbaseCampaignSchema = new JXPSchema({
-    name: { type: String, unique: true },
-    campaign_id: String,
+    name: String,
+    campaign_id: { type: String, unique: true },
     sent_date: Date,
     from_name: String,
     from_email: String,
