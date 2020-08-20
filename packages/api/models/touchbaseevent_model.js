@@ -15,7 +15,8 @@ const TouchbaseEventSchema = new JXPSchema({
     city: String,
     region: String,
     country_code: String,
-    country_name: String
+    country_name: String,
+    uid: { type: String, unique: true },
 },
 {
     perms: {
