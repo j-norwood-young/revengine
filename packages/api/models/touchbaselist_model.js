@@ -2,7 +2,7 @@
 
 const TouchbaseListSchema = new JXPSchema({
     name: { type: String, unique: true },
-    list_id: String,
+    list_id: { type: String, unique: true },
 },
 {
     perms: {
