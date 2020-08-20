@@ -10,7 +10,7 @@ const TouchbaseEventSchema = new JXPSchema({
     list_id: { type: ObjectId, link: "touchbaselist" },
     timestamp: Date,
     ip_address: String,
-    lattitude: String,
+    latitude: String,
     longitude: String,
     city: String,
     region: String,
