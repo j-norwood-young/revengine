@@ -15,25 +15,18 @@ class Save extends Action {
         super.run(...params);
         try {
             if (Array.isArray(this.data)) {
-                for (let data of this.data) {
-                    const resolved_data = await Promise.resolve(data);
-                    await this.postput(this.instructions.collection, this.instructions.key, resolved_data);
-                }
+                let result = await jxphelper.bulk_postput(this.instructions.collection, this.instructions.key, this.data);
+                return result;
             } else {
                 const resolved_data = await Promise.resolve(this.data);
-                await this.postput(this.instructions.collection, this.instructions.key, resolved_data);
+                await jxphelper.postput(this.instructions.collection, this.instructions.key, resolved_data);
+                return this.data;
             }
-            return this.data;
         } catch (err) {
             console.log("Oops");
             console.error(err);
             return Promise.reject(err);
         }
-    }
-
-    async postput(collection, key, data) {
-        const result = await jxphelper.postput(collection, key, data);
-        this.log(result);
     }
 }
 
