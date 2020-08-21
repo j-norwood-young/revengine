@@ -6,14 +6,14 @@ block content
             td
                 .card
                     .card-title
-                        h2 Top Performers (one day)
+                        h2 Most Read (one day)
                     .card-body
                         each article, i in top_articles_one_day
                             include article
             td
                 .card
                     .card-title
-                        h2 Worst Performers (one day)
+                        h2 Least Read (one day)
                     .card-body
                         each article, i in bottom_articles_one_day
                             include article
@@ -21,7 +21,7 @@ block content
             td
                 .card
                     .card-title
-                        h2 Top Performers (one week)
+                        h2 Most Read (one week)
                     .card-body
                         each article, i in top_articles_one_week
                             include article
@@ -29,7 +29,7 @@ block content
             td
                 .card
                     .card-title
-                        h2 Worst Performers (one week)
+                        h2 Least Read (one week)
                     .card-body
                         each article, i in bottom_articles_one_week
                             include article
@@ -84,7 +84,7 @@ block content
                 td
                     .card
                         .card-title
-                            h2 #{section} Top Performers (one week)
+                            h2 #{section} Most Read (one week)
                         .card-body
                             each article, i in top_articles_per_section[section]
                                 include article
@@ -92,7 +92,7 @@ block content
                 td
                     .card
                         .card-title
-                            h2 #{section} Worst Performers (one week)
+                            h2 #{section} Least Read (one week)
                         .card-body
                             each article, i in bottom_articles_per_section[section]
                                 include article
