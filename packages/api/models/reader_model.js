@@ -18,6 +18,7 @@ const ReaderSchema = new JXPSchema({
     session_tokens: [ Mixed ],
     paying_customer: Boolean,
     user_email: String,
+    billing_phone: String,
     user_login: String,
     user_nicename: String,
     user_pass: String,
