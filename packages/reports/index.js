@@ -8,11 +8,11 @@ moment.tz.setDefault(config.timezone || "UTC");
 
 const get_hits = async (start_date, end_date) => {
     let params = {
-        "filter[date_published]": `$lte:${end_date.toISOString()}`,
+        // "filter[date_published]": `$lte:${end_date.toISOString()}`,
         "filter[date_published]": `$gte:${start_date.toISOString()}`,
         "filter[hits]": "$exists:1"
     }
-    const result = (await jxphelper.get("article", params)).data.filter(article => article.hits.length);
+    const result = (await jxphelper.get("article", params)).data.filter(article => article.hits.length && article.date_published && moment(article.date_published).valueOf() < moment(end_date).valueOf());
     return result;
 }
 

@@ -1,12 +1,13 @@
 extends layout.pug
 block content
-    h1 RevEngine Content Report
+    h1 RevEngine Content Report - #{moment().format("D MMMM")}
     table
         tr.cards
             td
                 .card
                     .card-title
                         h2 Most Read (one day)
+                        h3 Published #{moment().subtract(day_start_days_ago, "days").format("Do H:mm")} to #{moment().subtract(day_end_days_ago, "days").format("Do H:m")}
                     .card-body
                         each article, i in top_articles_one_day
                             include article
@@ -14,6 +15,7 @@ block content
                 .card
                     .card-title
                         h2 Least Read (one day)
+                        h3 Published #{moment().subtract(day_start_days_ago, "days").format("Do H:mm")} to #{moment().subtract(day_end_days_ago, "days").format("Do H:m")}
                     .card-body
                         each article, i in bottom_articles_one_day
                             include article
@@ -22,6 +24,7 @@ block content
                 .card
                     .card-title
                         h2 Most Read (one week)
+                        h3 Published #{moment().subtract(week_start_days_ago, "days").startOf("day").format("Do MMM")} to #{moment().subtract(week_end_days_ago, "days").startOf("day").format("Do MMM")}
                     .card-body
                         each article, i in top_articles_one_week
                             include article
@@ -30,6 +33,7 @@ block content
                 .card
                     .card-title
                         h2 Least Read (one week)
+                        h3 Published #{moment().subtract(week_start_days_ago, "days").startOf("day").format("Do MMM")} to #{moment().subtract(week_end_days_ago, "days").startOf("day").format("Do MMM")}
                     .card-body
                         each article, i in bottom_articles_one_week
                             include article
@@ -39,6 +43,7 @@ block content
                 .card
                     .card-title
                         h2 Top Tags (one week)
+                        h3 Published #{moment().subtract(week_start_days_ago, "days").startOf("day").format("Do MMM")} to #{moment().subtract(week_end_days_ago, "days").startOf("day").format("Do MMM")}
                     .card-body
                         each tag in tags_one_week.slice(0,5)
                             include tag
@@ -46,6 +51,7 @@ block content
                 .card
                     .card-title
                         h2 Bottom Tags (one week)
+                        h3 Published #{moment().subtract(week_start_days_ago, "days").startOf("day").format("Do MMM")} to #{moment().subtract(week_end_days_ago, "days").startOf("day").format("Do MMM")}
                     .card-body
                         each tag in tags_one_week.slice(-5)
                             include tag
@@ -54,6 +60,7 @@ block content
                 .card
                     .card-title
                         h2 Top Sections (one week)
+                        h3 Published #{moment().subtract(week_start_days_ago, "days").startOf("day").format("Do MMM")} to #{moment().subtract(week_end_days_ago, "days").startOf("day").format("Do MMM")}
                     .card-body
                         each section in sections_one_week.slice(0,5)
                             include section
@@ -61,6 +68,7 @@ block content
                 .card
                     .card-title
                         h2 Bottom Sections (one week)
+                        h3 Published #{moment().subtract(week_start_days_ago, "days").startOf("day").format("Do MMM")} to #{moment().subtract(week_end_days_ago, "days").startOf("day").format("Do MMM")}
                     .card-body
                         each section in sections_one_week.slice(-5)
                             include section
@@ -69,6 +77,7 @@ block content
                 .card
                     .card-title
                         h2 Top Tags (one month)
+                        h3 Published #{moment().subtract(month_start_days_ago, "days").startOf("day").format("Do MMM")} to #{moment().subtract(month_end_days_ago, "days").startOf("day").format("Do MMM")}
                     .card-body
                         each tag in tags_one_month.slice(0,5)
                             include tag
