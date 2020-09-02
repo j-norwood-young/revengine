@@ -15,7 +15,8 @@ class Save extends Action {
         super.run(...params);
         try {
             if (Array.isArray(this.data)) {
-                let result = await jxphelper.bulk_postput(this.instructions.collection, this.instructions.key, this.data);
+                const resolved_data = await Promise.all(this.data);
+                let result = await jxphelper.bulk_postput(this.instructions.collection, this.instructions.key, resolved_data);
                 return [result];
             } else {
                 const resolved_data = await Promise.resolve(this.data);
