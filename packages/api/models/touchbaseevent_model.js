@@ -2,7 +2,7 @@
 
 const TouchbaseEventSchema = new JXPSchema({
     event: String,
-    email: String,
+    email: { type: String, email: true },
     url: String,
     touchbase_campaign_id: String,
     touchbase_list_id: String,
