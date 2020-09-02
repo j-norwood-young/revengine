@@ -16,7 +16,7 @@ class Save extends Action {
         try {
             if (Array.isArray(this.data)) {
                 let result = await jxphelper.bulk_postput(this.instructions.collection, this.instructions.key, this.data);
-                return result;
+                return [result];
             } else {
                 const resolved_data = await Promise.resolve(this.data);
                 await jxphelper.postput(this.instructions.collection, this.instructions.key, resolved_data);
