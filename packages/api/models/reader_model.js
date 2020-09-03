@@ -39,7 +39,11 @@ const ReaderSchema = new JXPSchema({
     user_twitter: String,
 
     email: { type: String, index: true, unique: true, lowercase: true, trim: true, sparse: true },
+    
     hits: [ Mixed ],
+    touchbase_events: [ Mixed ],
+    
+    touchbase_data: [ Mixed ],
     
     touchbasesubscriber: [{ type: ObjectId, ref: "TouchbaseSubscriber" }],
     woocommercecustomer: [{ type: ObjectId, ref: "WoocommerceCustomer" }],
@@ -85,7 +89,7 @@ const ReaderSchema = new JXPSchema({
     email_highest_engagement: Number,
     email_average_engagement: Number,
     newsletters: [ String ],
-    touchbase_data: [ Mixed ],
+    
     membership_status: String,
     membership_start_date: Date,
     membership_value: Number,
