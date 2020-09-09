@@ -12,6 +12,15 @@ const Reports = require("@revengine/reports");
 const numberFormat = new Intl.NumberFormat(config.locale || "en-GB");
 const program = require('commander');
 
+const authors_to_exclude = [
+    "Reuters",
+    "Bloomberg"
+];
+
+const sections_to_exclude = [
+    "Newsdeck"
+]
+
 moment.tz.setDefault(config.timezone || "UTC");
 
 program
@@ -77,6 +86,14 @@ const daily_churn = async () => {
     }
 }
 
+const filter_articles = article => {
+    if (authors_to_exclude.includes(article.author)) return false;
+    for (let section of article.sections) {
+        if (sections_to_exclude.includes(section)) return false;
+    }
+    return true;
+}
+
 const content = async () => {
     try {
         const day_start_days_ago = 2;
@@ -91,10 +108,10 @@ const content = async () => {
         const one_day = await article_report.run(day_start_days_ago, day_end_days_ago);
         const one_week = await article_report.run(week_start_days_ago, week_end_days_ago);
         const template = pug.compileFile(path.join(__dirname, "./templates/content.pug"));
-        const top_articles_one_day = one_day.slice(0,5);
-        const bottom_articles_one_day = one_day.slice(-5);
-        const top_articles_one_week = one_week.slice(0, 5);
-        const bottom_articles_one_week = one_week.slice(-5);
+        const top_articles_one_day = one_day.filter(filter_articles).slice(0,5);
+        const bottom_articles_one_day = one_day.filter(filter_articles).slice(-5);
+        const top_articles_one_week = one_week.filter(filter_articles).slice(0, 5);
+        const bottom_articles_one_week = one_week.filter(filter_articles).slice(-5);
         
         // Tags
         const tag_report = new Reports.ArticleTags();
@@ -117,12 +134,12 @@ const content = async () => {
         for (let article of article_report.articles) {
             sectionset.add(...article.sections);
         }
-        let sections = [...sectionset].sort();
+        let sections = [...sectionset].sort().filter(section => !sections_to_exclude.includes(section));
         const top_articles_per_section = {};
         const bottom_articles_per_section = {};
         for (let section of sections) {
-            top_articles_per_section[section] = one_week.filter(article => article.sections.includes(section)).slice(0, 5);
-            bottom_articles_per_section[section] = one_week.filter(article => article.sections.includes(section)).slice(-5);
+            top_articles_per_section[section] = one_week.filter(article => article.sections.includes(section)).filter(filter_articles).slice(0, 5);
+            bottom_articles_per_section[section] = one_week.filter(article => article.sections.includes(section)).filter(filter_articles).slice(-5);
         }
 
         // console.log(top_articles_per_section);
