@@ -11,6 +11,62 @@ block content
         }
     .container
         h1= `${reader.display_name}`
+        if (reader.woocommerce_subscription)
+            .card-columns
+                .card
+                    img.card-img-top.bg-light.p-3(src="https://www.touchbasepro.com/Content/Images/TouchBasePro_Logo.svg" alt="Touchbase Pro")
+                    .card-body
+                        h4.card-title Touchbase Pro
+                        p.card-text
+                            strong Name 
+                            | #{ reader.touchbase_subscriber.name }
+                        p.card-text
+                            strong State 
+                            | #{ reader.touchbase_subscriber.state }
+                        p.card-text
+                            strong Email Client 
+                            | #{ reader.touchbase_subscriber.email_client }
+                        each data in reader.touchbase_subscriber.data
+                            p.card-text
+                                strong #{ data.Key } 
+                                | #{ data.Value }
+
+                .card
+                    img.card-img-top.bg-light.p-3(src="https://upload.wikimedia.org/wikipedia/commons/2/2a/WooCommerce_logo.svg" alt="WooCommerce")
+                    .card-body
+                        h4.card-title WooCommerce Subscription
+                        p.card-text 
+                            strong Status 
+                            | #{ reader.woocommerce_subscription.status }
+                        if (reader.woocommerce_subscription.customer_note)
+                            p.card-text 
+                                strong Customer Note 
+                                | #{ reader.woocommerce_subscription.customer_note }
+                        p.card-text 
+                            strong Total Value 
+                            | #{ reader.woocommerce_subscription.total }
+                        p.card-text 
+                            strong Billing Interval 
+                            | #{ reader.woocommerce_subscription.billing_interval } #{ reader.woocommerce_subscription.billing_period }
+                        if schedule_next_payment
+                            p.card-text 
+                                strong Schedule Next Payment 
+                                | #{ reader.woocommerce_subscription.schedule_next_payment }
+                        p.card-text 
+                            strong Date Created 
+                            | #{ reader.woocommerce_subscription.date_created }
+                        p.card-text 
+                            strong Date Modified 
+                            | #{ reader.woocommerce_subscription.date_modified }
+                        if (reader.woocommerce_subscription.payment_method)
+                            p.card-text 
+                                strong Payment Method 
+                                | #{ reader.woocommerce_subscription.payment_method }
+                        if (reader.woocommerce_subscription.products.length)
+                            each product in reader.woocommerce_subscription.products
+                                p.card-text 
+                                    strong Product 
+                                    | #{ product.name } x #{ product.quantity } = #{ product.total }
         .row
             .col-sm-7
                 p

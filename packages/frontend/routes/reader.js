@@ -46,18 +46,18 @@ router.get("/ammalgamate/:email", async(req, res) => {
 
 router.get("/view/:reader_id", async (req, res) => {
     try {
-        const datasources = (await req.apihelper.get("datasource")).data;
-        let d = {};
-        for (datasource of datasources) {
-            d[`populate[${datasource.model}]`] = "";
-        }
+        const d = {};
         d["populate[labels]"] = "name";
-        const reader = await req.apihelper.getOne("reader", req.params.reader_id, d)
+        const reader = (await req.apihelper.getOne("reader", req.params.reader_id, d)).data;
+        reader.touchbase_subscriber = (await req.apihelper.get("touchbasesubscriber", { "filter[email]": reader.email, "populate": "list" })).data.pop();
+        reader.woocommerce_membership = (await req.apihelper.get("woocommerce_membership", { "filter[customer_id]": reader.id })).data;
+        reader.woocommerce_order = (await req.apihelper.get("woocommerce_order", { "filter[customer_id]": reader.id })).data;
+        reader.woocommerce_subscription = (await req.apihelper.get("woocommerce_subscription", { "filter[customer_id]": reader.id })).data.pop();
         let display_name = reader.email;
         if (reader.first_name || reader.last_name) display_name = `${reader.first_name || ""} ${reader.last_name || ""}`.trim();
         reader.display_name = display_name;
         reader.email_hash = crypto.createHash('md5').update(reader.email.trim().toLowerCase()).digest("hex")
-        res.render("readers/reader", {title: `Reader: ${display_name}`, reader });
+        res.render("readers/reader", { title: `Reader: ${display_name}`, reader });
     } catch (err) {
         console.error(err);
         res.render("error", err);
