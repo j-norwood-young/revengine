@@ -69,6 +69,7 @@ router.use((req, res, next) => {
 	res.locals.user = req.session.user;
 	res.locals.apikey = req.session.apikey;
 	res.locals.apiserver = config.api.server;
+	res.locals.pipelineserver = config.pipeline.server;
 	// res.locals.daemonserver = config.daemon_api.url;
 	req.apihelper = new JXPHelper({ server: config.api.server, apikey: req.session.apikey });
 	next();

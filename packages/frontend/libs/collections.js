@@ -3,7 +3,6 @@ const formatNumber = require("./utils").formatNumber;
 const $ = require("jquery");
 const moment = require("moment-timezone");
 const { data } = require("jquery");
-const config = require("config");
 
 class Collections {
     constructor(opts) {
@@ -110,7 +109,7 @@ class Collections {
                     {
                         name: "Run Now",
                         action: async pipeline => {
-                            await $.get(`${config.pipeline.server}/run/${pipeline._id}`);
+                            await $.get(`${pipelineserver}/run/${pipeline._id}`);
                         }
                     }
                 ]
