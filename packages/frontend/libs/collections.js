@@ -3,6 +3,7 @@ const formatNumber = require("./utils").formatNumber;
 const $ = require("jquery");
 const moment = require("moment-timezone");
 const { data } = require("jquery");
+const config = require("config");
 
 class Collections {
     constructor(opts) {
@@ -12,8 +13,8 @@ class Collections {
         const readonly = true;
         this.datadefs = {
             article: {
-                name: "Article",
-                sortby: "published_at",
+                name: "Articles",
+                sortby: "date_published",
                 sortdir: -1,
                 fields: [
                     { name: "Date Published", key: "date_published", d: data => moment(data.date_published).format("YYYY-MM-DD HH:mm"), list_view },
@@ -104,6 +105,14 @@ class Collections {
                     { name: "Last run start", key: "last_run_start", readonly, d: data => data.last_run_start, list_view },
                     { name: "Last run end", key: "last_run_end", readonly, d: data => data.last_run_end, list_view },
                     { name: "Pipeline", key: "pipeline", d: data => data.pipeline, view: "code" },
+                ],
+                actions: [
+                    {
+                        name: "Run Now",
+                        action: async pipeline => {
+                            await $.get(`${config.pipeline.server}/run/${pipeline._id}`);
+                        }
+                    }
                 ]
             },
             touchbaselist: {
