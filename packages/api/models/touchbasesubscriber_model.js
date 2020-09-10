@@ -3,10 +3,10 @@
 
 const TouchbaseSubscriberSchema = new JXPSchema({
     name: String,
-    list_id: { type: ObjectId, link: "TouchbaseList" },
-    email: String,
+    list_id: { type: ObjectId, link: "touchbaselist" },
+    email: { type: String, index: true },
     date: Date,
-    state: String,
+    state: { type: String, index: true },
     data: Mixed,
     email_client: String,
     uid: { type: String, unique: true }, //md5 of list_id + email

@@ -2,7 +2,7 @@
 
 const Woocommerce_MembershipSchema = new JXPSchema({
     id: { type: Number, index: true},
-    "customer_id": Number,
+    "customer_id": { type: Number, index: true },
     "status": String,
     "start_date": Date,
     "end_date": Date,
