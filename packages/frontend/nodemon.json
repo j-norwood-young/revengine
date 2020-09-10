@@ -1,5 +1,6 @@
 {
     "events": {
-        "crash": "sh -c 'lsof -i :${PORT:-3014} -t | xargs kill'"
+        "watch": ["packages/frontend"],
+        "delay": 3
     }
 }
