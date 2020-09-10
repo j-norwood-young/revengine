@@ -10,7 +10,6 @@ const collections = new Collections;
 const populate = ((req, res, next) => {
     const type = req.params.type;
     const typedef = res.locals.typedefs[type];
-    console.log({type, typedef});
     res.locals.page = req.params.page || typedef.state.page || 1;
     res.locals.limit = req.params.limit || typedef.state.limit || 100;
     res.locals.fields = typedef.fields.join(",");
