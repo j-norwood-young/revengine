@@ -53,7 +53,8 @@
         }
     },
     "pipeline": {
-        "port": 3018
+        "port": 3018,
+        "server": "http://api.revengine.dailymaverick.co.za:3018"
     },
     "tracker": {
         "port": 3013,
