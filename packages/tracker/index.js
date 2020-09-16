@@ -38,7 +38,6 @@ client.createTopics([
 });
 
 const set_esdata = (index, data) => {
-    if (index === "pageviews") index = "pageviews_copy";
     const ua = Bowser.parse(data.user_agent);
     let utm = {};
     try {
