@@ -38,6 +38,7 @@ client.createTopics([
 });
 
 const set_esdata = (index, data) => {
+    if (index === "pageviews") index = "pageviews_copy";
     const ua = Bowser.parse(data.user_agent);
     let utm = {};
     try {
@@ -128,7 +129,7 @@ const post_hit = async (req, res) => {
                 if (!data.action) throw "No action";
                 let index = null;
                 if (data.action === "pageview") {
-                    index = "pageviews_copy";
+                    index = "pageviews";
                 }
                 if (!index) throw `No index found for action ${data.action}`;
                 const esdata = set_esdata(index, data);
