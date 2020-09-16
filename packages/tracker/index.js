@@ -128,7 +128,7 @@ const post_hit = async (req, res) => {
                 if (!data.action) throw "No action";
                 let index = null;
                 if (data.action === "pageview") {
-                    index = "pageviews";
+                    index = "pageviews_copy";
                 }
                 if (!index) throw `No index found for action ${data.action}`;
                 const esdata = set_esdata(index, data);
