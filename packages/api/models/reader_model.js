@@ -46,6 +46,18 @@ const ReaderSchema = new JXPSchema({
     touchbase_events_previous_7_days: Number,
     touchbase_events_last_30_days: Number,
     touchbase_events_previous_30_days: Number,
+
+    touchbase_opens: [Mixed],
+    touchbase_opens_last_7_days: Number,
+    touchbase_opens_previous_7_days: Number,
+    touchbase_opens_last_30_days: Number,
+    touchbase_opens_previous_30_days: Number,
+
+    touchbase_clicks: [Mixed],
+    touchbase_clicks_last_7_days: Number,
+    touchbase_clicks_previous_7_days: Number,
+    touchbase_clicks_last_30_days: Number,
+    touchbase_clicks_previous_30_days: Number,
     
     touchbase_data: [ Mixed ],
     
