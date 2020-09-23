@@ -1,0 +1,24 @@
+extends ../layout
+
+block content
+    .container
+        h2 Authors
+        form(method="POST" action="/reader/facet/author")
+            .form-group
+                label Facet by author
+                select#author.form-control(name="author")
+                    each author in authors
+                        option= author
+            .form-group
+                input.btn.btn-primary(type="submit", value="Submit")
+        hr
+        h2 Tags
+        form(method="POST" action="/reader/facet/tag")
+            .form-group
+                label Facet by tag
+                select#tag.form-control(name="tag")
+                    each tag in tags
+                        option= tag
+            .form-group
+                input.btn.btn-primary(type="submit", value="Submit")
+        

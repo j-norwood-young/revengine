@@ -4,6 +4,8 @@ const config = require("config");
 const crypto = require('crypto');
 const Elasticsearch = require("elasticsearch");
 const esclient = new Elasticsearch.Client({ ...config.elasticsearch });
+const jsonexport = require('jsonexport');
+const moment = require("moment");
 
 function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
@@ -150,6 +152,152 @@ router.get("/data/:reader_id", async (req, res) => {
         data.timespent_avg = timespent_result.aggregations.timespent_avg;
         res.send(data)
     } catch(err) {
+        console.error(err);
+        res.status(500).send({ error: err });
+    }
+})
+
+router.get("/facet", async (req, res) => {
+    try {
+        const author_query = [
+            { $group: { _id: { author: '$author' } } },
+            { $sort: { author: 1 } }
+        ]
+        const authors = (await req.apihelper.aggregate("article", author_query)).data.map(item => item._id.author);
+        authors.sort();
+        const tag_query = [
+            { $unwind: "$tags" },
+            { $group: { _id: { tags: '$tags' }, count: { $sum: 1 } } },
+            { $match: { count: { $gte: 20 }}},
+            { $sort: { tags: 1 } }
+        ]
+        const tags = (await req.apihelper.aggregate("article", tag_query)).data.map(item => item._id.tags);
+        tags.sort();
+        console.log(tags);
+        res.render("readers/facet", { title: "Facet users", authors, tags})
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({ error: err });
+    }
+})
+
+router.post("/facet/author", async (req, res) => {
+    try {
+        const author = req.body.author;
+        const query = {
+            index: "pageviews_copy",
+            body: {
+                "size": 1,
+                "query": {
+                    "bool": {
+                        "must": [
+                            {
+                                "exists": {
+                                    "field": "article_id"
+                                }
+                            },
+                            {
+                                "exists": {
+                                    "field": "user_id"
+                                }
+                            },
+                            {
+                                "match": {
+                                    "author_id": author
+                                }
+                            }
+                        ],
+                        "must_not": [
+                            {
+                                "match": {
+                                    "user_id": 0
+                                }
+                            }
+                        ]
+                    }
+                },
+                "aggs": {
+                    "result": {
+                        "terms": {
+                            "field": "user_id",
+                            "size": 10000
+                        }
+                    }
+                }
+            }
+        }
+        const query_result = await esclient.search(query);
+        const reader_ids = (query_result.aggregations.result.buckets).map(item => item.key);
+        const readers = [];
+        for (let reader_id of reader_ids) {
+            readers.push((await req.apihelper.get("reader", { "filter[id]": reader_id, "fields": "id,display_name,first_name,last_name,email"})).data[0]);
+        }
+        // console.log(readers);
+        const csv = await jsonexport(readers);
+        res.attachment(`readers-${author}-${moment().format("YYYYMMDDHHmmss")}.csv`);
+        res.send(csv);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({ error: err });
+    }
+})
+
+router.post("/facet/tag", async (req, res) => {
+    try {
+        const tag = req.body.tag;
+        const query = {
+            index: "pageviews_copy",
+            body: {
+                "size": 1,
+                "query": {
+                    "bool": {
+                        "must": [
+                            {
+                                "exists": {
+                                    "field": "article_id"
+                                }
+                            },
+                            {
+                                "exists": {
+                                    "field": "user_id"
+                                }
+                            },
+                            {
+                                "match": {
+                                    "tags": tag
+                                }
+                            }
+                        ],
+                        "must_not": [
+                            {
+                                "match": {
+                                    "user_id": 0
+                                }
+                            }
+                        ]
+                    }
+                },
+                "aggs": {
+                    "result": {
+                        "terms": {
+                            "field": "user_id",
+                            "size": 10000
+                        }
+                    }
+                }
+            }
+        }
+        const query_result = await esclient.search(query);
+        const reader_ids = (query_result.aggregations.result.buckets).map(item => item.key);
+        const readers = [];
+        for (let reader_id of reader_ids) {
+            readers.push((await req.apihelper.get("reader", { "filter[id]": reader_id, "fields": "id,display_name,first_name,last_name,email" })).data[0]);
+        }
+        // console.log(readers);
+        const csv = await jsonexport(readers);
+        res.attachment(`readers-${tag}-${moment().format("YYYYMMDDHHmmss")}.csv`);
+        res.send(csv);
+    } catch (err) {
         console.error(err);
         res.status(500).send({ error: err });
     }
