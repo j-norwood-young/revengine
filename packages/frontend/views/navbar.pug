@@ -8,8 +8,11 @@ nav.navbar.navbar-expand-lg.navbar-dark.bg-dark.mb-4
 		ul.navbar-nav.mr-auto
 			li.nav-item.active
 				a.nav-link(href='/dashboard') Dashboard
-			li.nav-item
-				a.nav-link(href='/list/reader') Readers
+			li.nav-item.dropdown
+				a.nav-link.dropdown-toggle(id='navbarDropdownReader', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false') Readers
+				.dropdown-menu(aria-labelledby='navbarDropdownReader')
+					a.dropdown-item(href='/list/reader') Reader List
+					a.dropdown-item(href='/reader/facet') Reader Facet
 			li.nav-item
 				a.nav-link(href='/list/article') Articles
 			li.nav-item
@@ -22,7 +25,8 @@ nav.navbar.navbar-expand-lg.navbar-dark.bg-dark.mb-4
 			li.nav-item.dropdown
 				a.nav-link.dropdown-toggle(id='navbarDropdownAccountsLink', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false')= user.name
 				.dropdown-menu(aria-labelledby='navbarDropdownAccountsLink')
-					a.dropdown-item(href='/account/settings') Settings
+					a.dropdown-item(href='/account/settings') Account
+					//- a.dropdown-item(href='/config/settings') Config
 					a.dropdown-item(href='/login/logout') Logout
 			li#primarySearchContainer.nav-item
 				input#primarySearch.form-control(type="search")
