@@ -40,11 +40,6 @@ block content
                         p.card-text
                             strong Email Client 
                             | #{ reader.touchbase_subscriber[0].email_client }
-                        each data in reader.touchbase_subscriber[0].data
-                            p.card-text
-                                strong #{ data.Key } 
-                                | #{ data.Value }
-
                 .card
                     img.card-img-top.bg-light.p-3(src="https://upload.wikimedia.org/wikipedia/commons/2/2a/WooCommerce_logo.svg" alt="WooCommerce")
                     .card-body
@@ -81,6 +76,14 @@ block content
                                 p.card-text 
                                     strong Product 
                                     | #{ product.name } x #{ product.quantity } = #{ product.total }
+                for touchbase_subscriber in reader.touchbase_subscriber
+                    .card
+                        .card-body
+                            h4.card-title= touchbase_subscriber.touchbaselist.name
+                            each data in touchbase_subscriber.data
+                                p.card-text
+                                    strong #{ data.Key } 
+                                    | #{ data.Value }
         .row
             .col-sm-7
                 p
