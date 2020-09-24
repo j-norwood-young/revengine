@@ -11,22 +11,36 @@ block content
         }
     .container
         h1= `${reader.display_name}`
-        if (reader.woocommerce_subscription)
-            .card-columns
+        
+        .card-columns
+            .card
+                img.img-fluid(src=`https://www.gravatar.com/avatar/${reader.email_hash}?s=400`)
+                .card-body
+                    h4.card-title= reader.display_name
+                    p.card-text
+                        strong Email 
+                        a(href="mailto:" + reader.email)= reader.email
+                    p.card-text
+                        strong Registered 
+                        | #{ reader.user_registered }
+                    if (reader.paying_customer)
+                        p.card-text
+                            strong Paying Subscriber 
+            if (reader.woocommerce_subscription[0])            
                 .card
                     img.card-img-top.bg-light.p-3(src="https://www.touchbasepro.com/Content/Images/TouchBasePro_Logo.svg" alt="Touchbase Pro")
                     .card-body
                         h4.card-title Touchbase Pro
                         p.card-text
                             strong Name 
-                            | #{ reader.touchbase_subscriber.name }
+                            | #{ reader.touchbase_subscriber[0].name }
                         p.card-text
                             strong State 
-                            | #{ reader.touchbase_subscriber.state }
+                            | #{ reader.touchbase_subscriber[0].state }
                         p.card-text
                             strong Email Client 
-                            | #{ reader.touchbase_subscriber.email_client }
-                        each data in reader.touchbase_subscriber.data
+                            | #{ reader.touchbase_subscriber[0].email_client }
+                        each data in reader.touchbase_subscriber[0].data
                             p.card-text
                                 strong #{ data.Key } 
                                 | #{ data.Value }
@@ -37,33 +51,33 @@ block content
                         h4.card-title WooCommerce Subscription
                         p.card-text 
                             strong Status 
-                            | #{ reader.woocommerce_subscription.status }
-                        if (reader.woocommerce_subscription.customer_note)
+                            | #{ reader.woocommerce_subscription[0].status }
+                        if (reader.woocommerce_subscription[0].customer_note)
                             p.card-text 
                                 strong Customer Note 
-                                | #{ reader.woocommerce_subscription.customer_note }
+                                | #{ reader.woocommerce_subscription[0].customer_note }
                         p.card-text 
                             strong Total Value 
-                            | #{ reader.woocommerce_subscription.total }
+                            | #{ reader.woocommerce_subscription[0].total }
                         p.card-text 
                             strong Billing Interval 
-                            | #{ reader.woocommerce_subscription.billing_interval } #{ reader.woocommerce_subscription.billing_period }
+                            | #{ reader.woocommerce_subscription[0].billing_interval } #{ reader.woocommerce_subscription[0].billing_period }
                         if schedule_next_payment
                             p.card-text 
                                 strong Schedule Next Payment 
-                                | #{ reader.woocommerce_subscription.schedule_next_payment }
+                                | #{ reader.woocommerce_subscription[0].schedule_next_payment }
                         p.card-text 
                             strong Date Created 
-                            | #{ reader.woocommerce_subscription.date_created }
+                            | #{ reader.woocommerce_subscription[0].date_created }
                         p.card-text 
                             strong Date Modified 
-                            | #{ reader.woocommerce_subscription.date_modified }
-                        if (reader.woocommerce_subscription.payment_method)
+                            | #{ reader.woocommerce_subscription[0].date_modified }
+                        if (reader.woocommerce_subscription[0].payment_method)
                             p.card-text 
                                 strong Payment Method 
-                                | #{ reader.woocommerce_subscription.payment_method }
-                        if (reader.woocommerce_subscription.products.length)
-                            each product in reader.woocommerce_subscription.products
+                                | #{ reader.woocommerce_subscription[0].payment_method }
+                        if (reader.woocommerce_subscription[0].products.length)
+                            each product in reader.woocommerce_subscription[0].products
                                 p.card-text 
                                     strong Product 
                                     | #{ product.name } x #{ product.quantity } = #{ product.total }
@@ -88,19 +102,17 @@ block content
                         != `They use <strong>${ reader.email_client }</strong> to read email.`
                 canvas#beamTimespentAvg.histogram
                 canvas#beamArticleProgress.histogram
-            .col-sm-3
-                img.img-fluid(src=`https://www.gravatar.com/avatar/${reader.email_hash}?s=200`)
-                .card.mt-2
-                    .card-body
-                        h2 Newsletters
-                        for newsletter in reader.newsletters
-                            .custom-control.custom-checkbox
-                                input.custom-control-input.list-checkbox-filter(type="checkbox" id=`newsletter-${newsletter}` value=newsletter checked="checked" readonly="readonly")
-                                label.custom-control-label(for=`newsletter-${newsletter}`)= newsletter
+            //- .col-sm-3
+            //-     .card.mt-2
+            //-         .card-body
+            //-             h2 Newsletters
+            //-             for newsletter in reader.newsletters
+            //-                 .custom-control.custom-checkbox
+            //-                     input.custom-control-input.list-checkbox-filter(type="checkbox" id=`newsletter-${newsletter}` value=newsletter checked="checked" readonly="readonly")
+            //-                     label.custom-control-label(for=`newsletter-${newsletter}`)= newsletter
         
         #activitiesD3.mb-4
-        pre= JSON.stringify(activities, null, "\t")
-        pre= JSON.stringify(reader, null, "\t")
+        pre(style="height: 100vh; overflow-y: scroll")= JSON.stringify(reader, null, "\t")
     script.
         const activities_d3 = new ActivitiesD3("#{reader._id}");
         document.addEventListener("DOMContentLoaded", async (event) => {
