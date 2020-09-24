@@ -2,7 +2,6 @@
 
 const TouchbaseSubscriber = require("./touchbasesubscriber_model");
 const TouchbaseList = require("./touchbaselist_model");
-const WoocommerceCustomer = require("./woocommercecustomer_model");
 const WoocommerceSubscription = require("./woocommerce_subscription_model");
 
 const ReaderSchema = new JXPSchema({
@@ -228,5 +227,5 @@ ReaderSchema.pre("save", async function () {
 });
 
 // const Reader 
-const Reader = JXPSchema.model('Reader', ReaderSchema);
+const Reader = JXPSchema.model('reader', ReaderSchema);
 module.exports = Reader;

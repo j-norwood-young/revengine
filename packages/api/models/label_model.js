@@ -1,9 +1,4 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
-const ObjectId = mongoose.Schema.Types.ObjectId;
-const Mixed = mongoose.Schema.Types.Mixed;
-
-const LabelSchema = new Schema({
+const LabelSchema = new JXPSchema({
     name: { type: String, unique: true },
     rules: {
         type: [String], 
@@ -19,29 +14,13 @@ const LabelSchema = new Schema({
             },
             message: props => `Rule is not valid JSON`
         }
-    },
-    _owner_id: ObjectId
-});
-
-// We can set permissions for different user types and user groups
-LabelSchema.set("_perms", {
-    admin: "crud", // CRUD = Create, Retrieve, Update and Delete
-    owner: "crud",
-    user: "r",
-},
-{
-    toObject: {
-        virtuals: true
-    },
-    toJSON: {
-        virtuals: true
-    },
-    timestamps: true,
-    writeConcern: {
-        w: 'majority',
-        j: true,
-        wtimeout: 1000
-    },
+    }
+}, {
+    perms: {
+        admin: "crud", // CRUD = Create, Retrieve, Update and Delete
+        owner: "crud",
+        user: "r",
+    }
 });
 
 const applyLabel = async function (label) {
@@ -91,5 +70,5 @@ LabelSchema.post('save', async function(doc) {
     await applyLabel(doc);
 });
 
-const Label = mongoose.model('Label', LabelSchema)
+const Label = JXPSchema.model('Label', LabelSchema);
 module.exports = Label;
