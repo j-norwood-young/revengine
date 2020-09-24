@@ -24,5 +24,5 @@ const TouchbaseEventSchema = new JXPSchema({
     }
 });
 
-const TouchbaseEvent = JXPSchema.model('TouchbaseEvent', TouchbaseEventSchema);
+const TouchbaseEvent = JXPSchema.model('touchbaseevent', TouchbaseEventSchema);
 module.exports = TouchbaseEvent;

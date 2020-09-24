@@ -22,5 +22,5 @@ const TouchbaseSubscriberSchema = new JXPSchema({
 
 // TouchbaseSubscriberSchema.post("save", shared.datasource_post_save);
 
-const TouchbaseSubscriber = JXPSchema.model('TouchbaseSubscriber', TouchbaseSubscriberSchema);
+const TouchbaseSubscriber = JXPSchema.model('touchbasesubscriber', TouchbaseSubscriberSchema);
 module.exports = TouchbaseSubscriber;

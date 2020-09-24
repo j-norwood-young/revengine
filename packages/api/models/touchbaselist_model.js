@@ -10,5 +10,5 @@ const TouchbaseListSchema = new JXPSchema({
     }
 });
 
-const TouchbaseList = JXPSchema.model('TouchbaseList', TouchbaseListSchema);
+const TouchbaseList = JXPSchema.model('touchbaselist', TouchbaseListSchema);
 module.exports = TouchbaseList;
