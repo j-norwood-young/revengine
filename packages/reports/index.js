@@ -220,4 +220,4 @@ class ArticleLongTails {
     }
 }
 
-module.exports = { ArticleHits, ArticleTags, ArticleSections, CompareFeatures, ArticleLongTails };
+module.exports = { ArticleHits, ArticleTags, ArticleSections, CompareFeatures, ArticleLongTails, TopLastHour: require("./libs/top_last_hour") };

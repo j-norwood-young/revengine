@@ -62,7 +62,12 @@
         "cache_size": 1,
         "kafka_topic": "revengine_events"
     },
+    "slack": {
+        "webhook": "https://hooks.slack.com/services/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"
+    },
     "wordpress": {
-        "server": "https://www.dailymaverick.co.za"
+        "server": "https://www.dailymaverick.co.za",
+        "homepage": "https://www.dailymaverick.co.za",
+        "front_page_admin": "https://www.dailymaverick.co.za/wp-admin/admin.php?page=featured-flagged-post"
     }
 }
