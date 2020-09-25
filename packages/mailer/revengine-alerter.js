@@ -34,7 +34,7 @@ const main = async () => {
         const articles = json_result.data.filter(article => moment(article.date_published).isBefore(moment().subtract(1, 'hours')));
         const report = new Reports.TopLastHour();
         const top_articles = await report.run();
-        console.log({ top_articles, articles });
+        // console.log({ top_articles, articles });
         const underperforming = [];
         const overperforming = [];
         for (let article of articles) {
@@ -107,8 +107,8 @@ const main = async () => {
             }
         })
 
-        console.log(blocks);
-        await fetch(config.slack.webhook, 
+        // console.log(blocks);
+        await fetch(process.env.SLACK_WEBHOOK, 
             {
                 method: "post",
                 body: JSON.stringify({ blocks }),
