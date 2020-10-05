@@ -37,27 +37,37 @@ class Charts {
         return [el, opts];
     }
 
-    drawHistogram(type, data, agg, colour, label, unit) {
-        unit = unit || "month";
-        type = type || "line";
+    drawHistogram(opts) {
+        if (!opts.element) throw ("element selector required");
+        if (!opts.data) throw ("data required");
+        opts = Object.assign({
+            unit: "month",
+            type: "line",
+            key_label: "key_as_string",
+            value_label: "doc_count",
+            unit: "hour",
+            label: "hits",
+            colour: "rgba(66, 245, 182)",
+        }, opts);
+        const el = document.querySelector(opts.element);
         const mapped = item => {
             return {
-                x: item.key_as_string,
-                y: (item[agg].value) ? item[agg].value : 0
+                x: item[opts.key_label],
+                y: (item[opts.value_label].value) ? item[opts.value_label].value : item[opts.value_label] ? item[opts.value_label] : 0
             }
         };
-        const prepared_data = data.buckets.map(mapped).filter(d => d.y);
-        let opts = {
-            type,
+        const prepared_data = opts.data.map(mapped).filter(d => d.y);
+        let chart_settings = {
+            type: opts.type,
             data: {
                 labels: prepared_data.map(d => d.x),
                 datasets: [{
                     data: prepared_data.map(d => d.y),
-                    label,
-                    backgroundColor: Color(colour).alpha(0.5).rgb().string(),
-                    borderColor: Color(colour).alpha(0.8).rgb().string(),
-                    highlightFill: Color(colour).alpha(0.75).rgb().string(),
-                    highlightStroke: Color(colour).alpha(1).rgb().string(),
+                    label: opts.label,
+                    backgroundColor: Color(opts.colour).alpha(0.5).rgb().string(),
+                    borderColor: Color(opts.colour).alpha(0.8).rgb().string(),
+                    highlightFill: Color(opts.colour).alpha(0.75).rgb().string(),
+                    highlightStroke: Color(opts.colour).alpha(1).rgb().string(),
                 }]
             },
             options: {
@@ -65,7 +75,7 @@ class Charts {
                     xAxes: [{
                         type: 'time',
                         time: {
-                            unit
+                            unit: opts.unit
                         }
                     }],
                     yAxes: [{
@@ -76,7 +86,7 @@ class Charts {
                 }
             }
         };
-        new ChartJS.Chart(...this.nodify(null, opts));
+        new ChartJS.Chart(...this.nodify(el.getContext("2d"), chart_settings));
     }
 
     drawTimeSpent(timespent_avg, ctx, unit) {

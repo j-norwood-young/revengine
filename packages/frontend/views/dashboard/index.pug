@@ -15,22 +15,16 @@ block content
                         .big-number.mb-4
                             .number= formatNumber(reader_count)
                             .content Total Readers
-            .col-sm-4
-                .card.mb-4
-                    .card-body
-                        h2 Labels
-                        for label in labels
-                            .big-number.mb-4
-                                .number= formatNumber(label.length)
-                                .content= label.name
+        canvas#beamArticleProgress(width="300" height="100")
 block scripts
     script.
         document.addEventListener("DOMContentLoaded", async (event) => {
-            const beam = new Beam();
-            let article_progress_data = await beam.get("/dashboard/article_progress")
-            console.log(article_progress_data);
+            let article_data = await beam.get("/dashboard/article_hits?interval=hour")
             const charts = new Charts();
-            charts.drawArticleProgress(article_progress_data.result.article_progress, document.getElementById("beamArticleProgress").getContext("2d"));
-            //- beam.drawCharts(beamdata);
+            charts.drawHistogram({
+                element: "#beamArticleProgress", 
+                data: article_data, 
+                label: "Hits"
+            });
         })
                                 

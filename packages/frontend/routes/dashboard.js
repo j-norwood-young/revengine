@@ -1,9 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const config = require("config");
-
-const Elasticsearch = require("elasticsearch");
-const esclient = new Elasticsearch.Client({ ...config.elasticsearch.server });
+const Reports = require("@revengine/reports");
 
 
 router.get("/", async (req, res) => {
@@ -25,60 +22,10 @@ router.get("/daily_email", async(req, res) => {
     res.render("reports/daily_email", { title: "Daily Email Report"});
 });
 
-router.get("/article_progress", async(req, res) => {
+router.get("/article_hits", async(req, res) => {
     try {
-        const data = {};
-        let interval = req.query.interval || "month";
-        const query = {
-            index: "pageviews_progress",
-            body: {
-                "aggs": {
-                    "article_progress": {
-                        "date_histogram": {
-                            "field": "time",
-                            "interval": interval
-                        },
-                        "aggs": {
-                            "article_progress_avg": {
-                                "avg": {
-                                    "field": "article_progress"
-                                }
-                            },
-                            "article_progress_sum": {
-                                "sum": {
-                                    "field": "article_progress"
-                                }
-                            }
-                        }
-                    }
-                },
-                "size": 0,
-                "docvalue_fields": [
-                    {
-                        "field": "time",
-                        "format": "date_time"
-                    }
-                ],
-                "query": {
-                    "bool": {
-                        "must": [
-                            {
-                                "range": {
-                                    "time": {
-                                        "gte": 1586091043889,
-                                        "lte": 1586177443889,
-                                        "format": "epoch_millis"
-                                    }
-                                }
-                            }
-                        ]
-                    }
-                }
-            }  
-        }
-        const query_result = await esclient.search(query);
-        console.log(query_result);
-        data.result = query_result.aggregations;
+        let interval = req.query.interval || "minute";
+        const data = await (new Reports.Hits24H()).run(interval);
         res.send(data);
     } catch(err) {
         console.error(err);
