@@ -23,14 +23,6 @@ block content
                             .big-number.mb-4
                                 .number= formatNumber(label.length)
                                 .content= label.name
-            .col-sm-4
-                .card.mb-4
-                    .card-body
-                        h2 Data Sources
-                        for datasource in datasources
-                            .big-number.mb-4
-                                .number= formatNumber(datasource.length)
-                                .content= datasource.name
 block scripts
     script.
         document.addEventListener("DOMContentLoaded", async (event) => {

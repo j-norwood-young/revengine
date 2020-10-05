@@ -8,18 +8,13 @@ const esclient = new Elasticsearch.Client({ ...config.elasticsearch.server });
 
 router.get("/", async (req, res) => {
     try {
-        const datasources = (await req.apihelper.get("datasource")).data;
-        for (let datasource of datasources) {
-            datasource.length = (await req.apihelper.get(datasource.model, { limit: 1 })).count;
-        }
-        datasources.sort((a, b) => b.length - a.length);
         const labels = (await req.apihelper.get("label")).data;
         for (let label of labels) {
             label.length = (await req.apihelper.get("reader", { limit: 1, "filter[labels]": label._id })).count;
         }
         labels.sort((a, b) => b.length - a.length);
         const reader_count = (await req.apihelper.get("reader", { limit: 1 })).count;
-        res.render("dashboard", { title: "Dashboard", datasources, reader_count, labels });
+        res.render("dashboard", { title: "Dashboard", reader_count, labels });
     } catch(err) {
         console.error(err);
         res.render("error", err);
