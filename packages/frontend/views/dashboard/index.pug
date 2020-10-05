@@ -19,6 +19,7 @@ block content
 block scripts
     script.
         document.addEventListener("DOMContentLoaded", async (event) => {
+            const beam = new Beam();
             let article_data = await beam.get("/dashboard/article_hits?interval=hour")
             const charts = new Charts();
             charts.drawHistogram({
