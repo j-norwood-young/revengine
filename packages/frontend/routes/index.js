@@ -100,5 +100,6 @@ router.use("/search", require("./search"));
 router.use("/reader", require("./reader"));
 router.use("/stats", require("./stats"));
 router.use("/api", require("./api"));
+router.use("/config", require("./config"));
 
 module.exports = router;
