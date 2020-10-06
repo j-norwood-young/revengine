@@ -6,6 +6,9 @@ const Elasticsearch = require("elasticsearch");
 const esclient = new Elasticsearch.Client({ ...config.elasticsearch });
 const jsonexport = require('jsonexport');
 const moment = require("moment");
+const recency = require("@revengine/reports/libs/recency");
+const frequency = require("@revengine/reports/libs/frequency");
+const value = require("@revengine/reports/libs/value");
 
 function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
@@ -59,6 +62,9 @@ router.get("/view/:reader_id", async (req, res) => {
         if (reader.first_name || reader.last_name) display_name = `${reader.first_name || ""} ${reader.last_name || ""}`.trim();
         reader.display_name = display_name;
         reader.email_hash = crypto.createHash('md5').update(reader.email.trim().toLowerCase()).digest("hex")
+        reader.recency = await recency(reader._id);
+        reader.frequency = await frequency(reader._id);
+        reader.value = await value(reader._id);
         res.render("readers/reader", { title: `Reader: ${display_name}`, reader });
     } catch (err) {
         console.error(err);
