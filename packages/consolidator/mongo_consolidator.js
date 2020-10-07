@@ -9,6 +9,8 @@ const esclient = new elasticsearch.Client({
 });
 const crypto = require("crypto");
 const { url } = require("inspector");
+const RFV = require("@revengine/reports/libs/rfv");
+const Favourites = require("@revengine/reports/libs/favourites");
 
 const md5 = input => {
     return crypto.createHash('md5').update(input).digest("hex");
@@ -231,10 +233,34 @@ const merge_hits = async() => {
     await merge_touchbase_hits(start_time, end_time);
 }
 
+const rfv = async() => {
+    console.time("rfv");
+    const rfvs = await RFV();
+    const per_page = 10000;
+    while (rfvs.length) {
+        const bulk_result = await apihelper.bulk_postput("reader", "email", rfvs.splice(0, per_page));
+        console.log(bulk_result);
+    }
+    console.timeEnd("rfv");
+}
+
+const favourites = async() => {
+    console.time("favourites");
+    const favourites = await Favourites();
+    const per_page = 10000;
+    while (favourites.length) {
+        const bulk_result = await apihelper.bulk_postput("reader", "email", favourites.splice(0, per_page));
+        console.log(bulk_result);
+    }
+    console.timeEnd("favourites");
+}
+
 const main = async () => {
     // await ensure_touchbase_readers();
     // await consolidate_touchbase_events();
     await merge_hits();
+    await rfv();
+    await favourites();
 }
 
 main();
