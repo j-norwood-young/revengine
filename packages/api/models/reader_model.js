@@ -37,6 +37,14 @@ const ReaderSchema = new JXPSchema({
     user_facebook: String,
     user_twitter: String,
 
+    recency: { type: Number, index: true },
+    frequency: { type: Number, index: true },
+    value: { type: Number, index: true },
+    volume: { type: Number, index: true },
+
+    authors: [{ type: String, index: true }],
+    sections: [{ type: String, index: true }],
+
     email: { type: String, index: true, unique: true, lowercase: true, trim: true, sparse: true },
     
     hits: [ Mixed ],
