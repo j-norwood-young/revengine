@@ -1,10 +1,10 @@
-//- .col-sm-2.col-xs-12
-//-     select.form-control.list-filter(data-field=filter.field multiple=(filter.multiple))
-//-         option(value="*")= filter.name
-//-         for option in options
-//-             option(value=option._id)= option.name
-.d-flex.flex-row.list-checkbox-container
-    for option in options
-        .custom-control.custom-checkbox
-            input.custom-control-input.list-checkbox-filter(type="checkbox" id=`checkbox-filter-${option._id}` value=option._id data-field=filter.field)
-            label.custom-control-label(for=`checkbox-filter-${option._id}`)= option.name
+.mr-1
+    select.form-control.list-filter(data-field=filter.field multiple=(filter.multiple))
+        option(value="*") All #{filter.name}
+        for option in options
+            option(value=option._id)= option.name
+//- .d-flex.flex-row.list-checkbox-container
+//-     for option in options
+//-         .custom-control.custom-checkbox
+//-             input.custom-control-input.list-checkbox-filter(type="checkbox" id=`checkbox-filter-${option._id}` value=option._id data-field=filter.field)
+//-             label.custom-control-label(for=`checkbox-filter-${option._id}`)= option.name

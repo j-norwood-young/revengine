@@ -3,6 +3,7 @@ const formatNumber = require("./utils").formatNumber;
 const $ = require("jquery");
 const moment = require("moment-timezone");
 const { data } = require("jquery");
+const rating_template = [{ _id: 5, name: "5" }, { _id: 4, name: "4" }, { _id: 3, name: "3" }, { _id: 2, name: "2" }, { _id: 1, name: "1" }, { _id: 0, name: "0" }];
 
 class Collections {
     constructor(opts) {
@@ -145,12 +146,47 @@ class Collections {
                 ],
                 filters: [
                     {
-                        name: "Select Labels",
-                        field: "labels",
+                        name: "Recency",
+                        field: "recency",
+                        multiple: true,
+                        options: () => rating_template
+                    },
+                    {
+                        name: "Frequency",
+                        field: "frequency",
+                        multiple: true,
+                        options: () => rating_template
+                    },
+                    {
+                        name: "Volume",
+                        field: "volume",
+                        multiple: true,
+                        options: () => rating_template
+                    },
+                    {
+                        name: "Authors",
+                        field: "authors",
                         multiple: true,
                         options: async () => {
-                            const labels = (await $.get(`${apiserver}/label?apikey=${apikey}&sort[name]=1`)).data;
-                            return labels;
+                            return (await $.get(`/reader/list/authors`)).map(author => {
+                                return {
+                                    _id: author,
+                                    name: author
+                                }
+                            });
+                        }
+                    },
+                    {
+                        name: "Sections",
+                        field: "sections",
+                        multiple: true,
+                        options: async () => {
+                            return (await $.get(`/reader/list/sections`)).map(author => {
+                                return {
+                                    _id: author,
+                                    name: author
+                                }
+                            });
                         }
                     },
                 ],

@@ -55,9 +55,11 @@ router.get("/view/:reader_id", async (req, res) => {
         d["populate[labels]"] = "name";
         const reader = (await req.apihelper.getOne("reader", req.params.reader_id, d)).data;
         reader.touchbase_subscriber = (await req.apihelper.get("touchbasesubscriber", { "filter[email]": reader.email, "populate": "touchbaselist" })).data;
-        reader.woocommerce_membership = (await req.apihelper.get("woocommerce_membership", { "filter[customer_id]": reader.id })).data;
-        reader.woocommerce_order = (await req.apihelper.get("woocommerce_order", { "filter[customer_id]": reader.id })).data;
-        reader.woocommerce_subscription = (await req.apihelper.get("woocommerce_subscription", { "filter[customer_id]": reader.id })).data;
+        if (reader.id) {
+            reader.woocommerce_membership = (await req.apihelper.get("woocommerce_membership", { "filter[customer_id]": reader.id })).data;
+            reader.woocommerce_order = (await req.apihelper.get("woocommerce_order", { "filter[customer_id]": reader.id })).data;
+            reader.woocommerce_subscription = (await req.apihelper.get("woocommerce_subscription", { "filter[customer_id]": reader.id })).data;
+        }
         let display_name = reader.email;
         if (reader.first_name || reader.last_name) display_name = `${reader.first_name || ""} ${reader.last_name || ""}`.trim();
         reader.display_name = display_name;
@@ -158,6 +160,56 @@ router.get("/data/:reader_id", async (req, res) => {
         data.timespent_avg = timespent_result.aggregations.timespent_avg;
         res.send(data)
     } catch(err) {
+        console.error(err);
+        res.status(500).send({ error: err });
+    }
+})
+
+router.get("/list/authors", async(req, res) => {
+    try {
+        const pipeline = [
+            {
+                $unwind: "$authors"
+            },
+            {
+                $group: {
+                    _id: "$authors"
+                }
+            },
+            {
+                $sort: {
+                    "_id": 1
+                }
+            }
+        ]
+        const authors = (await req.apihelper.aggregate("reader", pipeline)).data.map(item => item._id);
+        res.send(authors);
+    } catch(err) {
+        console.error(err);
+        res.status(500).send({ error: err });
+    }
+})
+
+router.get("/list/sections", async (req, res) => {
+    try {
+        const pipeline = [
+            {
+                $unwind: "$sections"
+            },
+            {
+                $group: {
+                    _id: "$sections"
+                }
+            },
+            {
+                $sort: {
+                    "_id": 1
+                }
+            }
+        ]
+        const sections = (await req.apihelper.aggregate("reader", pipeline)).data.map(item => item._id);
+        res.send(sections);
+    } catch (err) {
         console.error(err);
         res.status(500).send({ error: err });
     }

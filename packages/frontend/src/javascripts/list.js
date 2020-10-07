@@ -23,7 +23,6 @@ class List {
         this.sortdir = this.datadef.sortdir || 1;
         this.populate = this.datadef.populate || null;
         this.has_actions = this.datadef.actions && this.datadef.actions.length;
-        console.log(this.datadef);
         this.templateColHead = require("../../views/list/template-col-head-th.pug");
         this.filterTemplate = require("../../views/list/listfilters.pug");
         this.clear();
@@ -130,7 +129,7 @@ class List {
         $(document).on("change", ".list-filter", e => {
             let el = $(e.currentTarget);
             self.filters[el.data("field")] = el.val();
-            if (self.filters[el.data("field")] === "*") {
+            if (self.filters[el.data("field")] === "*" || (Array.isArray(self.filters[el.data("field")]) && self.filters[el.data("field")].includes("*"))) {
                 delete (self.filters[el.data("field")]);
             }
             self.clear();
@@ -199,7 +198,6 @@ class List {
         const deleteMany = async (ids) => {
             $(".spinner-action").removeClass("hide");
             for (let _id of ids) {
-                console.log("Delete", _id);
                 try {
                     await $.delete(`${apiserver}/${this.type}/${_id}?apikey=${apikey}`);
                     $(`tr#row-${_id}`).slideUp();

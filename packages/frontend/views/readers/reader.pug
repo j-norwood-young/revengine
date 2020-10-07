@@ -58,7 +58,7 @@ block content
                             | #{ reader.value.score } 
 
 
-            if (reader.woocommerce_subscription[0])            
+            if (reader.woocommerce_subscription && reader.woocommerce_subscription[0])            
                 .card
                     img.card-img-top.bg-light.p-3(src="https://www.touchbasepro.com/Content/Images/TouchBasePro_Logo.svg" alt="Touchbase Pro")
                     .card-body
