@@ -147,19 +147,25 @@ class Collections {
                 filters: [
                     {
                         name: "Recency",
-                        field: "recency",
+                        field: "recency_score",
                         multiple: true,
                         options: () => rating_template
                     },
                     {
                         name: "Frequency",
-                        field: "frequency",
+                        field: "frequency_score",
                         multiple: true,
                         options: () => rating_template
                     },
                     {
                         name: "Volume",
-                        field: "volume",
+                        field: "volume_score",
+                        multiple: true,
+                        options: () => rating_template
+                    },
+                    {
+                        name: "Value",
+                        field: "monetary_value_score",
                         multiple: true,
                         options: () => rating_template
                     },

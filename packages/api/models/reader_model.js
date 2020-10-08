@@ -37,10 +37,16 @@ const ReaderSchema = new JXPSchema({
     user_facebook: String,
     user_twitter: String,
 
-    recency: { type: Number, index: true },
-    frequency: { type: Number, index: true },
-    value: { type: Number, index: true },
-    volume: { type: Number, index: true },
+    recency_score: { type: Number, index: true },
+    recency: Date,
+    frequency_score: { type: Number, index: true },
+    frequency: Number,
+    monetary_value_score: { type: Number, index: true },
+    monetary_value: Number, // per month
+    volume_score: { type: Number, index: true },
+    volume: Number,
+    total_lifetime_value_score: { type: Number, index: true },
+    total_lifetime_value: Number,
 
     authors: [{ type: String, index: true }],
     sections: [{ type: String, index: true }],

@@ -11,6 +11,8 @@ const crypto = require("crypto");
 const { url } = require("inspector");
 const RFV = require("@revengine/reports/libs/rfv");
 const Favourites = require("@revengine/reports/libs/favourites");
+const Monetary_Value = require("@revengine/reports/libs/monetary_value");
+const Total_Lifetime_Value = require("@revengine/reports/libs/total_lifetime_value");
 
 const md5 = input => {
     return crypto.createHash('md5').update(input).digest("hex");
@@ -244,6 +246,29 @@ const rfv = async() => {
     console.timeEnd("rfv");
 }
 
+const monetary_value = async() => {
+    console.time("monetary_value");
+    const monetary_values = await Monetary_Value();
+    const per_page = 10000;
+    while (monetary_values.length) {
+        const bulk_result = await apihelper.bulk_postput("reader", "_id", monetary_values.splice(0, per_page));
+        console.log(bulk_result);
+    }
+    console.timeEnd("monetary_value");
+}
+
+const total_lifetime_value = async () => {
+    console.time("total_lifetime_value");
+    const total_lifetime_values = await Total_Lifetime_Value();
+    console.log(total_lifetime_values.slice(0,3));
+    const per_page = 10000;
+    while (total_lifetime_values.length) {
+        const bulk_result = await apihelper.bulk_postput("reader", "_id", total_lifetime_values.splice(0, per_page));
+        console.log(bulk_result);
+    }
+    console.timeEnd("total_lifetime_value");
+}
+
 const favourites = async() => {
     console.time("favourites");
     const favourites = await Favourites();
@@ -258,9 +283,11 @@ const favourites = async() => {
 const main = async () => {
     // await ensure_touchbase_readers();
     // await consolidate_touchbase_events();
-    await merge_hits();
-    await rfv();
-    await favourites();
+    // await merge_hits();
+    // await rfv();
+    // await monetary_value();
+    await total_lifetime_value();
+    // await favourites();
 }
 
 main();
