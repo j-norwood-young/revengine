@@ -15,7 +15,7 @@ class TopLastHour {
         });
     }
 
-    async run() {
+    async run(article_id) {
         const query = {
             index: "pageviews_copy",
             body: {
@@ -27,7 +27,6 @@ class TopLastHour {
                                 "exists": {
                                     "field": "article_id"
                                 }
-
                             },
                             {
                                 "range": {
@@ -50,6 +49,13 @@ class TopLastHour {
                     }
                 }
             }
+        }
+        if (article_id) {
+            query.body.query.bool.must.push({
+                "match": {
+                    article_id
+                }
+            })
         }
         const result = await esclient.search(query);
         // console.log(result.aggregations.result);

@@ -40,6 +40,8 @@ const main = async () => {
         for (let article of articles) {
             let match = top_articles.find(comp => article.post_id === comp.key);
             if (!match) {
+                const article_hit = await report.run(article.post_id);
+                article.hits = article_hit[0].doc_count;
                 underperforming.push(article);
             }
         }
@@ -75,7 +77,7 @@ const main = async () => {
                 type: "section",
                 text: {
                     type: "mrkdwn",
-                    text: `<${config.wordpress.homepage}/${article.urlid}|${article.title}> (${article.hits.toLocaleString()})\n_Published ${moment(article.date_published).format("YYYY-MM-DD HH:mm")}_`
+                    text: `<${config.wordpress.homepage}/${article.urlid}|${article.title}> (${article.hits.toLocaleString()})\n_Published ${moment(article.date_published).format("YYYY-MM-DD HH:mm")} | ${article.author} | ${article.sections.join(", ")}_`
                 }
             })
         }
@@ -85,7 +87,7 @@ const main = async () => {
             type: "section",
             text: {
                 type: "mrkdwn",
-                text: `:arrow_down: *Underperforming (page rank), consider removing from home page*`
+                text: `:arrow_down: *Underperforming (page rank / hits), consider removing from home page or promoting*`
             }
         });
 
@@ -94,7 +96,7 @@ const main = async () => {
                 type: "section",
                 text: {
                     type: "mrkdwn",
-                    text: `<${config.wordpress.homepage}/${article.urlid}|${article.title}> (#${article.position})\n_Published ${moment(article.date_published).format("YYYY-MM-DD HH:mm")}_`
+                    text: `<${config.wordpress.homepage}/${article.urlid}|${article.title}> (#${article.position} / ${article.hits.toLocaleString()})\n_Published ${moment(article.date_published).format("YYYY-MM-DD HH:mm")}  | ${article.author} | ${article.sections.join(", ")}_`
                 }
             })
         }
