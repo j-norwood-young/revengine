@@ -282,12 +282,12 @@ const favourites = async() => {
 
 const main = async () => {
     // await ensure_touchbase_readers();
-    // await consolidate_touchbase_events();
-    // await merge_hits();
-    // await rfv();
-    // await monetary_value();
+    await consolidate_touchbase_events();
+    await merge_hits();
+    await rfv();
+    await monetary_value();
     await total_lifetime_value();
-    // await favourites();
+    await favourites();
 }
 
 main();
