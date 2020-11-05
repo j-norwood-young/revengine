@@ -53,6 +53,10 @@
             "port": 2525
         }
     },
+    "mysql": {
+        "host": "localhost",
+        "database": "revengine"
+    },
     "pipeline": {
         "port": 3018,
         "server": "http://api.revengine.dailymaverick.co.za:3018"
