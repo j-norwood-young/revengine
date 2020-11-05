@@ -16,22 +16,63 @@ const { Command } = require('commander');
 
 const program = new Command();
 program
-    .option('-c, --collection <name>', 'collection name');
+    .option('-c, --collection <name>', 'collection name')
+    ;
 
 program.parse(process.argv);
 
 // Define our relationships between JXP and MySql
 
 const mysql_date_format = 'YYYY-MM-DD HH:mm:ss';
+const format_date = d => d ? moment(d).format(mysql_date_format) : null;
+
+var articles = [];
+
 const defs = [
+    {
+        collection: "article",
+        table: "articles",
+        relationships: {
+            uid: d => d._id,
+            post_id: d => d.post_id,
+            slug: d => d.urlid,
+            date_published: d => format_date(d.date_published),
+            date_modified: d => format_date(d.date_modified),
+            content: d => d.content,
+            title: d => d.title,
+            excerpt: d => d.excerpt,
+            type: d => d.type,
+            tags: d => d.tags.join(","),
+            sections: d => d.sections.join(","),
+            date_updated: d => moment(d.updatedAt).format(mysql_date_format),
+        }
+    },
     {
         collection: "reader",
         table: "readers",
         relationships: {
             uid: d => d._id,
-            wordpress_id: d => d.wordpress_id,
+            wordpress_id: d => d.id,
             email_md5: d => (d.email) ? crypto.createHash("md5").update(d.email).digest("hex") : null,
-            date_updated: d => moment(d.updatedAt).format(mysql_date_format)
+            paying_customer: d => d.paying_customer,
+            date_updated: d => moment(d.updatedAt).format(mysql_date_format),
+        }
+    },
+    {
+        collection: "woocommerce_order",
+        table: "woocommerce_orders",
+        relationships: {
+            uid: d => d._id,
+            wordpress_id: d => d.customer_id,
+            ip_address: d => d.customer_ip_address,
+            user_agent: d => d.customer_user_agent,
+            date_completed: d => format_date(d.date_completed),
+            date_created: d => format_date(d.date_created),
+            date_paid: d => format_date(d.date_paid),
+            payment_method: d => d.payment_method,
+            product_name: d => d.products[0] ? d.products[0].name : null,
+            total: d => d.total,
+            date_updated: d => format_date(d.updatedAt),
         }
     },
     {
@@ -41,7 +82,7 @@ const defs = [
             email_md5: d => (d.email) ? crypto.createHash("md5").update(d.email).digest("hex") : null,
             timestamp: d => moment(d.timestamp).format(mysql_date_format),
             event: d => d.event,
-            url: d => d.url,
+            url: d => (d.url) ? d.url.substring(0, 255) : null,
             ip_address: d => d.ip_address,
             latitude: d => d.latitude,
             longitude: d => d.longitude,
@@ -49,7 +90,19 @@ const defs = [
             region: d => d.region,
             country_name: d => d.country_name,
             country_code: d => d.country_code,
-            date_updated: d => moment(d.updatedAt).format(mysql_date_format)
+            date_updated: d => moment(d.updatedAt).format(mysql_date_format),
+            article_uid: d => {
+                try {
+                    if (!d.url) return null;
+                    const article = articles.find(a => d.url.includes(a.urlid));
+                    if (article) {
+                        return article._id;
+                    }
+                    return null;
+                } catch(err) {
+                    return null;
+                }
+            }
         }
     }
 ]
@@ -59,6 +112,7 @@ const findLastUpdated = async def => {
     try {
         const sql = `SELECT date_updated FROM ${def.table} ORDER BY date_updated DESC LIMIT 1;`
         const result = await query(connection, sql);
+        if (!result.length) return 0;
         return result.pop().date_updated;
     } catch(err) {
         return Promise.reject(err);
@@ -74,7 +128,7 @@ function fetchRecords(def) {
         highWaterMark: 5000,
         async read(size) {
             try {
-                let data = (await apihelper.get(def.collection, { "limit": size, page: page++, "sort[updatedAt]": 1, "filter[updatedAt]": `$gt:${new Date(def.last_updated)}`  })).data;
+                let data = (await apihelper.get(def.collection, { "limit": size, page: page++, "sort[updatedAt]": 1, "filter[updatedAt]": `$gte:${new Date(def.last_updated)}`  })).data;
                 if (!data.length) stream.push(null);
                 for (let record of data) {
                     stream.push({ def, record });
@@ -185,12 +239,16 @@ const main = async() => {
             limited_defs = defs.filter(def => def.collection === program.collection);
         }
         if (!limited_defs.length) throw `Collection ${program.collection} not found`;
+        // Find time this collection was last updated
         for (let def of limited_defs) {
             def.last_updated = await findLastUpdated(def);
         }
+        // Populate global articles
+        articles = (await apihelper.get("article", { "fields": "_id,urlid" })).data;
+        console.log("Found", articles.length, "articles");
         // Calculate total size
         for (let def of limited_defs) {
-            def.count = await apihelper.count(def.collection, { "filter[updatedAt]": `$gt:${ new Date(def.last_updated) }`});
+            def.count = await apihelper.count(def.collection, { "filter[updatedAt]": `$gte:${ new Date(def.last_updated) }`});
             max += def.count;
         }
         bar1.start(max, 0);
