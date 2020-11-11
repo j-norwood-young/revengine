@@ -15,7 +15,12 @@ class TopLastHour {
         });
     }
 
-    async run(article_id) {
+    async run(opts) {
+        opts = Object.assign({
+            size: 40,
+            article_id: null,
+            section: null
+        }, opts);
         const query = {
             index: "pageviews_copy",
             body: {
@@ -44,16 +49,23 @@ class TopLastHour {
                     "result": {
                         "terms": {
                             "field": "article_id",
-                            "size": 40,
+                            "size": opts.size,
                         }
                     }
                 }
             }
         }
-        if (article_id) {
+        if (opts.article_id) {
             query.body.query.bool.must.push({
                 "match": {
-                    article_id
+                    article_id: opts.article_id
+                }
+            })
+        }
+        if (opts.section) {
+            query.body.query.bool.must.push({
+                "match": {
+                    sections: opts.section
                 }
             })
         }

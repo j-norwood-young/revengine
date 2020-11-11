@@ -70,6 +70,7 @@
     "wordpress": {
         "server": "https://www.dailymaverick.co.za",
         "homepage": "https://www.dailymaverick.co.za",
-        "front_page_admin": "https://www.dailymaverick.co.za/wp-admin/admin.php?page=featured-flagged-post"
+        "front_page_admin": "https://www.dailymaverick.co.za/wp-admin/admin.php?page=featured-flagged-post",
+        "port": 3019
     }
 }
