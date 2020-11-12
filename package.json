@@ -1,7 +1,7 @@
 {
   "name": "revengine",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "RevEngine is an open source Data Management Platform for news publishers wanting to leverage their reader and content data",
   "main": "index.js",
   "workspaces": [
@@ -14,6 +14,7 @@
     "prod:api": "env NODE_ENV=production node packages/api --config packages/api/nodemon.json",
     "prod:frontend": "env NODE_ENV=production node packages/frontend/bin/www",
     "prod:pipeline": "env NODE_ENV=production node packages/pipeline",
+    "prod:content_promoter": "env NODE_ENV=production node packages/mailer/wordpress_article_api.js",
     "dev-track:consolidator": "env NODE_ENV=development nodemon packages/consolidator",
     "dev-track:tracker": "env NODE_ENV=development nodemon packages/tracker",
     "dev:api": "env NODE_ENV=development nodemon --inspect --verbose --watch packages/api packages/api",
@@ -21,6 +22,7 @@
     "dev:pipeline": "env NODE_ENV=development nodemon packages/pipeline",
     "dev:frontend": "env NODE_ENV=development nodemon --config packages/frontend/nodemon.json packages/frontend/bin/www",
     "dev:mailer": "env NODE_ENV=development nodemon --config packages/mailer/nodemon.json --trace-uncaught packages/mailer",
+    "dev:content_promoter": "env NODE_ENV=development nodemon --watch packages/mailer packages/mailer/wordpress_article_api.js",
     "test:pipeline": "env NODE_ENV=test mocha packages/pipeline/test/* --timeout=1000",
     "dev": "npm-run-all -p dev:*",
     "dev-track": "npm-run-all -p dev-track:*",
