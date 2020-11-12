@@ -68,8 +68,8 @@
         "kafka_topic": "revengine_events"
     },
     "wordpress": {
-        "server": "https://www.dailymaverick.co.za",
-        "homepage": "https://www.dailymaverick.co.za",
+        "server": "http://local.dailymaverick.com",
+        "homepage": "http://local.dailymaverick.com",
         "front_page_admin": "https://www.dailymaverick.co.za/wp-admin/admin.php?page=featured-flagged-post",
         "port": 3019
     }
