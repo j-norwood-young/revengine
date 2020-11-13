@@ -40,8 +40,10 @@ const main = async () => {
             if (!match) {
                 const article_hit = await report.run({ article_id: article.post_id });
                 article.hits = (article_hit[0]) ? article_hit[0].doc_count : 0;
-                if (article.position < 10) underperforming.push(article); // Limit underperforming to top 10 articles
-                if (program.verbose) console.log("Underperforming", article);
+                if (article.position < 10) {
+                    underperforming.push(article); // Limit underperforming to top 10 articles
+                    if (program.verbose) console.log("Underperforming", article);
+                }
             }
         }
         for (let article of top_articles.slice(0, 10)) {
@@ -55,7 +57,10 @@ const main = async () => {
                 if (program.verbose) console.log("Overperforming", full_article);
             }
         }
-        if (!overperforming.length && !underperforming.length) return;
+        if (!overperforming.length && !underperforming.length) {
+            if (program.verbose) console.log("No overperforming or underperforming articles. Good job!");
+            return;
+        }
         const blocks = [
             {
                 type: "section",
