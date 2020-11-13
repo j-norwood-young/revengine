@@ -55,6 +55,7 @@ const main = async () => {
                 if (program.verbose) console.log("Overperforming", full_article);
             }
         }
+        if (!overperforming.length && !underperforming.length) return;
         const blocks = [
             {
                 type: "section",
@@ -62,43 +63,47 @@ const main = async () => {
                     type: "mrkdwn",
                     text: `:100: *RevEngine Front Page Performance Update, ${moment().format("ddd D MMM HH:mm")}*`
                 }
-            },
-            {
-                type: "section",
-                text: {
-                    type: "mrkdwn",
-                    text: `:arrow_up: *Overperforming (hits last hour), consider promoting on home page*`
-                }
             }
-        ]
-        
-        for (let article of overperforming) {
-            blocks.push({
-                type: "section",
-                text: {
-                    type: "mrkdwn",
-                    text: `<${config.wordpress.homepage}/${article.urlid}|${article.title}> (${article.hits.toLocaleString()})\n_Published ${moment(article.date_published).format("YYYY-MM-DD HH:mm")} | ${article.author} | ${article.sections.join(", ")}_`
+        ];
+        if (overperforming.length) {
+            blocks.push(
+                {
+                    type: "section",
+                    text: {
+                        type: "mrkdwn",
+                        text: `:arrow_up: *Overperforming (hits last hour), consider promoting on home page*`
+                    }
                 }
-            })
+            );
+            
+            for (let article of overperforming) {
+                blocks.push({
+                    type: "section",
+                    text: {
+                        type: "mrkdwn",
+                        text: `<${config.wordpress.homepage}/${article.urlid}|${article.title}> (${article.hits.toLocaleString()})\n_Published ${moment(article.date_published).format("YYYY-MM-DD HH:mm")} | ${article.author} | ${article.sections.join(", ")}_`
+                    }
+                })
+            }
         }
-
-        blocks.push({
-
-            type: "section",
-            text: {
-                type: "mrkdwn",
-                text: `:arrow_down: *Underperforming (page rank / hits), consider removing from home page or promoting*`
-            }
-        });
-
-        for (let article of underperforming) {
+        if(underperforming.length) {
             blocks.push({
                 type: "section",
                 text: {
                     type: "mrkdwn",
-                    text: `<${config.wordpress.homepage}/${article.urlid}|${article.title}> (#${article.position} / ${article.hits.toLocaleString()})\n_Published ${moment(article.date_published).format("YYYY-MM-DD HH:mm")}  | ${article.author} | ${article.sections.join(", ")}_`
+                    text: `:arrow_down: *Underperforming (page rank / hits), consider removing from home page or promoting*`
                 }
-            })
+            });
+
+            for (let article of underperforming) {
+                blocks.push({
+                    type: "section",
+                    text: {
+                        type: "mrkdwn",
+                        text: `<${config.wordpress.homepage}/${article.urlid}|${article.title}> (#${article.position} / ${article.hits.toLocaleString()})\n_Published ${moment(article.date_published).format("YYYY-MM-DD HH:mm")}  | ${article.author} | ${article.sections.join(", ")}_`
+                    }
+                })
+            }
         }
 
         blocks.push({
