@@ -19,8 +19,6 @@ program
 
 program.parse(process.argv);
 
-console.log('Options: ', program.opts());
-
 const main = async () => {
     try {
         const result = await fetch(`${config.wordpress.server}/wp-json/revengine/v1/featured`, {
@@ -34,15 +32,16 @@ const main = async () => {
         const articles = json_result.data.filter(article => moment(article.date_published).isBefore(moment().subtract(1, 'hours')));
         const report = new Reports.TopLastHour();
         const top_articles = await report.run();
-        // console.log({ top_articles, articles });
+        // if (program.verbose) console.log({ top_articles, articles });
         const underperforming = [];
         const overperforming = [];
         for (let article of articles) {
             let match = top_articles.find(comp => article.post_id === comp.key);
             if (!match) {
-                const article_hit = await report.run(article.post_id);
-                article.hits = article_hit[0].doc_count;
+                const article_hit = await report.run({ article_id: article.post_id });
+                article.hits = (article_hit[0]) ? article_hit[0].doc_count : 0;
                 underperforming.push(article);
+                if (program.verbose) console.log("Underperforming", article);
             }
         }
         for (let article of top_articles.slice(0, 10)) {
@@ -53,6 +52,7 @@ const main = async () => {
                 let full_article = full_article_search.data[0];
                 full_article.hits = article.doc_count;
                 overperforming.push(full_article);
+                if (program.verbose) console.log("Overperforming", full_article);
             }
         }
         const blocks = [
@@ -108,15 +108,17 @@ const main = async () => {
                 text: `:arrows_clockwise: <${config.wordpress.front_page_admin}|Edit Front Page>`
             }
         })
-
-        // console.log(blocks);
-        await fetch(process.env.SLACK_WEBHOOK, 
-            {
-                method: "post",
-                body: JSON.stringify({ blocks }),
-                headers: { 'Content-Type': 'application/json' }
-            }
-        )
+        if (program.dev) {
+            console.log(blocks);
+        } else {
+            await fetch(process.env.SLACK_WEBHOOK, 
+                {
+                    method: "post",
+                    body: JSON.stringify({ blocks }),
+                    headers: { 'Content-Type': 'application/json' }
+                }
+            )
+        }
     } catch(err) {
         return Promise.reject(err);
     }
