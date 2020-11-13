@@ -40,7 +40,7 @@ const main = async () => {
             if (!match) {
                 const article_hit = await report.run({ article_id: article.post_id });
                 article.hits = (article_hit[0]) ? article_hit[0].doc_count : 0;
-                underperforming.push(article);
+                if (article.position < 10) underperforming.push(article); // Limit underperforming to top 10 articles
                 if (program.verbose) console.log("Underperforming", article);
             }
         }
