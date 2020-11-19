@@ -21,6 +21,7 @@ program.parse(process.argv);
 
 const main = async () => {
     try {
+        if (program.verbose) console.log(`Fetching ${config.wordpress.server}/wp-json/revengine/v1/featured`);
         const result = await fetch(`${config.wordpress.server}/wp-json/revengine/v1/featured`, {
             method: 'get',
             headers: {
