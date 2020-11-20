@@ -60,9 +60,9 @@ const content = async () => {
         const newsletter_report = new Reports.Newsletter();
         const newsletter_data = await newsletter_report.run();
         // console.log(newsletter_data.campaigns);
+        const articles = (await jxphelper.get("article", { fields: "urlid,author,title,date_published" })).data;
         const template = pug.compileFile(path.join(__dirname, "./templates/newsletters.pug"));
-        
-        return template({ moment, numberFormat, newsletter_data });
+        return template({ moment, numberFormat, newsletter_data, articles });
     } catch (err) {
         console.error(err);
         return "";
