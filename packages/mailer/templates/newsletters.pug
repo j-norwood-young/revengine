@@ -21,22 +21,23 @@ block content
                         each url in Object.entries(newsletter_data.totals.urls).slice(0, 5)
                             include url
         each campaign in newsletter_data.campaigns
-            tr
-                td
-                    .card
-                        .card-title
-                            h2= campaign.name
-                            p #{ moment(campaign.sent_date).format("Do MMM HH:mm") } | 
-                                a(href=campaign.url)= campaign.subject
-                        .card-body
-                            include campaign_stats
-                td
-                    .card
-                        .card-title
-                            h2 Most Clicked
-                        .card-body
-                            each url in Object.entries(campaign.urls).slice(0, 5)
-                                include url
+            if (new Date() - new Date(campaign.sent_date) > (2 * 60 * 60 * 1000))
+                tr
+                    td
+                        .card
+                            .card-title
+                                h2= campaign.name
+                                p #{ moment(campaign.sent_date).format("Do MMM HH:mm") } | 
+                                    a(href=campaign.url)= campaign.subject
+                            .card-body
+                                include campaign_stats
+                    td
+                        .card
+                            .card-title
+                                h2 Most Clicked
+                            .card-body
+                                each url in Object.entries(campaign.urls).slice(0, 5)
+                                    include url
 
             
                 

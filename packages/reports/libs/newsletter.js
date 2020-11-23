@@ -30,8 +30,7 @@ class Newsletter {
     async run(opts) {
         console.log("Running");
         opts = Object.assign({
-            start: moment().subtract(2, "day").toDate(),
-            end: new Date()
+            start: moment().subtract(2, "day").toDate()
         }, opts);
         let campaigns = (await jxphelper.get("touchbasecampaign", { "filter[sent_date]": `$gte:${moment(opts.start).toISOString()}`, "sort[sent_date]": -1 })).data;
         for (let campaign of campaigns) {
@@ -42,7 +41,7 @@ class Newsletter {
         const aggregate = [
             {
                 $addFields: {
-                    dt: {
+                    sd: {
                         $dateFromString: {
                             dateString: moment(opts.start).toISOString()
                         }
@@ -53,7 +52,7 @@ class Newsletter {
                 $match: {
                     $expr: {
                         $gte: [
-                            "$timestamp", "$dt"
+                            "$timestamp", "$sd"
                         ]
                     }
                 }
