@@ -21,6 +21,7 @@ class TopLastHour {
             article_id: null,
             section: null
         }, opts);
+        const size = opts.size + 1;
         const query = {
             index: "pageviews_copy",
             body: {
@@ -49,7 +50,7 @@ class TopLastHour {
                     "result": {
                         "terms": {
                             "field": "article_id",
-                            "size": opts.size,
+                            "size": size,
                         }
                     }
                 }

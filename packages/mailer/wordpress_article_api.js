@@ -14,7 +14,7 @@ server.use(apicache.middleware("5 minutes"));
 server.get("/top_articles", async (req, res) => {
     try {
         const report = new Reports.TopLastHour();
-        const size = req.query.size || 5;
+        const size = +req.query.size || 5;
         const top_articles = await report.run({ size });
         const articles = (await jxphelper.aggregate("article", [
             {
