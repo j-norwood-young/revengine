@@ -113,6 +113,46 @@ class Newsletter {
             campaigns
         };
     }
+
+    async list_report() {
+        console.log("list_report");
+        const lists = (await jxphelper.get("touchbaselist", { "sort[name]": 1 })).data;
+        const subscriber_aggregate = [
+            {
+                $match: {
+                    state: "active"
+                }
+            },
+            {
+                $group: {
+                    _id: "$email",
+                    date: { $max: "$date" },
+                    lists: { $push: "$list_id" }
+                }
+            }
+        ]
+        const subscribers = (await jxphelper.aggregate("touchbasesubscriber", subscriber_aggregate)).data;
+        const list_aggregate = [
+            {
+                $match: {
+                    state: "active"
+                }
+            },
+            {
+                $group: {
+                    _id: "$list_id",
+                    emails: { $push: { email: "$email", date: "$date", state: "$state" } }
+                }
+            }
+        ]
+        const list_subscribers = (await jxphelper.aggregate("touchbasesubscriber", list_aggregate, { allowDiskUse: true } )).data;
+        // console.log(list_subscribers[0].emails.slice(0, 2));
+        return {
+            lists,
+            subscribers,
+            list_subscribers
+        }
+    }
 }
 
 module.exports = Newsletter;

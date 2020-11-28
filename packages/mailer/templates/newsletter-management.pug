@@ -1,0 +1,77 @@
+extends layout.pug
+block content
+    - const now = new moment();
+    - const last_week_filter = subscriber => moment(subscriber.date).diff(now, "day") > -7 && moment(subscriber.date).diff(now, "day") <= 0;
+    - const prev_week_filter = subscriber => (moment(subscriber.date).diff(now, "day") > -14 && moment(subscriber.date).diff(now, "day") <= -7 )
+    - const last_month_filter = subscriber => moment(subscriber.date).diff(now, "day") > -30
+    - const prev_month_filter = subscriber => (moment(subscriber.date).diff(now, "day") > -60 && moment(subscriber.date).diff(now, "day") <= -30 )
+    - const last_2month_filter = subscriber => (moment(subscriber.date).diff(now, "day") > -60)
+    - const active_last_week = newsletter_data.subscribers.filter(last_week_filter)
+    - const active_prev_week = newsletter_data.subscribers.filter(prev_week_filter)
+    - const active_last_month = newsletter_data.subscribers.filter(last_month_filter)
+    - const active_prev_month = newsletter_data.subscribers.filter(prev_month_filter)
+    h1 RevEngine Newsletter Management Report - #{moment().format("D MMMM YYYY")}
+    table
+        tr.cards
+            td
+                .card
+                    .card-title
+                        h2 All Lists
+                    .card-body
+                        .article
+                            .article-count.big_num= numberFormat.format(newsletter_data.lists.length)
+                            .article-title Lists
+                        .article
+                            .article-count.big_num= numberFormat.format(newsletter_data.subscribers.length)
+                            .article-title Unique Active Subscribers
+                        .article
+                            .article-count.big_num= numberFormat.format(active_last_week.length)
+                                if active_last_week > active_prev_week
+                                    .change.green &#9650;
+                                if active_last_week < active_prev_week
+                                    .change.red &#9660;
+                            .article-title New Unique Active Subscribers Last Seven Days
+                            | (Previous period #{ numberFormat.format(active_prev_week.length) })
+                        .article
+                            .article-count.big_num= numberFormat.format(active_last_month.length)
+                                if active_last_month > active_prev_month
+                                    .change.green &#9650;
+                                if active_last_month < active_prev_month
+                                    .change.red &#9660;
+                            .article-title New Unique Active Subscribers Last 30 Days 
+                            | (Previous period #{ numberFormat.format(active_prev_month.length) })
+        each list in newsletter_data.lists
+            - const list_subscribers = newsletter_data.list_subscribers.find(list_subscriber => list_subscriber._id === list._id)
+            if list_subscribers
+                - const subscribers = list_subscribers.emails.filter(last_2month_filter)
+                if subscribers.length > 10
+                    tr.cards
+                        td
+                            .card
+                                .card-title
+                                    h2= list.name
+                                .card-body
+                                    .article
+                                        .article-count.big_num= numberFormat.format(subscribers.length)
+                                        .article-title Subscribers
+                                    .article
+                                        - last_week_count = subscribers.filter(last_week_filter).length
+                                        - prev_week_count = subscribers.filter(prev_week_filter).length
+                                        .article-count.big_num= numberFormat.format(last_week_count)
+                                            if last_week_count > prev_week_count
+                                                .change.green &#9650;
+                                            if last_week_count < prev_week_count
+                                                .change.red &#9660;
+                                        .article-title New Unique Active Subscribers Last Seven Days
+                                        | (Previous period #{ numberFormat.format(prev_week_count) })
+                                    .article
+                                        - last_month_count = subscribers.filter(last_month_filter).length
+                                        - prev_month_count = subscribers.filter(prev_month_filter).length
+                                        .article-count.big_num= numberFormat.format(last_month_count)
+                                            if last_month_count > prev_month_count
+                                                .change.green &#9650;
+                                            if last_month_count < prev_month_count
+                                                .change.red &#9660;
+                                        .article-title New Unique Active Subscribers Last 30 Days 
+                                        | (Previous period #{ numberFormat.format(prev_month_count) })
+    p * Only lists with 50 or more active subscribers added in last 60 days displayed.
