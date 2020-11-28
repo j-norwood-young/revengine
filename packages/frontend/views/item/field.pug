@@ -19,6 +19,10 @@
     include json
 - if (field.view === "cron")
     include cron
+- if (field.view === "text_array")
+    include text_array
+- if (field.view === "select")
+    include select
 if field.note
     p
         i.fa.fa-info-square.mr-2 

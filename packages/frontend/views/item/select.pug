@@ -1,0 +1,5 @@
+.form-group
+    label= field.name
+    select.form-control(name=field.key value=data[field.key])
+        each option in field.options
+            option(value=option,selected=(option==data[field.key]))= option

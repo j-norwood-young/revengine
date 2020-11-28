@@ -1,0 +1,82 @@
+const cron = require("node-cron");
+const Apihelper = require("jxp-helper");
+const config = require("config");
+require("dotenv").config();
+const nodemailer = require("nodemailer");
+const apihelper = new Apihelper({ server: config.api.server, apikey: process.env.APIKEY });
+const schedule = "* * * * *";
+const crypto = require('crypto');
+
+const mailer_names = [
+    "revengine-mailer",
+    "newsletter-mailer",
+    "newsletter-management-mailer"
+]
+
+const mailers = {};
+for (mailer_name of mailer_names) {
+    mailers[mailer_name] = require(`./${mailer_name}`);
+}
+
+const render = async report => {
+    const content = await mailers[report].content();
+    return content;
+}
+
+const mail = async (report, subject, to, from) => {
+    const auth = {};
+    if (process.env.SMTP_USER) {
+        auth.user = process.env.SMTP_USER;
+    }
+    if (process.env.SMTP_PASS) {
+        auth.pass = process.env.SMTP_PASS;
+    }
+    const smtp = Object.assign({
+        sendmail: true,
+        newline: 'unix',
+        path: '/usr/sbin/sendmail',
+        auth
+    }, config.mailer ? config.mailer.smtp : {});
+    let transporter = nodemailer.createTransport(smtp);
+    let html = await mailers[report].content();
+    
+    let info = await transporter.sendMail({
+        from: from || config.mailer ? config.mailer.from : "revengine@revengine.dailymaverick.co.za",
+        to: to,
+        subject: subject || "RevEngine",
+        text: "A RevEngine Report",
+        html
+    });
+    console.log("Message sent: %s", info.messageId);
+}
+
+const scheduler = () => {
+    let schedules = [];
+    let hash = "";
+    cron.schedule(schedule, async () => {
+        const scheduled_mailers = (await apihelper.get("mailer")).data;
+        const newhash = crypto.createHash('md5').update(JSON.stringify(scheduled_mailers)).digest("hex");
+        if (newhash !== hash) {
+            console.log("Mailer schedule changed");
+            hash = newhash;
+            while (schedules.length) {
+                let schedule = schedules.pop();
+                schedule.destroy();
+            }
+            for (let mailer of scheduled_mailers) {
+                let schedule = cron.schedule(mailer.cron, async () => {
+                    try {
+                        await mail(mailer.report, mailer.subject, mailer.emails)
+                    } catch (err) {
+                        console.error(err);
+                    }
+                });
+                schedules.push(schedule);
+            }
+        }
+    })
+}
+
+scheduler();
+
+module.exports = { render, mail, mailer_names }

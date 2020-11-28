@@ -25,8 +25,6 @@ program
 
 program.parse(process.argv);
 
-console.log('Options: ', program.opts());
-
 const main = async () => {
     const auth = {};
     if (process.env.SMTP_USER) {
@@ -90,6 +88,8 @@ if (program.watch) {
     }).listen(program.port || config.mailer.port || 3019);
 };
 
-if (!program.watch) {
+if (!program.watch && program.to) {
     main().catch(console.error);
 }
+
+module.exports = { content }

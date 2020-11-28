@@ -37,7 +37,9 @@ class Edit {
     listeners() {
         const self = this;
         $(function() {
+            console.log("Listening");
             $(document).on("change", ".cron-select", self.cronSelect.bind(self));
+            $(document).on("change", ".text_array", self.textArray.bind(self));
         });
     }
 
@@ -50,8 +52,27 @@ class Edit {
         $(cron_selects).each((i, cron_select) => {
             cron_parts.push($(cron_select).val());
         });
-        console.log(cron_parts);
         $(parent).find("input").val(cron_parts.join(" "))
+    }
+
+    textArray(e) {
+        e.preventDefault();
+        let el = e.currentTarget;
+        const parent = $(el).parent(".form-group");
+        // Check if there's an empty item at the bottom of the list
+        const empty_inputs = parent.find("input").filter(function() { return !this.value });
+        // If there isn't, add one
+        if (empty_inputs.length === 0) {
+            newel = $(el).clone(true);
+            newel.val("");
+            newel.appendTo(parent);
+        }
+        // If there are too many, remove some
+        if (empty_inputs.length > 1) {
+            for (let x = 0; x < empty_inputs.length -1; x++) {
+                empty_inputs[x].remove();
+            }
+        }
     }
 }
 

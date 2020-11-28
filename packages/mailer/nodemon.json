@@ -3,5 +3,5 @@
         "crash": "sh -c 'lsof -i :${PORT:-3017} -t | xargs kill'"
     },
     "delay": 3,
-    "watch": ["models/*", "packages/api/*"]
+    "watch": ["models/*", "packages/mailer/*"]
 }

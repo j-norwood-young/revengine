@@ -1,8 +1,8 @@
 {
   "name": "@revengine/mailer",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Sends out regular email reports",
-  "main": "revengine-mailer.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": ""
