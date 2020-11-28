@@ -39,7 +39,7 @@ class Edit {
         $(function() {
             console.log("Listening");
             $(document).on("change", ".cron-select", self.cronSelect.bind(self));
-            $(document).on("change", ".text_array", self.textArray.bind(self));
+            $(document).on("keyup", ".text_array", self.textArray.bind(self));
         });
     }
 
