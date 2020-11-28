@@ -3,4 +3,5 @@
     if data[field.key]
         for d, x in data[field.key]
             input.form-control.text_array.mb-2(type="text" name=`${field.key}[]` value=d readonly=field.readonly)
-    //- input.form-control.text_array.mb-2(type="text" name=`${field.key}[]` readonly=field.readonly)
+    else
+        input.form-control.text_array.mb-2(type="text" name=`${field.key}[]` readonly=field.readonly)
