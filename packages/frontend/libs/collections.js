@@ -129,7 +129,7 @@ class Collections {
                 name: "Mailers",
                 fields: [
                     { name: "Name", key: "name", d: data => data.name, link, list_view },
-                    { name: "Report", key: "report", d: data => data.report, view: "select", options: ["revengine-report", "newsletter-mailer", "newsletter-management-mailer"] },
+                    { name: "Report", key: "report", d: data => data.report, view: "select", options: ["revengine-mailer", "newsletter-mailer", "newsletter-management-mailer"] },
                     { name: "Subject", key: "subject", d: data => data.subject, list_view },
                     { name: "Emails", key: "emails", d: data => data.emails.join(", "), list_view, view: "text_array" },
                     { name: "Cron", key: "cron", d: data => data.cron, view: "cron" },
