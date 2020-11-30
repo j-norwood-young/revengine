@@ -78,7 +78,9 @@ const scheduler = () => {
     })
 }
 
-console.log("Loading mailer...");
-scheduler();
+if (require.main === module) {
+    console.log("Loading mailer...");
+    scheduler();
+}
 
 module.exports = { render, mail, mailer_names }
