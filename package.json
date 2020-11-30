@@ -11,7 +11,7 @@
     "test": "lerna run test --stream",
     "prod:consolidator": "env NODE_ENV=production node packages/consolidator",
     "prod:tracker": "env NODE_ENV=production node packages/tracker",
-    "prod:api": "env NODE_ENV=production node packages/api --config packages/api/nodemon.json",
+    "prod:api": "env NODE_ENV=production node packages/api",
     "prod:frontend": "env NODE_ENV=production node packages/frontend/bin/www",
     "prod:pipeline": "env NODE_ENV=production node packages/pipeline",
     "prod:content_promoter": "env NODE_ENV=production node packages/mailer/wordpress_article_api.js",
