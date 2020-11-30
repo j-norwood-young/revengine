@@ -50,32 +50,36 @@ const mail = async (report, subject, to, from) => {
     console.log("Message sent: %s", info.messageId);
 }
 
-const scheduler = () => {
-    let schedules = [];
-    let hash = "";
-    cron.schedule(schedule, async () => {
-        const scheduled_mailers = (await apihelper.get("mailer")).data;
-        const newhash = crypto.createHash('md5').update(JSON.stringify(scheduled_mailers)).digest("hex");
-        if (newhash !== hash) {
-            console.log("Mailer schedule changed");
-            hash = newhash;
-            while (schedules.length) {
-                let schedule = schedules.pop();
-                schedule.destroy();
-            }
-            for (let mailer of scheduled_mailers) {
-                let schedule = cron.schedule(mailer.cron, async () => {
-                    try {
-                        await mail(mailer.report, mailer.subject, mailer.emails)
-                    } catch (err) {
-                        console.error(err);
-                    }
-                });
-                schedules.push(schedule);
-            }
-            console.log("Mailer Schedules queued:", schedules.length);
+let schedules = [];
+let hash = "";
+
+const load_schedule = async () => {
+    const scheduled_mailers = (await apihelper.get("mailer")).data;
+    const newhash = crypto.createHash('md5').update(JSON.stringify(scheduled_mailers)).digest("hex");
+    if (newhash !== hash) {
+        console.log("Mailer schedule changed");
+        hash = newhash;
+        while (schedules.length) {
+            let schedule = schedules.pop();
+            schedule.destroy();
         }
-    })
+        for (let mailer of scheduled_mailers) {
+            let schedule = cron.schedule(mailer.cron, async () => {
+                try {
+                    await mail(mailer.report, mailer.subject, mailer.emails)
+                } catch (err) {
+                    console.error(err);
+                }
+            });
+            schedules.push(schedule);
+        }
+        console.log("Mailer Schedules queued:", schedules.length);
+    }
+};
+
+const scheduler = async () => {
+    await load_schedule();
+    cron.schedule(schedule, load_schedule)
 }
 
 if (require.main === module) {
