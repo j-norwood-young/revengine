@@ -73,6 +73,7 @@ const scheduler = () => {
                 });
                 schedules.push(schedule);
             }
+            console.log("Mailer Schedules queued:", schedules.length);
         }
     })
 }
