@@ -10,3 +10,4 @@ packages/pipeline/node_modules/*
 packages/exporter/node_modules/*
 packages/mailer/node_modules/*
 packages/reports/node_modules/*
+packages/*/node_modules/*
