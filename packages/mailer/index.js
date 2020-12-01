@@ -78,7 +78,7 @@ const load_schedule = async () => {
 };
 
 const scheduler = async () => {
-    await load_schedule();
+    // await load_schedule();
     cron.schedule(schedule, load_schedule)
 }
 
