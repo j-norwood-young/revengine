@@ -4,6 +4,7 @@ const config = require("config");
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 const apihelper = new Apihelper({ server: config.api.server, apikey: process.env.APIKEY });
+const server = require("@revengine/http_server");
 const schedule = "* * * * *";
 const crypto = require('crypto');
 
@@ -82,9 +83,27 @@ const scheduler = async () => {
     cron.schedule(schedule, load_schedule)
 }
 
+server.get("/report/:report", async (req, res) => {
+    if (!mailer_names.includes(req.params.report)) return res.send(500, { state: "error", msg: "Report doesn't exist"});
+    let html = await mailers[req.params.report].content();
+    res.writeHead(200, {
+        'Content-Length': Buffer.byteLength(html),
+        'Content-Type': 'text/html'
+    });
+    res.write(html);
+    res.end();
+})
+
+const start_http_server = () => {
+    server.listen(config.mailer.port || 3017, function () {
+        console.log('%s listening at %s', server.name, server.url);
+    });
+}
+
 if (require.main === module) {
     console.log("Loading mailer...");
     scheduler();
+    start_http_server();
 }
 
 module.exports = { render, mail, mailer_names }

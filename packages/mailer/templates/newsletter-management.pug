@@ -52,7 +52,7 @@ block content
                                     h2= list.name
                                 .card-body
                                     .article
-                                        .article-count.big_num= numberFormat.format(subscribers.length)
+                                        .article-count.big_num= numberFormat.format(list_subscribers.emails.length)
                                         .article-title Subscribers
                                     .article
                                         - last_week_count = subscribers.filter(last_week_filter).length

@@ -51,7 +51,8 @@
         "smtp": {
             "host": "smtp.mailtrap.io",
             "port": 2525
-        }
+        },
+        "port": 3017
     },
     "mysql": {
         "host": "localhost",
