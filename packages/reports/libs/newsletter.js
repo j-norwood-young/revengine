@@ -131,8 +131,8 @@ class Newsletter {
                 }
             }
         ]
-        const subscribers = (await jxphelper.aggregate("touchbasesubscriber", subscriber_aggregate)).data;
-        const list_aggregate = [
+        // const subscribers = (await jxphelper.aggregate("touchbasesubscriber", subscriber_aggregate)).data;
+        const active_query = [
             {
                 $match: {
                     state: "active"
@@ -141,16 +141,30 @@ class Newsletter {
             {
                 $group: {
                     _id: "$list_id",
-                    emails: { $push: { email: "$email", date: "$date", state: "$state" } }
+                    emails: { $push: { email: "$email", date: "$date" } }
                 }
             }
         ]
-        const list_subscribers = (await jxphelper.aggregate("touchbasesubscriber", list_aggregate, { allowDiskUse: true } )).data;
+        const unsubscribed_query = [
+            {
+                $match: {
+                    state: "unsubscribed"
+                }
+            },
+            {
+                $group: {
+                    _id: "$list_id",
+                    emails: { $push: { email: "$email", date: "$date" } }
+                }
+            }
+        ]
+        const active = (await jxphelper.aggregate("touchbasesubscriber", active_query, { allowDiskUse: true } )).data;
+        const unsubscribed = (await jxphelper.aggregate("touchbasesubscriber", unsubscribed_query, { allowDiskUse: true })).data;
         // console.log(list_subscribers[0].emails.slice(0, 2));
         return {
             lists,
-            subscribers,
-            list_subscribers
+            active,
+            unsubscribed
         }
     }
 }
