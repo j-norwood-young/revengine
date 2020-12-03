@@ -101,4 +101,3 @@ server.listen(config.pipeline.port || 3018, function () {
 });
 
 scheduler();
-healthcheck();
