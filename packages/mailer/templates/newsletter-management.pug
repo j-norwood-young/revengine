@@ -1,12 +1,5 @@
 extends layout.pug
 block content
-    - const now = new moment();
-    - const last_week_filter = subscriber => moment(subscriber.date).diff(now, "day") > -7 && moment(subscriber.date).diff(now, "day") <= 0;
-    - const prev_week_filter = subscriber => (moment(subscriber.date).diff(now, "day") > -14 && moment(subscriber.date).diff(now, "day") <= -7 )
-    - const last_month_filter = subscriber => moment(subscriber.date).diff(now, "day") > -30
-    - const prev_month_filter = subscriber => (moment(subscriber.date).diff(now, "day") > -60 && moment(subscriber.date).diff(now, "day") <= -30 )
-    - const last_2month_filter = subscriber => (moment(subscriber.date).diff(now, "day") > -60)
-    
     h1 RevEngine Newsletter Management Report - #{moment().format("D MMMM YYYY")}
     //- table
     //-     tr.cards
@@ -24,7 +17,7 @@ block content
     //-                     .article
     //-                         .article-count.big_num= numberFormat.format(active_last_week.length)
     //-                             if active_last_week > active_prev_week
-    //-                                 .change.green &#9650;
+    //-                                 .change.green &#9650; 
     //-                             if active_last_week < active_prev_week
     //-                                 .change.red &#9660;
     //-                         .article-title New Unique Active Subscribers Last Seven Days
@@ -32,7 +25,7 @@ block content
     //-                     .article
     //-                         .article-count.big_num= numberFormat.format(active_last_month.length)
     //-                             if active_last_month > active_prev_month
-    //-                                 .change.green &#9650;
+    //-                                 .change.green &#9650; 
     //-                             if active_last_month < active_prev_month
     //-                                 .change.red &#9660;
     //-                         .article-title New Unique Active Subscribers Last 30 Days 
@@ -40,79 +33,162 @@ block content
     table.report_table
         tr
             th(rowspan=2) List
-            th(rowspan=2) Subscribers
-            th(colspan=6) Last 7 days
-            th(colspan=6) Last 30 days
+            th(rowspan=2) Subs
+            th(colspan=4) Last 7 days
+            th(colspan=4) Last 30 days
         tr
-            th Active
-            th Unsubscribed
-            th Change
-            th Previous Change
+            th Joins
+            th Unsubs
             th Growth
-            th Rate of Change
-            th Active
-            th Unsubscribed
-            th Change
-            th Previous Change
+            th Chng
+
+            th Joins
+            th Unsubs
             th Growth
-            th Rate of Change
-        each list in newsletter_data.lists
-            - const active = newsletter_data.active.find(list_subscriber => list_subscriber._id === list._id)
-            if active
-                - const unsubscribed = newsletter_data.unsubscribed.find(list_subscriber => list_subscriber._id === list._id)
-                - console.log(unsubscribed)
-                - const total_active = active.emails.length
-                - const subscribers = active.emails.filter(last_2month_filter)
-                - const active_last_week_count = subscribers.filter(last_week_filter).length
-                - const unsubscribed_last_week_count = (unsubscribed) ? unsubscribed.emails.filter(last_week_filter).length : 0
-                - const unsubscribed_prev_week_count = (unsubscribed) ? unsubscribed.emails.filter(prev_week_filter).length : 0
-                - const active_prev_week_count = subscribers.filter(prev_week_filter).length
-                - const last_week_delta = active_last_week_count - unsubscribed_last_week_count
-                - const prev_week_delta = active_prev_week_count - unsubscribed_prev_week_count
-                
-                - const active_last_month_count = subscribers.filter(last_month_filter).length
-                - const unsubscribed_last_month_count = (unsubscribed) ? unsubscribed.emails.filter(last_month_filter).length : 0
-                - const unsubscribed_prev_month_count = (unsubscribed) ? unsubscribed.emails.filter(prev_month_filter).length : 0
-                - const active_prev_month_count = subscribers.filter(prev_month_filter).length
-                - const last_month_delta = active_last_month_count - unsubscribed_last_month_count
-                - const prev_month_delta = active_prev_month_count - unsubscribed_prev_month_count
-                if subscribers.length > 10
+            th Chng
+        each list in lists
+            if list.active
+                if list.subscribers.length > 10
                     tr
-                        td= list.name
-                        td= numberFormat.format(total_active)
-                        td= numberFormat.format(active_last_week_count)
-                        td= numberFormat.format(unsubscribed_last_week_count)
-                        td= numberFormat.format(last_week_delta)
-                        td= numberFormat.format(prev_week_delta)
-                        td= numberFormat.format(last_week_delta / (total_active - last_week_delta) * 100)
+                        td
+                            a(href="#"+list._id)= list.name
+                        td= numberFormat.format(list.total_active)
+
+                        td= numberFormat.format(list.active_last_week_count)
+                        td= numberFormat.format(list.unsubscribed_last_week_count)
+                        td= numberFormat.format(list.last_week_delta / (list.total_active - list.last_week_delta) * 100)
                             | %
                         td
-                            - let roc_week = (last_week_delta - prev_week_delta)/prev_week_delta
-                            if last_week_delta > prev_week_delta
-                                .change.green &#9650;
-                            if last_week_delta < prev_week_delta
+                            if list.last_week_delta > list.prev_week_delta
+                                .change.green &#9650; 
+                            if list.last_week_delta < list.prev_week_delta
                                 .change.red &#9660;
-                                - roc_week =  (prev_week_delta - last_week_delta)/prev_week_delta
-                            if (last_week_delta)
-                                | #{numberFormat.format(roc_week * 100)}%
-                            else
-                                | NA
-                        
-                        td= numberFormat.format(active_last_month_count)
-                        td= numberFormat.format(unsubscribed_last_month_count)
-                        td= numberFormat.format(last_month_delta)
-                        td= numberFormat.format(prev_month_delta)
-                        td= numberFormat.format(last_month_delta / (total_active - last_month_delta) * 100)
+
+                        td= numberFormat.format(list.active_last_month_count)
+                        td= numberFormat.format(list.unsubscribed_last_month_count)
+                        td= numberFormat.format(list.last_month_delta / (list.total_active - list.last_month_delta) * 100)
                             | %
                         td
-                            - let roc_month = (last_month_delta - prev_month_delta)/prev_month_delta
-                            if last_month_delta > prev_month_delta
-                                .change.green &#9650;
-                            if last_month_delta < prev_month_delta
+                            if list.last_month_delta > list.prev_month_delta
+                                .change.green &#9650; 
+                            if list.last_month_delta < list.prev_month_delta
                                 .change.red &#9660;
-                                - roc_month = (prev_month_delta - last_month_delta)/prev_month_delta
-                            if (last_month_delta)
-                                | #{numberFormat.format(roc_month * 100)}%
-                            else
-                                | NA
+    each list in lists
+        h2(id=list._id) #{list.name} #{numberFormat.format(list.total_active)}
+        table
+            tr.cards
+                td
+                    .card
+                        .card-title
+                           h2 1 Day
+                        .card-body
+                            .article
+                                .article-count.big_num= numberFormat.format(list.active_last_day_count)
+                                .article-title Joined
+                            .article
+                                .article-count.big_num= numberFormat.format(list.unsubscribed_last_day_count)
+                                .article-title Unsubscribed
+                            .article
+                                .article-count.big_num= numberFormat.format(list.last_day_delta)
+                                .article-title Nett
+                            .article
+                                .article-count.big_num= numberFormat.format(list.prev_day_delta)
+                                .article-title Previous period nett
+                            .article
+                                .article-count.big_num= numberFormat.format(list.last_day_delta / (list.total_active - list.last_day_delta) * 100)
+                                    | %
+                                .article-title Growth
+                            .article
+                                .article-count.big_num= numberFormat.format(list.prev_day_delta)
+                                .article-title Previous period nett
+                            .article
+                                if list.last_day_delta > list.prev_day_delta
+                                    .change.green &#9650;  
+                                if list.last_day_delta < list.prev_day_delta
+                                    .change.red &#9660;
+                                if list.last_day_delta
+                                    .article-count.big_num
+                                        if list.last_day_delta < list.prev_day_delta
+                                            | -
+                                        = numberFormat.format(Math.abs(list.roc_day) * 100)
+                                        | %
+                                else
+                                    | NA
+                                .article-title Rate of Change
+                td
+                    .card
+                        .card-title
+                           h2 7 Days 
+                        .card-body
+                            .article
+                                .article-count.big_num= numberFormat.format(list.active_last_week_count)
+                                .article-title Joined
+                            .article
+                                .article-count.big_num= numberFormat.format(list.unsubscribed_last_week_count)
+                                .article-title Unsubscribed
+                            .article
+                                .article-count.big_num= numberFormat.format(list.last_week_delta)
+                                .article-title Nett
+                            .article
+                                .article-count.big_num= numberFormat.format(list.prev_week_delta)
+                                .article-title Previous period nett
+                            .article
+                                .article-count.big_num= numberFormat.format(list.last_week_delta / (list.total_active - list.last_week_delta) * 100)
+                                    | %
+                                .article-title Growth
+                            .article
+                                .article-count.big_num= numberFormat.format(list.prev_week_delta)
+                                .article-title Previous period nett
+                            .article
+                                if list.last_week_delta > list.prev_week_delta
+                                    .change.green &#9650; 
+                                if list.last_week_delta < list.prev_week_delta
+                                    .change.red &#9660;
+                                if list.last_week_delta
+                                    .article-count.big_num
+                                        if list.last_week_delta < list.prev_week_delta
+                                            | -
+                                        = numberFormat.format(Math.abs(list.roc_week) * 100)
+                                        | %
+                                else
+                                    | NA
+                                .article-title Rate of Change
+                td
+                    .card
+                        .card-title
+                            h2 30 Days 
+                        .card-body
+                            .article
+                                .article-count.big_num= numberFormat.format(list.active_last_month_count)
+                                .article-title Joined
+                            .article
+                                .article-count.big_num= numberFormat.format(list.unsubscribed_last_month_count)
+                                .article-title Unsubscribed
+                            .article
+                                .article-count.big_num= numberFormat.format(list.last_month_delta)
+                                .article-title Nett
+                            .article
+                                .article-count.big_num= numberFormat.format(list.prev_month_delta)
+                                .article-title Previous period nett
+                            .article
+                                .article-count.big_num= numberFormat.format(list.last_month_delta / (list.total_active - list.last_month_delta) * 100)
+                                    | %
+                                .article-title Growth
+                            .article
+                                .article-count.big_num= numberFormat.format(list.prev_month_delta)
+                                .article-title Previous period nett
+                            .article
+                                if list.last_month_delta > list.prev_month_delta
+                                    .change.green &#9650; 
+                                if list.last_month_delta < list.prev_month_delta
+                                    .change.red &#9660;
+                                if list.last_month_delta
+                                    .article-count.big_num
+                                        if list.last_month_delta < list.prev_month_delta
+                                            | -
+                                        = numberFormat.format(Math.abs(list.roc_month) * 100)
+                                        | %
+                                else
+                                    | NA
+                                .article-title Rate of Change
     p * Only lists with 50 or more active subscribers added in last 60 days displayed.

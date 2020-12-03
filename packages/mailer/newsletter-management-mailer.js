@@ -57,6 +57,55 @@ const content = async () => {
     try {
         const newsletter_report = new Reports.Newsletter();
         const newsletter_data = await newsletter_report.list_report();
+        const lists = newsletter_data.lists;
+        const now = new moment();
+        const last_day_filter = subscriber => moment(subscriber.date).diff(now, "day") > -1 && moment(subscriber.date).diff(now, "day") <= 0;
+        const prev_day_filter = subscriber => (moment(subscriber.date).diff(now, "day") > -2 && moment(subscriber.date).diff(now, "day") <= -1);
+        const last_week_filter = subscriber => moment(subscriber.date).diff(now, "day") > -7 && moment(subscriber.date).diff(now, "day") <= 0;
+        const prev_week_filter = subscriber => (moment(subscriber.date).diff(now, "day") > -14 && moment(subscriber.date).diff(now, "day") <= -7);
+        const last_month_filter = subscriber => moment(subscriber.date).diff(now, "day") > -30;
+        const prev_month_filter = subscriber => (moment(subscriber.date).diff(now, "day") > -60 && moment(subscriber.date).diff(now, "day") <= -30);
+        const last_2month_filter = subscriber => (moment(subscriber.date).diff(now, "day") > -60);
+        for (let list of lists) {
+            list.active = newsletter_data.active.find(list_subscriber => list_subscriber._id === list._id);
+            if (!list.active) continue;
+            list.unsubscribed = newsletter_data.unsubscribed.find(list_subscriber => list_subscriber._id === list._id);
+            list.total_active = list.active.emails.length;
+            list.subscribers = list.active.emails.filter(last_2month_filter);
+            // Day
+            list.active_last_day_count = list.subscribers.filter(last_day_filter).length;
+            list.unsubscribed_last_day_count = (list.unsubscribed) ? list.unsubscribed.emails.filter(last_day_filter).length : 0;
+            list.unsubscribed_prev_day_count = (list.unsubscribed) ? list.unsubscribed.emails.filter(prev_day_filter).length : 0;
+            list.active_prev_day_count = list.subscribers.filter(prev_day_filter).length;
+            list.last_day_delta = list.active_last_day_count - list.unsubscribed_last_day_count;
+            list.prev_day_delta = list.active_prev_day_count - list.unsubscribed_prev_day_count;
+            list.roc_day = (list.last_day_delta - list.prev_day_delta) / list.prev_day_delta;
+            if (list.last_day_delta < list.prev_day_delta)
+                list.roc_day = (list.prev_day_delta - list.last_day_delta) / list.prev_day_delta
+            // Week
+            list.active_last_week_count = list.subscribers.filter(last_week_filter).length;
+            list.unsubscribed_last_week_count = (list.unsubscribed) ? list.unsubscribed.emails.filter(last_week_filter).length : 0;
+            list.unsubscribed_prev_week_count = (list.unsubscribed) ? list.unsubscribed.emails.filter(prev_week_filter).length : 0;
+            list.active_prev_week_count = list.subscribers.filter(prev_week_filter).length;
+            list.last_week_delta = list.active_last_week_count - list.unsubscribed_last_week_count;
+            list.prev_week_delta = list.active_prev_week_count - list.unsubscribed_prev_week_count;
+            list.roc_week = (list.last_week_delta - list.prev_week_delta) / list.prev_week_delta;
+            if (list.last_week_delta < list.prev_week_delta)
+                list.roc_week = (list.prev_week_delta - list.last_week_delta) / list.prev_week_delta
+            // Month
+            list.active_last_month_count = list.subscribers.filter(last_month_filter).length;
+            list.unsubscribed_last_month_count = (list.unsubscribed) ? list.unsubscribed.emails.filter(last_month_filter).length : 0;
+            list.unsubscribed_prev_month_count = (list.unsubscribed) ? list.unsubscribed.emails.filter(prev_month_filter).length : 0;
+            list.active_prev_month_count = list.subscribers.filter(prev_month_filter).length;
+            list.last_month_delta = list.active_last_month_count - list.unsubscribed_last_month_count;
+            list.prev_month_delta = list.active_prev_month_count - list.unsubscribed_prev_month_count;
+            list.roc_month = (list.last_month_delta - list.prev_month_delta) / list.prev_month_delta;
+            if (list.last_month_delta < list.prev_month_delta)
+                list.roc_month = (list.prev_month_delta - list.last_month_delta) / list.prev_month_delta
+        }
+
+        lists.sort((a, b) => b.total_active - a.total_active);
+        
         // const now = new moment();
         // for (let subscriber of newsletter_data.subscribers.slice(0, 10)) {
         //     console.log(moment(subscriber.date).diff(now, "week"))
@@ -65,7 +114,7 @@ const content = async () => {
         // console.log(newsletter_data.campaigns);
         // const articles = (await jxphelper.get("article", { fields: "urlid,author,title,date_published" })).data;
         const template = pug.compileFile(path.join(__dirname, "./templates/newsletter-management.pug"));
-        return template({ moment, numberFormat, newsletter_data });
+        return template({ moment, numberFormat, newsletter_data, lists });
     } catch (err) {
         console.error(err);
         return "";
