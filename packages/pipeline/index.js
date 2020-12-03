@@ -38,6 +38,25 @@ const run_pipeline = async pipeline_id => {
     }
 }
 
+const healthcheck = async () => { // Healthcheck
+    const moreThanOneHourAgo = (date) => {
+        const HOUR = 1000 * 60 * 60;
+        const anHourAgo = Date.now() - HOUR;
+        return new Date(date) < anHourAgo;
+    }
+    const running_pipelines = (await apihelper.get("pipeline", { fields: "running,run_start,name" })).data.filter(pipeline => pipeline.running).filter(pipeline => {
+        return moreThanOneHourAgo(pipeline.run_start);
+    });
+    for (let pipeline of running_pipelines) {
+        try {
+            console.log(`Unlocking blocked pipeline`, pipeline.name);
+            await apihelper.put("pipeline", pipeline._id, { "running": false });
+        } catch(err) {
+            console.error(err);
+        }
+    }
+}
+
 const scheduler = () => {
     let schedules = [];
     let hash = "";
@@ -63,6 +82,7 @@ const scheduler = () => {
             }
         }
     })
+    cron.schedule("0 * * * *", healthcheck)
 }
 
 server.get("/run/:pipeline_id", async (req, res, next) => {
@@ -81,3 +101,4 @@ server.listen(config.pipeline.port || 3018, function () {
 });
 
 scheduler();
+healthcheck();
