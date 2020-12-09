@@ -50,7 +50,9 @@
         "to": "Recipient <recipient@dailymaverick.co.za>",
         "smtp": {
             "host": "smtp.mailtrap.io",
-            "port": 2525
+            "port": 2525,
+            "sendmail": false,
+            "path": null
         },
         "port": 3017
     },
