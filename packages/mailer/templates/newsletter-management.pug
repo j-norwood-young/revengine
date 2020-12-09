@@ -1,36 +1,7 @@
 extends layout.pug
 block content
     h1 RevEngine Newsletter Management Report - #{moment().format("D MMMM YYYY")}
-    //- table
-    //-     tr.cards
-    //-         td
-    //-             .card
-    //-                 .card-title
-    //-                     h2 All Lists
-    //-                 .card-body
-    //-                     .article
-    //-                         .article-count.big_num= numberFormat.format(newsletter_data.lists.length)
-    //-                         .article-title Lists
-    //-                     .article
-    //-                         .article-count.big_num= numberFormat.format(newsletter_data.subscribers.length)
-    //-                         .article-title Unique Active Subscribers
-    //-                     .article
-    //-                         .article-count.big_num= numberFormat.format(active_last_week.length)
-    //-                             if active_last_week > active_prev_week
-    //-                                 .change.green &#9650; 
-    //-                             if active_last_week < active_prev_week
-    //-                                 .change.red &#9660;
-    //-                         .article-title New Unique Active Subscribers Last Seven Days
-    //-                         | (Previous period #{ numberFormat.format(active_prev_week.length) })
-    //-                     .article
-    //-                         .article-count.big_num= numberFormat.format(active_last_month.length)
-    //-                             if active_last_month > active_prev_month
-    //-                                 .change.green &#9650; 
-    //-                             if active_last_month < active_prev_month
-    //-                                 .change.red &#9660;
-    //-                         .article-title New Unique Active Subscribers Last 30 Days 
-    //-                         | (Previous period #{ numberFormat.format(active_prev_month.length) })
-    table.report_table
+    table#someID.report_table.some-class
         tr
             th(rowspan=2) List
             th(rowspan=2) Subs
@@ -73,6 +44,7 @@ block content
                                 .change.green &#9650; 
                             if list.last_month_delta < list.prev_month_delta
                                 .change.red &#9660;
+    p * Only lists with 50 or more active subscribers added in last 60 days displayed.
     each list in lists
         h2(id=list._id) #{list.name} #{numberFormat.format(list.total_active)}
         table
@@ -98,9 +70,6 @@ block content
                                 .article-count.big_num= numberFormat.format(list.last_day_delta / (list.total_active - list.last_day_delta) * 100)
                                     | %
                                 .article-title Growth
-                            .article
-                                .article-count.big_num= numberFormat.format(list.prev_day_delta)
-                                .article-title Previous period nett
                             .article
                                 if list.last_day_delta > list.prev_day_delta
                                     .change.green &#9650;  
@@ -137,9 +106,6 @@ block content
                                     | %
                                 .article-title Growth
                             .article
-                                .article-count.big_num= numberFormat.format(list.prev_week_delta)
-                                .article-title Previous period nett
-                            .article
                                 if list.last_week_delta > list.prev_week_delta
                                     .change.green &#9650; 
                                 if list.last_week_delta < list.prev_week_delta
@@ -175,9 +141,6 @@ block content
                                     | %
                                 .article-title Growth
                             .article
-                                .article-count.big_num= numberFormat.format(list.prev_month_delta)
-                                .article-title Previous period nett
-                            .article
                                 if list.last_month_delta > list.prev_month_delta
                                     .change.green &#9650; 
                                 if list.last_month_delta < list.prev_month_delta
@@ -191,4 +154,4 @@ block content
                                 else
                                     | NA
                                 .article-title Rate of Change
-    p * Only lists with 50 or more active subscribers added in last 60 days displayed.
+    
