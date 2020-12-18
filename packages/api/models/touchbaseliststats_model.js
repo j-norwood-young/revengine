@@ -1,7 +1,8 @@
 /* global JXPSchema ObjectId Mixed */
 
 const TouchbaseListStatsSchema = new JXPSchema({
-    date: Date,
+    uid: { type: String, index: true },
+    date: { type: Date, index: true },
     touchbaselist_id: { type: ObjectId, link: "touchbaselist", index: true },
     "total_active_subscribers": Number,
     "new_active_subscribers_today": Number,
