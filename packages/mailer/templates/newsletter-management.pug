@@ -5,153 +5,192 @@ block content
         tr
             th(rowspan=2) List
             th(rowspan=2) Subs
-            th(colspan=4) Last 7 days
-            th(colspan=4) Last 30 days
+            th(colspan=4) This Week
+            th(colspan=4) This Month
         tr
             th Joins
             th Unsubs
-            th Growth
-            th Chng
+            th Bounced
 
             th Joins
             th Unsubs
-            th Growth
-            th Chng
-        each list in lists
-            if list.active
-                if list.subscribers.length > 10
-                    tr
-                        td
-                            a(href="#"+list._id)= list.name
-                        td= numberFormat.format(list.total_active)
+            th Bounced
+        each stat in stats
+            if stat.new_active_subscribers_this_week > 10
+                tr
+                    td
+                        a(href="#"+stat.touchbaselist._id)= stat.touchbaselist.name
+                    td= numberFormat.format(stat.total_active_subscribers)
 
-                        td= numberFormat.format(list.active_last_week_count)
-                        td= numberFormat.format(list.unsubscribed_last_week_count)
-                        td= numberFormat.format(list.last_week_delta / (list.total_active - list.last_week_delta) * 100)
-                            | %
-                        td
-                            if list.last_week_delta > list.prev_week_delta
-                                .change.green &#9650; 
-                            if list.last_week_delta < list.prev_week_delta
-                                .change.red &#9660;
-
-                        td= numberFormat.format(list.active_last_month_count)
-                        td= numberFormat.format(list.unsubscribed_last_month_count)
-                        td= numberFormat.format(list.last_month_delta / (list.total_active - list.last_month_delta) * 100)
-                            | %
-                        td
-                            if list.last_month_delta > list.prev_month_delta
-                                .change.green &#9650; 
-                            if list.last_month_delta < list.prev_month_delta
-                                .change.red &#9660;
-    p * Only lists with 50 or more active subscribers added in last 60 days displayed.
-    each list in lists
-        h2(id=list._id) #{list.name} #{numberFormat.format(list.total_active)}
+                    td= numberFormat.format(stat.new_active_subscribers_this_week)
+                    td= numberFormat.format(stat.unsubscribes_this_week)
+                    td= numberFormat.format(stat.bounces_this_week)
+                    
+                    td= numberFormat.format(stat.new_active_subscribers_this_month)
+                    td= numberFormat.format(stat.unsubscribes_this_month)
+                    td= numberFormat.format(stat.bounces_this_month)
+    p * Only lists with 10 or more new subscribers added in last week displayed.
+    each stat in stats
+        h2(id=stat.touchbaselist._id) #{stat.touchbaselist.name} #{numberFormat.format(stat.total_active_subscribers)}
         table
             tr.cards
-                td
+                td(style="width:33%")
                     .card
                         .card-title
-                           h2 1 Day
+                            h2 Today
                         .card-body
                             .article
-                                .article-count.big_num= numberFormat.format(list.active_last_day_count)
+                                .article-count.big_num= numberFormat.format(stat.new_active_subscribers_today)
                                 .article-title Joined
                             .article
-                                .article-count.big_num= numberFormat.format(list.unsubscribed_last_day_count)
+                                .article-count.big_num= numberFormat.format(stat.unsubscribes_today)
                                 .article-title Unsubscribed
                             .article
-                                .article-count.big_num= numberFormat.format(list.last_day_delta)
+                                .article-count.big_num= numberFormat.format(stat.bounces_today)
+                                .article-title Bounced
+                            .article
+                                .article-count.big_num= numberFormat.format(stat.new_active_subscribers_today - stat.unsubscribes_today - stat.bounces_today)
                                 .article-title Nett
-                            .article
-                                .article-count.big_num= numberFormat.format(list.prev_day_delta)
-                                .article-title Previous period nett
-                            .article
-                                .article-count.big_num= numberFormat.format(list.last_day_delta / (list.total_active - list.last_day_delta) * 100)
-                                    | %
-                                .article-title Growth
-                            .article
-                                if list.last_day_delta > list.prev_day_delta
-                                    .change.green &#9650;  
-                                if list.last_day_delta < list.prev_day_delta
-                                    .change.red &#9660;
-                                if list.last_day_delta
-                                    .article-count.big_num
-                                        if list.last_day_delta < list.prev_day_delta
-                                            | -
-                                        = numberFormat.format(Math.abs(list.roc_day) * 100)
-                                        | %
-                                else
-                                    | NA
-                                .article-title Rate of Change
-                td
+                td(style="width:33%")
                     .card
                         .card-title
-                           h2 7 Days 
+                            h2 Yesterday
                         .card-body
                             .article
-                                .article-count.big_num= numberFormat.format(list.active_last_week_count)
+                                .article-count.big_num= numberFormat.format(stat.new_active_subscribers_yesterday)
                                 .article-title Joined
                             .article
-                                .article-count.big_num= numberFormat.format(list.unsubscribed_last_week_count)
+                                .article-count.big_num= numberFormat.format(stat.unsubscribes_yesterday)
                                 .article-title Unsubscribed
                             .article
-                                .article-count.big_num= numberFormat.format(list.last_week_delta)
+                                .article-count.big_num= numberFormat.format(stat.bounces_yesterday)
+                                .article-title Bounced
+                            .article
+                                .article-count.big_num= numberFormat.format(stat.new_active_subscribers_yesterday - stat.unsubscribes_yesterday - stat.bounces_yesterday)
                                 .article-title Nett
-                            .article
-                                .article-count.big_num= numberFormat.format(list.prev_week_delta)
-                                .article-title Previous period nett
-                            .article
-                                .article-count.big_num= numberFormat.format(list.last_week_delta / (list.total_active - list.last_week_delta) * 100)
-                                    | %
-                                .article-title Growth
-                            .article
-                                if list.last_week_delta > list.prev_week_delta
-                                    .change.green &#9650; 
-                                if list.last_week_delta < list.prev_week_delta
-                                    .change.red &#9660;
-                                if list.last_week_delta
-                                    .article-count.big_num
-                                        if list.last_week_delta < list.prev_week_delta
-                                            | -
-                                        = numberFormat.format(Math.abs(list.roc_week) * 100)
-                                        | %
-                                else
-                                    | NA
-                                .article-title Rate of Change
-                td
+                td(style="width:33%")
                     .card
                         .card-title
-                            h2 30 Days 
+                            h2 This Week
                         .card-body
                             .article
-                                .article-count.big_num= numberFormat.format(list.active_last_month_count)
+                                .article-count.big_num= numberFormat.format(stat.new_active_subscribers_this_week)
                                 .article-title Joined
                             .article
-                                .article-count.big_num= numberFormat.format(list.unsubscribed_last_month_count)
+                                .article-count.big_num= numberFormat.format(stat.unsubscribes_this_week)
                                 .article-title Unsubscribed
                             .article
-                                .article-count.big_num= numberFormat.format(list.last_month_delta)
+                                .article-count.big_num= numberFormat.format(stat.bounces_this_week)
+                                .article-title Bounced
+                            .article
+                                .article-count.big_num= numberFormat.format(stat.new_active_subscribers_this_week - stat.unsubscribes_this_week - stat.bounces_this_week)
                                 .article-title Nett
+                td(style="width:33%")
+                    .card
+                        .card-title
+                            h2 This Month
+                        .card-body
                             .article
-                                .article-count.big_num= numberFormat.format(list.prev_month_delta)
-                                .article-title Previous period nett
+                                .article-count.big_num= numberFormat.format(stat.new_active_subscribers_this_month)
+                                .article-title Joined
                             .article
-                                .article-count.big_num= numberFormat.format(list.last_month_delta / (list.total_active - list.last_month_delta) * 100)
-                                    | %
-                                .article-title Growth
+                                .article-count.big_num= numberFormat.format(stat.unsubscribes_this_month)
+                                .article-title Unsubscribed
                             .article
-                                if list.last_month_delta > list.prev_month_delta
-                                    .change.green &#9650; 
-                                if list.last_month_delta < list.prev_month_delta
-                                    .change.red &#9660;
-                                if list.last_month_delta
-                                    .article-count.big_num
-                                        if list.last_month_delta < list.prev_month_delta
-                                            | -
-                                        = numberFormat.format(Math.abs(list.roc_month) * 100)
-                                        | %
-                                else
-                                    | NA
-                                .article-title Rate of Change
+                                .article-count.big_num= numberFormat.format(stat.bounces_this_month)
+                                .article-title Bounced
+                            .article
+                                .article-count.big_num= numberFormat.format(stat.new_active_subscribers_this_month - stat.unsubscribes_this_month - stat.bounces_this_month)
+                                .article-title Nett
+                            //- .article
+                            //-     .article-count.big_num= numberFormat.format(list.prev_day_delta)
+                            //-     .article-title Previous period nett
+                            //- .article
+                            //-     .article-count.big_num= numberFormat.format(list.last_day_delta / (list.total_active - list.last_day_delta) * 100)
+                            //-         | %
+                            //-     .article-title Growth
+                            //- .article
+                            //-     if list.last_day_delta > list.prev_day_delta
+                            //-         .change.green &#9650;  
+                            //-     if list.last_day_delta < list.prev_day_delta
+                            //-         .change.red &#9660;
+                            //-     if list.last_day_delta
+                            //-         .article-count.big_num
+                            //-             if list.last_day_delta < list.prev_day_delta
+                            //-                 | -
+                            //-             = numberFormat.format(Math.abs(list.roc_day) * 100)
+                            //-             | %
+                            //-     else
+                            //-         | NA
+                            //-     .article-title Rate of Change
+                //- td
+                //-     .card
+                //-         .card-title
+                //-            h2 7 Days 
+                //-         .card-body
+                //-             .article
+                //-                 .article-count.big_num= numberFormat.format(list.active_last_week_count)
+                //-                 .article-title Joined
+                //-             .article
+                //-                 .article-count.big_num= numberFormat.format(list.unsubscribed_last_week_count)
+                //-                 .article-title Unsubscribed
+                //-             .article
+                //-                 .article-count.big_num= numberFormat.format(list.last_week_delta)
+                //-                 .article-title Nett
+                //-             .article
+                //-                 .article-count.big_num= numberFormat.format(list.prev_week_delta)
+                //-                 .article-title Previous period nett
+                //-             .article
+                //-                 .article-count.big_num= numberFormat.format(list.last_week_delta / (list.total_active - list.last_week_delta) * 100)
+                //-                     | %
+                //-                 .article-title Growth
+                //-             .article
+                //-                 if list.last_week_delta > list.prev_week_delta
+                //-                     .change.green &#9650; 
+                //-                 if list.last_week_delta < list.prev_week_delta
+                //-                     .change.red &#9660;
+                //-                 if list.last_week_delta
+                //-                     .article-count.big_num
+                //-                         if list.last_week_delta < list.prev_week_delta
+                //-                             | -
+                //-                         = numberFormat.format(Math.abs(list.roc_week) * 100)
+                //-                         | %
+                //-                 else
+                //-                     | NA
+                //-                 .article-title Rate of Change
+                //- td
+                //-     .card
+                //-         .card-title
+                //-             h2 30 Days 
+                //-         .card-body
+                //-             .article
+                //-                 .article-count.big_num= numberFormat.format(list.active_last_month_count)
+                //-                 .article-title Joined
+                //-             .article
+                //-                 .article-count.big_num= numberFormat.format(list.unsubscribed_last_month_count)
+                //-                 .article-title Unsubscribed
+                //-             .article
+                //-                 .article-count.big_num= numberFormat.format(list.last_month_delta)
+                //-                 .article-title Nett
+                //-             .article
+                //-                 .article-count.big_num= numberFormat.format(list.prev_month_delta)
+                //-                 .article-title Previous period nett
+                //-             .article
+                //-                 .article-count.big_num= numberFormat.format(list.last_month_delta / (list.total_active - list.last_month_delta) * 100)
+                //-                     | %
+                //-                 .article-title Growth
+                //-             .article
+                //-                 if list.last_month_delta > list.prev_month_delta
+                //-                     .change.green &#9650; 
+                //-                 if list.last_month_delta < list.prev_month_delta
+                //-                     .change.red &#9660;
+                //-                 if list.last_month_delta
+                //-                     .article-count.big_num
+                //-                         if list.last_month_delta < list.prev_month_delta
+                //-                             | -
+                //-                         = numberFormat.format(Math.abs(list.roc_month) * 100)
+                //-                         | %
+                //-                 else
+                //-                     | NA
+                //-                 .article-title Rate of Change
     

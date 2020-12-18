@@ -117,54 +117,10 @@ class Newsletter {
     async list_report() {
         console.log("list_report");
         const lists = (await jxphelper.get("touchbaselist", { "sort[name]": 1 })).data;
-        const subscriber_aggregate = [
-            {
-                $match: {
-                    state: "active"
-                }
-            },
-            {
-                $group: {
-                    _id: "$email",
-                    date: { $max: "$date" },
-                    lists: { $push: "$list_id" }
-                }
-            }
-        ]
-        // const subscribers = (await jxphelper.aggregate("touchbasesubscriber", subscriber_aggregate)).data;
-        const active_query = [
-            {
-                $match: {
-                    state: "active"
-                }
-            },
-            {
-                $group: {
-                    _id: "$list_id",
-                    emails: { $push: { email: "$email", date: "$date" } }
-                }
-            }
-        ]
-        const unsubscribed_query = [
-            {
-                $match: {
-                    state: "unsubscribed"
-                }
-            },
-            {
-                $group: {
-                    _id: "$list_id",
-                    emails: { $push: { email: "$email", date: "$date" } }
-                }
-            }
-        ]
-        const active = (await jxphelper.aggregate("touchbasesubscriber", active_query, { allowDiskUse: true } )).data;
-        const unsubscribed = (await jxphelper.aggregate("touchbasesubscriber", unsubscribed_query, { allowDiskUse: true })).data;
-        // console.log(list_subscribers[0].emails.slice(0, 2));
+        const stats = (await jxphelper.get("touchbaseliststats", { "sort[total_active_subscribers]": -1, "filter[date]": `${ moment().utc().startOf("day").format("YYYY-MM-DD") }`, "populate[touchbaselist]": "name" })).data;
         return {
             lists,
-            active,
-            unsubscribed
+            stats
         }
     }
 }
