@@ -13,6 +13,7 @@ const ReaderSchema = new JXPSchema({
     last_name: { type: String, trim: true },
     last_login: Date,
     last_update: Date,
+    first_login: Date,
     nickname: String,
     session_tokens: [ Mixed ],
     paying_customer: Boolean,
