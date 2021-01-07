@@ -8,7 +8,7 @@
 		"start": "node bin/server.js"
 	},
 	"dependencies": {
-		"jxp": "^2.4.7",
+		"jxp":"^2.6.1",
 		"segfault-handler":"^1.3.0"
 	},
 	"author": "Jason Norwood-Young <jason@10layer.com>",
