@@ -44,7 +44,7 @@ const mail = async (report, subject, to, from) => {
     let info = await transporter.sendMail({
         from: from || config.mailer ? config.mailer.from : "revengine@revengine.dailymaverick.co.za",
         to: to,
-        subject: subject || "RevEngine",
+        subject: `${subject || "RevEngine"} - ${moment().format("dddd Do MMMM")}`,
         text: "A RevEngine Report",
         html
     });
