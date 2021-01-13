@@ -20,7 +20,7 @@ const WordpressUserSchema = new JXPSchema({
     "last_login": Date,
     "dm-status-user": Number,
     "gender": String,
-    "user_dob": Date,
+    // "user_dob": String,
     "user_industry": String,
     "session_tokens": Mixed,
     "wsl_current_provider": String,
