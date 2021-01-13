@@ -59,7 +59,7 @@ const content = async () => {
         const newsletter_data = await newsletter_report.list_report();
         const lists = newsletter_data.lists;
         const stats = newsletter_data.stats;
-        console.log(stats);
+        // console.log(stats);
         // const now = new moment();
         // const last_day_filter = subscriber => moment(subscriber.date).diff(now, "day") > -1 && moment(subscriber.date).diff(now, "day") <= 0;
         // const prev_day_filter = subscriber => (moment(subscriber.date).diff(now, "day") > -2 && moment(subscriber.date).diff(now, "day") <= -1);
