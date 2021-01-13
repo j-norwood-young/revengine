@@ -7,6 +7,8 @@ const apihelper = new Apihelper({ server: config.api.server, apikey: process.env
 const server = require("@revengine/http_server");
 const schedule = "* * * * *";
 const crypto = require('crypto');
+const moment = require("moment-timezone");
+moment.tz.setDefault(config.timezone || "UTC");
 
 const mailer_names = [
     "revengine-mailer",
