@@ -12,14 +12,14 @@ const ReaderSchema = new JXPSchema({
     last_name: { type: String, trim: true },
 
     // Links to related collections
-    touchbasesubscriber_id: [{ type: ObjectId, link: "TouchbaseSubscriber" }],
-    woocommercecustomer_id: [{ type: ObjectId, link: "WoocommerceCustomer" }],
-    woocommercesubscription_id: [{ type: ObjectId, link: "WoocommerceSubscription" }],
-    wordpressuser_id: [{ type: ObjectId, link: "WordpressUser" }],
+    // touchbasesubscriber_id: [{ type: ObjectId, link: "touchbasesubscriber" }],
+    // woocommercecustomer_id: [{ type: ObjectId, link: "WoocommerceCustomer" }],
+    // woocommercesubscription_id: [{ type: ObjectId, link: "WoocommerceSubscription" }],
+    wordpressuser_id: { type: ObjectId, link: "wordpressuser" },
 
     // Segments and labels
-    labels: [ { type: ObjectId, link: "Label" } ],
-    segment: { type: ObjectId, link: "Segment" },
+    labels: [ { type: ObjectId, link: "label" } ],
+    // segment: { type: ObjectId, link: "segment" },
 
     // General Data
     last_login: Date,
