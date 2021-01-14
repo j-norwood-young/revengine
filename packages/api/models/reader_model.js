@@ -5,38 +5,33 @@ const TouchbaseList = require("./touchbaselist_model");
 const WoocommerceSubscription = require("./woocommerce_subscription_model");
 
 const ReaderSchema = new JXPSchema({
-    id: { type: Number, index: true, unique: true, sparse: true },
-    current_login: Date,
-    description: String,
+    // Basics
+    email: { type: String, index: true, unique: true, lowercase: true, trim: true, sparse: true },
     display_name: String,
     first_name: { type: String, trim: true },
     last_name: { type: String, trim: true },
+
+    // Links to related collections
+    touchbasesubscriber_id: [{ type: ObjectId, link: "TouchbaseSubscriber" }],
+    woocommercecustomer_id: [{ type: ObjectId, link: "WoocommerceCustomer" }],
+    woocommercesubscription_id: [{ type: ObjectId, link: "WoocommerceSubscription" }],
+    wordpressuser_id: [{ type: ObjectId, link: "WordpressUser" }],
+
+    // Segments and labels
+    labels: [ { type: ObjectId, link: "Label" } ],
+    segment: { type: ObjectId, link: "Segment" },
+
+    // General Data
     last_login: Date,
     last_update: Date,
     first_login: Date,
-    nickname: String,
-    session_tokens: [ Mixed ],
     paying_customer: Boolean,
-    user_email: String,
-    billing_phone: String,
-    user_login: String,
-    user_nicename: String,
-    user_pass: String,
-    user_registered: Date,
-    user_url: String,
-    wc_last_active: Date,
-    wp_capabilities: [ Mixed ],
-    wp_user_level: Number,
-    wsl_current_provider: String,
-    wsl_current_user_image: String,
-    billing_phone: String,
-    "dm-ad-free-interacted": Boolean,
-    "dm-ad-free-toggle": Boolean,
-    gender: String,
-    user_dob: String,
-    user_industry: String,
-    user_facebook: String,
-    user_twitter: String,
+
+    wordpress_id: Number,
+    remp_beam_id: Number,
+    
+    member: Boolean,
+    monthly_contribution: Number,
 
     recency_score: { type: Number, index: true },
     recency: Date,
@@ -48,93 +43,18 @@ const ReaderSchema = new JXPSchema({
     volume: Number,
     total_lifetime_value_score: { type: Number, index: true },
     total_lifetime_value: Number,
-
+    
     authors: [{ type: String, index: true }],
     sections: [{ type: String, index: true }],
-
-    email: { type: String, index: true, unique: true, lowercase: true, trim: true, sparse: true },
+    favourite_author: String,
+    favourite_section: String,
     
-    hits: [ Mixed ],
-    touchbase_events: [ Mixed ],
-    touchbase_events_last_7_days: Number,
-    touchbase_events_previous_7_days: Number,
-    touchbase_events_last_30_days: Number,
-    touchbase_events_previous_30_days: Number,
-
-    touchbase_opens: [Mixed],
-    touchbase_opens_last_7_days: Number,
-    touchbase_opens_previous_7_days: Number,
-    touchbase_opens_last_30_days: Number,
-    touchbase_opens_previous_30_days: Number,
-
-    touchbase_clicks: [Mixed],
-    touchbase_clicks_last_7_days: Number,
-    touchbase_clicks_previous_7_days: Number,
-    touchbase_clicks_last_30_days: Number,
-    touchbase_clicks_previous_30_days: Number,
-    
-    touchbase_data: [ Mixed ],
-    
-    touchbasesubscriber: [{ type: ObjectId, ref: "TouchbaseSubscriber" }],
-    woocommercecustomer: [{ type: ObjectId, ref: "WoocommerceCustomer" }],
-    woocommercesubscription: [{ type: ObjectId, ref: "WoocommerceSubscription" }],
-    wordpressuser: [{ type: ObjectId, ref: "WordpressUser" }],
-    rempuserhit: [{ type: ObjectId, ref: "Rempuserhit" }],
-    wordpress_id: Number,
-    wordpress_roles: [ String ],
-    remp_crm_id: Number,
-    remp_beam_id: Number,
-    remp_beam_token: String,
-
-    remp_30day_article_progress_avg: Number,
-    remp_30day_article_timespent_avg: Number,
-    remp_30day_article_timespent_tot: Number,
-    remp_30day_article_hits_count: Number,
-    remp_30day_top_campaign: [String],
-    remp_30day_top_referer: [String],
-    remp_30day_top_user_agent: [String],
-    remp_30day_top_utm_medium: [String],
-    remp_30day_top_utm_source: [String],
-    remp_30day_top_utm_campaign: [String],
-    remp_30day_top_device: [String],
-    remp_30day_top_os: [String],
-    remp_30day_top_os_version: [String],
-    remp_30day_top_platform: [String],
-    remp_30day_top_author: [String],
-    remp_30day_authors: Mixed,
-    remp_30day_hits: Mixed,
-    remp_30day_referers: Mixed,
-    remp_30day_utm_sources: Mixed,
-    remp_30day_device_count: Number,
-
-    labels: [ { type: ObjectId, ref: "Label" } ],
-    segment: { type: ObjectId, ref: "Segment" },
-    last_visit: Date,
-    number_of_visits: Number,
-    maverick_insider: Boolean,
-    monthly_contribution: Number,
-    date_created: Date,
     email_state: { type: String, index: true },
     email_client: String,
-    email_highest_engagement: Number,
-    email_average_engagement: Number,
     newsletters: [ String ],
     
-    membership_status: String,
-    membership_start_date: Date,
-    membership_value: Number,
-    membership_value_per_month: Number,
-    membership_period: String,
-    next_payment_date: Date,
-    last_payment_date: Date,
-    membership_product: String,
-    membership_created_via: String,
-    payment_method: String,
-    woocommerce_order_id: Number,
-    woocommerce_subscription_id: Number,
-    woocommerce_product: String,
-    visit_count: Number,
-    favourite_author: String,
+    uas: { type: Mixed, set: toSet },
+
     medium: String,
     source: String,
     browser: String,
@@ -145,8 +65,7 @@ const ReaderSchema = new JXPSchema({
     platform: String,
     height: Number,
     width: Number,
-    campaign: String,
-    last_sync_touchbase: Date,
+
     _owner_id: ObjectId
 },
 {
@@ -157,10 +76,13 @@ const ReaderSchema = new JXPSchema({
     }
 });
 
-// Lowercase email
+function toSet(a) {
+    return [...new Set(a)];
+}
+
+// Trimmed lowercase email
 ReaderSchema.pre("save", function() {
-    if (this.user_email) this.email = this.user_email;
-    this.email = this.email.toLowerCase();
+    this.email = this.email.toLowerCase().trim();
 })
 
 // Newsletters
