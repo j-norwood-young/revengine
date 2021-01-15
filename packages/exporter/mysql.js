@@ -80,7 +80,7 @@ const defs = [
         collection: "touchbaseevent",
         table: "touchbase_events",
         relationships: {
-            email_md5: d => (d.email) ? crypto.createHash("md5").update(d.email).digest("hex") : null,
+            email_md5: d => (d.email) ? crypto.createHash("md5").update(d.email.toLowerCase()).digest("hex") : null,
             timestamp: d => moment(d.timestamp).format(mysql_date_format),
             event: d => d.event,
             url: d => (d.url) ? d.url.substring(0, 255) : null,
@@ -199,8 +199,8 @@ const saveRecords = new Stream.Writable({
             callback();
         } catch(err) {
             console.error(err);
-            this.destroy();
-            callback(err);
+            // this.destroy();
+            // callback(err);
         }
     }
 })
