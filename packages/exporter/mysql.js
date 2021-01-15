@@ -52,7 +52,7 @@ const defs = [
         table: "readers",
         relationships: {
             uid: d => d._id,
-            wordpress_id: d => d.id,
+            wordpress_id: d => d.wordpress_id,
             email_md5: d => (d.email) ? crypto.createHash("md5").update(d.email).digest("hex") : null,
             paying_customer: d => d.paying_customer,
             user_registered: d => d.user_registered ? moment(d.user_registered).format(mysql_date_format) : null,
