@@ -30,13 +30,13 @@ const main = async () => {
             }
         });
         const json_result = await result.json();
-        const articles = json_result.data.filter(article => moment(article.date_published).isBefore(moment().subtract(1, 'hours')));
+        const articles = json_result.data;
         const report = new Reports.TopLastHour();
         const top_articles = await report.run();
         // if (program.verbose) console.log({ top_articles, articles });
         const underperforming = [];
         const overperforming = [];
-        for (let article of articles) {
+        for (let article of articles.filter(article => moment(article.date_published).isBefore(moment().subtract(1, 'hours')))) {
             let match = top_articles.find(comp => article.post_id === comp.key);
             if (!match) {
                 const article_hit = await report.run({ article_id: article.post_id });
