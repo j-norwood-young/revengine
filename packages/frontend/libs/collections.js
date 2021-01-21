@@ -110,9 +110,8 @@ class Collections {
                 actions: [
                     {
                         name: "Run Now",
-                        action: async pipeline => {
-                            console.log(pipeline);
-                            await $.get(`${pipelineserver}/run/${pipeline._id}`);
+                        action: async d => {
+                            await $.get(`${pipelineserver}/run/${d.data._id}`);
                         }
                     }
                 ]
