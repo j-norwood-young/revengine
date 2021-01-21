@@ -61,7 +61,7 @@ const scheduler = () => {
     let schedules = [];
     let hash = "";
     cron.schedule(schedule, async () => {
-        const pipelines = (await apihelper.get("pipeline", { fields: "pipeline,cron,name" })).data;
+        const pipelines = (await apihelper.get("pipeline", { "filter[autorun]": true, fields: "pipeline,cron,name" })).data;
         const newhash = crypto.createHash('md5').update(JSON.stringify(pipelines)).digest("hex");
         if (newhash !== hash) {
             console.log("Pipeline changed");
