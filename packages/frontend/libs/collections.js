@@ -111,6 +111,7 @@ class Collections {
                     {
                         name: "Run Now",
                         action: async pipeline => {
+                            console.log(pipeline);
                             await $.get(`${pipelineserver}/run/${pipeline._id}`);
                         }
                     }
