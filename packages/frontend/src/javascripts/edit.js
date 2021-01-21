@@ -12,9 +12,9 @@ class Edit {
     }
 
     async loadData() {
-        console.log(`${apiserver}/${this.type}/${this._id}?apikey=${apikey}`);
+        console.log(`${apiserver}/api/${this.type}/${this._id}?apikey=${apikey}`);
         try {
-            this.data = await $.get(`${apiserver}/${this.type}/${this._id}?apikey=${apikey}`);
+            this.data = await $.get(`${apiserver}/api/${this.type}/${this._id}?apikey=${apikey}`);
             console.log(this.data);
             this.loadActions();
         } catch(err) {
