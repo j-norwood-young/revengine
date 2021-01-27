@@ -17,6 +17,7 @@ const { Command } = require('commander');
 const program = new Command();
 program
     .option('-c, --collection <name>', 'collection name')
+    .option('-t, --truncate', 'truncate table and do a complete recopy of the collection')
     ;
 
 program.parse(process.argv);
@@ -31,6 +32,17 @@ const getSource = d => {
     if (!d.meta_data) return null;
     let source = d.meta_data.find(md => (md.key === "ossc_tracking"));
     if (!source) return null;
+}
+
+// Truncate table
+const truncate = async def => {
+    try {
+        const sql = `TRUNCATE ${def.table};`
+        await query(connection, sql);
+        console.log(`Truncated ${def.table}`);
+    } catch(err) {
+        return Promise.reject(err);
+    }
 }
 
 const defs = [
@@ -295,6 +307,9 @@ const main = async() => {
         console.log("Found", articles.length, "articles");
         // Calculate total size
         for (let def of limited_defs) {
+            if (program.truncate) {
+                await truncate(def);
+            }
             def.count = await apihelper.count(def.collection, { "filter[updatedAt]": `$gte:${ new Date(def.last_updated) }`});
             max += def.count;
         }
