@@ -55,7 +55,7 @@ const defs = [
             slug: d => d.urlid,
             date_published: d => format_date(d.date_published),
             date_modified: d => format_date(d.date_modified),
-            content: d => d.content,
+            content: d => (d.content) ? d.content.replace(/[^\x20-\x7E]+/g, '') : "",
             title: d => d.title,
             excerpt: d => d.excerpt,
             type: d => d.type,
@@ -317,6 +317,7 @@ const main = async() => {
         for (let def of limited_defs) {
             await fetchRecords(def).pipe(convertRecords).pipe(saveRecords).on("finish", () => {
                 connection.end();
+                console.log();
                 console.log(moment.duration(new Date() - timeStart).asSeconds(), "seconds");
             });
         }
