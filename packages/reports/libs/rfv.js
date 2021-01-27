@@ -83,8 +83,29 @@ const RFV = async () => {
         }
     ]
     const rv_hits = (await jxphelper.aggregate("hit", rv_pipeline)).data;
+    const twomonth = new Date();
+    twomonth.setDate(twomonth.getDate() - 60);
+    twomonth_str = twomonth.toISOString();
     // We should limit the timestamp to last x months
     const f_pipeline = [
+        { 
+            $match: {
+                $expr: {
+                    $and: [
+                        {
+                            $gte: [
+                                "$hit_date",
+                                { 
+                                    $dateFromString: { 
+                                        dateString: twomonth_str 
+                                    } 
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
         {
             $sort: {
                 email: 1
