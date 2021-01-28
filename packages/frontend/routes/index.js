@@ -102,5 +102,6 @@ router.use("/stats", require("./stats"));
 router.use("/api", require("./api"));
 router.use("/config", require("./config"));
 router.use("/mailer", require("./mailer"));
+router.use("/report", require("./report"));
 
 module.exports = router;

@@ -9,6 +9,10 @@ nav.navbar.navbar-expand-lg.navbar-dark.bg-dark.mb-4
 			li.nav-item.active
 				a.nav-link(href='/dashboard') Dashboard
 			li.nav-item.dropdown
+				a.nav-link.dropdown-toggle(id='navbarDropdownReports', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false') Reports
+				.dropdown-menu(aria-labelledby='navbarDropdownReports')
+					a.dropdown-item(href='/report/newsletter_subscribers') Newsletter Subscribers
+			li.nav-item.dropdown
 				a.nav-link.dropdown-toggle(id='navbarDropdownReader', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false') Readers
 				.dropdown-menu(aria-labelledby='navbarDropdownReader')
 					a.dropdown-item(href='/list/reader') Reader List
