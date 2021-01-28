@@ -89,6 +89,10 @@ ReaderSchema.pre("save", function() {
 ReaderSchema.pre("save", async function() {
     const item = this;
     let lists = [];
+    if (!item.touchbasesubscriber) {
+        item.newsletters = lists;
+        return;
+    }
     for(touchbasesubscriber_id of item.touchbasesubscriber) {
         let tbp = await TouchbaseSubscriber.findById(touchbasesubscriber_id);
         let list = await TouchbaseList.findById(tbp.list_id);
@@ -108,7 +112,7 @@ ReaderSchema.pre("save", async function() {
 ReaderSchema.pre("save", async function () {
     const item = this;
     // wordpresslocal > woocommercecustomer > woocommercesubscription > touchbasesubscriber
-    if (item.touchbasesubscriber.length) {
+    if (item.touchbasesubscriber && item.touchbasesubscriber.length) {
         let user = await TouchbaseSubscriber.findById(item.touchbasesubscriber[0]);
         if (user.name) {
             item.first_name = user.name;
@@ -116,12 +120,12 @@ ReaderSchema.pre("save", async function () {
         let last_name = user.data.find(d => (d.Key === "[Surname]"));
         if (last_name) item.last_name = last_name.Value;
     }
-    if (item.woocommercesubscription.length) {
+    if (item.woocommercesubscription && item.woocommercesubscription.length) {
         let user = await WoocommerceSubscription.findById(item.woocommercesubscription[0]);
         if (user.first_name) item.first_name = user.first_name;
         if (user.last_name) item.last_name = user.last_name;
     }
-    if (item.woocommercecustomer.length) {
+    if (item.woocommercecustomer && item.woocommercecustomer.length) {
         let user = await WoocommerceCustomer.findById(item.woocommercecustomer[0]);
         if (user.first_name) item.first_name = user.first_name;
         if (user.last_name) item.last_name = user.last_name;
@@ -131,36 +135,13 @@ ReaderSchema.pre("save", async function () {
 // Touchbase data
 ReaderSchema.pre("save", async function () {
     const item = this;
+    if (!item.touchbasesubscriber) return;
     if (!item.touchbasesubscriber.length) return;
-    let tot_engagement = engagement_count = highest_engagement = 0;
     for (let subscriber_id of item.touchbasesubscriber) {
         let subscriber = await TouchbaseSubscriber.findById(subscriber_id);
         if (subscriber.email_client) item.email_client = subscriber.email_client;
-        for (let d of subscriber.data) {
-            if (d.Key === "[Source]") item.source = d.Value;
-            if (d.Key.indexOf("Engagement]") !== -1) {
-                let engagement = d.Value[0];
-                if (engagement === "E") {
-                    engagement_val = 1;
-                } else if (engagement === "D") {
-                    engagement_val = 25;
-                } else if (engagement === "C") {
-                    engagement_val = 50;
-                } else if (engagement === "B") {
-                    engagement_val = 75;
-                } else if (engagement === "A") {
-                    engagement_val = 90;
-                }
-                if (engagement_val > highest_engagement) highest_engagement = engagement_val;
-                tot_engagement += engagement_val;
-                engagement_count++;
-            }
-        }
     }
-    if (engagement_count) {
-        item.email_highest_engagement = highest_engagement;
-        item.email_average_engagement = Math.round(tot_engagement / engagement_count);
-    }
+    
 });
 
 // const Reader 
