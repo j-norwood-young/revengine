@@ -21,6 +21,21 @@ const md5 = input => {
 // Aggregates opens and clicks into daily buckets that it saves with the user
 const consolidate_touchbase_events = async () => {
     try {
+        const days_7 = moment().subtract(7, "days").endOf("day").toDate();
+        const days_14 = moment().subtract(14, "days").endOf("day").toDate();
+        const days_30 = moment().subtract(30, "days").endOf("day").toDate();
+        const days_60 = moment().subtract(60, "days").endOf("day").toDate();
+        // Get unique touchbaseevent users
+        const uniqueuser_query = [
+            {
+                $group: {
+                    _id: "$email"
+                }
+            },
+            { 
+                $sort: { _id: 1 }
+            }
+        ];
         const readers = (await apihelper.get("reader", { fields: "email,touchbase_events" })).data;
         for (let reader of readers) {
             if (!reader.email) continue;
@@ -43,6 +58,7 @@ const consolidate_touchbase_events = async () => {
             }];
             const result = await apihelper.aggregate("touchbaseevent", query);
             if (!result.data.length) continue;
+            // console.log(email);
             const touchbase_events = result.data.map(event => {
                 return {
                     date: event._id,
@@ -62,10 +78,6 @@ const consolidate_touchbase_events = async () => {
                 }
             }
             if (update) {
-                const days_7 = moment().subtract(7, "days").endOf("day").toDate();
-                const days_14 = moment().subtract(14, "days").endOf("day").toDate();
-                const days_30 = moment().subtract(30, "days").endOf("day").toDate();
-                const days_60 = moment().subtract(60, "days").endOf("day").toDate();
                 const touchbase_events_last_7_days = touchbase_events.filter(event => new Date(event.date) > days_7).map(event => event.count).reduce((prev, curr) => prev + curr, 0);
                 const touchbase_events_previous_7_days = touchbase_events.filter(event => new Date(event.date) < days_7 && new Date(event.date) > days_14).map(event => event.count).reduce((prev, curr) => prev + curr, 0);
                 const touchbase_events_last_30_days = touchbase_events.filter(event => new Date(event.date) > days_30).map(event => event.count).reduce((prev, curr) => prev + curr, 0);
