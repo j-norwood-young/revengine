@@ -1,8 +1,8 @@
 #!/bin/sh
 
-mongoexport -d revengine-prod -c readers -o ~/data/private_readers.csv --type csv --fields id,email,billing_phone,first_name,last_name,display_name,current_login,last_update,paying_customer,user_registered,wc_last_active,wp_capabilities.reader,wp_capabilities.author,wp_capabilities.administrator
+mongoexport -d revengine-prod -c readers -o ~/data/private_readers.csv --type csv --fields id,email,billing_phone,first_name,last_name,display_name,last_update,paying_customer,user_registered,wc_last_active,wp_capabilities.reader,wp_capabilities.author,wp_capabilities.administrator
 
-/usr/bin/bq load --project_id nosaj-243304 --replace --skip_leading_rows=1 --allow_quoted_newlines=1 --source_format=CSV dailymaverick_secure.readers ~/data/private_readers.csv id:INT64,email:STRING,billing_phone:STRING,first_name:STRING,last_name:STRING,display_name:STRING,current_login:TIMESTAMP,last_update:TIMESTAMP,paying_customer:BOOL,user_registered:TIMESTAMP,wc_last_active:TIMESTAMP,wp_capabilities_reader:BOOL,wp_capabilities_author:BOOL,wp_capabilities_administrator:BOOL
+/usr/bin/bq load --project_id nosaj-243304 --replace --skip_leading_rows=1 --allow_quoted_newlines=1 --source_format=CSV dailymaverick_secure.readers ~/data/private_readers.csv id:INT64,email:STRING,billing_phone:STRING,first_name:STRING,last_name:STRING,display_name:STRING,last_update:TIMESTAMP,paying_customer:BOOL,user_registered:TIMESTAMP,wc_last_active:TIMESTAMP,wp_capabilities_reader:BOOL,wp_capabilities_author:BOOL,wp_capabilities_administrator:BOOL
 
 #!/bin/sh
 
