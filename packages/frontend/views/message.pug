@@ -1,0 +1,12 @@
+if message
+    .container
+        div(class=["alert", "alert-" + message.type], role=alert, alert-dismissible, fade, show) 
+            button.close(type="button" data-dismiss="alert" aria-label="Close")
+                span(aria-hidden="true") &times;
+            = message.msg
+            if (message.data)
+                p.mt-3
+                    button.btn.btn-primary(type="button" data-toggle="collapse" data-target="#collapseData" aria-expanded="false" aria-controls="collapseData") Data &#9660;
+                    #collapseData.collapse
+                        pre.mt-3= JSON.stringify(message.data, null, "\t")
+            
