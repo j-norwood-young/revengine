@@ -103,5 +103,6 @@ router.use("/api", require("./api"));
 router.use("/config", require("./config"));
 router.use("/mailer", require("./mailer"));
 router.use("/report", require("./report"));
+router.use("/voucher", require("./voucher"));
 
 module.exports = router;

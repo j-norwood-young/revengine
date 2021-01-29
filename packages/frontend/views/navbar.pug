@@ -3,38 +3,44 @@ nav.navbar.navbar-expand-lg.navbar-dark.bg-dark.mb-4
 		img(src="/images/maverick-insider-logo.png", alt=sitename height="50px")
 	button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navbarSupportedContent', aria-controls='navbarSupportedContent', aria-expanded='false', aria-label='Toggle navigation')
 		span.navbar-toggler-icon
-
-	.collapse.navbar-collapse(id='navbarSupportedContent')
-		ul.navbar-nav.mr-auto
-			li.nav-item.active
-				a.nav-link(href='/dashboard') Dashboard
-			li.nav-item.dropdown
-				a.nav-link.dropdown-toggle(id='navbarDropdownReports', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false') Reports
-				.dropdown-menu(aria-labelledby='navbarDropdownReports')
-					a.dropdown-item(href='/report/newsletter_subscribers') Newsletter Subscribers
-			li.nav-item.dropdown
-				a.nav-link.dropdown-toggle(id='navbarDropdownReader', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false') Readers
-				.dropdown-menu(aria-labelledby='navbarDropdownReader')
-					a.dropdown-item(href='/list/reader') Reader List
-					a.dropdown-item(href='/reader/facet') Reader Facet
-			li.nav-item
-				a.nav-link(href='/list/article') Articles
-			li.nav-item
-				a.nav-link(href='/list/label') Labels
-			li.nav-item
-				a.nav-link(href='/list/pipeline') Pipeline
-			li.nav-item
-				a.nav-link(href='/list/mailer') Mailers
-			li.nav-item
-				a.nav-link(href='/list/user') Users
-		ul.navbar-nav
-			li.nav-item.dropdown
-				a.nav-link.dropdown-toggle(id='navbarDropdownAccountsLink', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false')= user.name
-				.dropdown-menu(aria-labelledby='navbarDropdownAccountsLink')
-					a.dropdown-item(href='/account/settings') Account
-					//- a.dropdown-item(href='/config/settings') Config
-					a.dropdown-item(href='/login/logout') Logout
-			li#primarySearchContainer.nav-item
-				input#primarySearch.form-control(type="search")
-				#primarySearchResults.dropdown-menu.box.profile.dropdown-menu-right
-		
+	if (user)
+		.collapse.navbar-collapse(id='navbarSupportedContent')
+			ul.navbar-nav.mr-auto
+				li.nav-item.active
+					a.nav-link(href='/dashboard') Dashboard
+				li.nav-item.dropdown
+					a.nav-link.dropdown-toggle(id='navbarDropdownReports', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false') Reports
+					.dropdown-menu(aria-labelledby='navbarDropdownReports')
+						a.dropdown-item(href='/report/newsletter_subscribers') Newsletter Subscribers
+				li.nav-item.dropdown
+					a.nav-link.dropdown-toggle(id='navbarDropdownReader', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false') Readers
+					.dropdown-menu(aria-labelledby='navbarDropdownReader')
+						a.dropdown-item(href='/list/reader') Reader List
+						a.dropdown-item(href='/reader/facet') Reader Facet
+				li.nav-item
+					a.nav-link(href='/list/article') Articles
+				li.nav-item
+					a.nav-link(href='/list/label') Labels
+				li.nav-item
+					a.nav-link(href='/list/pipeline') Pipeline
+				li.nav-item
+					a.nav-link(href='/list/mailer') Mailers
+				li.nav-item
+					a.nav-link(href='/list/user') Users
+				li.nav-item.dropdown
+					a.nav-link.dropdown-toggle(id='navbarVouchers', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false') Vouchers
+					.dropdown-menu(aria-labelledby='navbarVouchers')
+						a.dropdown-item(href='/list/voucher') Voucher List
+						a.dropdown-item(href='/list/vouchertype') Voucher Type List
+						a.dropdown-item(href='/voucher/upload') Upload Vouchers
+			ul.navbar-nav
+				li.nav-item.dropdown
+					a.nav-link.dropdown-toggle(id='navbarDropdownAccountsLink', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false')= user.name
+					.dropdown-menu(aria-labelledby='navbarDropdownAccountsLink')
+						a.dropdown-item(href='/account/settings') Account
+						//- a.dropdown-item(href='/config/settings') Config
+						a.dropdown-item(href='/login/logout') Logout
+				li#primarySearchContainer.nav-item
+					input#primarySearch.form-control(type="search")
+					#primarySearchResults.dropdown-menu.box.profile.dropdown-menu-right
+			

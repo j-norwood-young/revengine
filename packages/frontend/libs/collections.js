@@ -227,6 +227,25 @@ class Collections {
                     "name",
                 ]
             },
+            voucher: {
+                name: "Voucher",
+                fields: [
+                    { name: "Type", key: "vouchertype_id", d: data => data.vouchertype_id, "view": "text", list_view, link },
+                    { name: "Valid From", key: "valid_from", d: data => data.valid_from, "view": "date", list_view },
+                    { name: "Valid To", key: "valid_to", d: data => data.valid_to, "view": "date", list_view },
+                    { name: "User ID", key: "user_id", d: data => data.user_id, "view": "text", list_view },
+                ]
+            },
+            vouchertype: {
+                name: "Voucher Type",
+                fields: [
+                    { name: "Name", key: "name", d: data => data.name, "view": "text", list_view, link },
+                    { name: "Code", key: "code", d: data => data.code, "view": "text", list_view },
+                ],
+                search_fields: [
+                    "name",
+                ]
+            },
         };
     }
 }

@@ -1,0 +1,23 @@
+extends ../layout
+
+block content
+    .container
+        h2 Upload Vouchers
+        form(action="/voucher/upload", method="post")
+            .form-group
+                label(for="vouchertype_id") Voucher Type
+                select#event.form-control(name="vouchertype_id")
+                    for vouchertype in vouchertypes
+                        option(value=vouchertype._id)= vouchertype.name
+            .form-group
+                label(for="valid_from") Valid From
+                input#valid_from.form-control(type="date", name="valid_from")
+            .form-group
+                label(for="valid_to") Minimum number of hits
+                input#valid_to.form-control(type="date", name="valid_to")
+            .form-group
+                label(for="codes") Voucher Codes
+                textarea#codes.form-control(name="codes", rows="20")
+            .form-group.mt-3
+                input.btn.btn-primary(type="submit", value="Submit")
+                

@@ -26,10 +26,10 @@ app.use(session({
 
 // Body parser
 // parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.urlencoded({limit: '50mb', extended: false }))
 
 // parse application/json
-app.use(bodyParser.json())
+app.use(bodyParser.json({limit: '50mb'}))
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
