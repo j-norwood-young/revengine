@@ -193,7 +193,6 @@ exports.monthly_uber_mail = async (req, res) => {
         const transactional_id = config.touchbase.transactional_ids.uber_monthly_mail;
         axios.defaults.headers.common['Authorization'] = `Bearer ${process.env.WORDPRESS_KEY}`;
         axios.defaults.baseURL = config.wordpress.revengine_api;
-        console.log(config.wordpress);
         const mailrun = (await apihelper.postput("mailrun", "code", { state: "running", code: `monthly-uber-mail-${moment().format("YYYY-MM")}`, name: `Monthly Uber Mail ${moment().format("MMM YYYY")}`})).data;
         if (res) res.send({ status: "ok", message: "Mail Run running", mailrun_id: mailrun._id });
         // Get list of readers that have active memberships to the relevant product
