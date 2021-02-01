@@ -197,7 +197,9 @@ exports.monthly_uber_mail = async (req, res) => {
         if (res) res.send({ status: "ok", message: "Mail Run running", mailrun_id: mailrun._id });
         // Get list of readers that have active memberships to the relevant product
         let relevant_memberships = []; // { email, user_id }
+        console.log(config.wordpress.revengine_api, `/woocommerce_memberships?status=active&per_page=1`);
         const count = (await axios.get(`/woocommerce_memberships?status=active&per_page=1`)).data.total_count;
+        console.log({ total_count });
         for (let page = 1; page <= Math.ceil(count / per_page); page++) {
             const membership_data = (await axios.get(`/woocommerce_memberships?status=active&per_page=${per_page}&page=${page}`)).data;
             // console.log(memberships.data.slice(0, 2));
