@@ -23,8 +23,11 @@ nav.navbar.navbar-expand-lg.navbar-dark.bg-dark.mb-4
 					a.nav-link(href='/list/label') Labels
 				li.nav-item
 					a.nav-link(href='/list/pipeline') Pipeline
-				li.nav-item
-					a.nav-link(href='/list/mailer') Mailers
+				li.nav-item.dropdown
+					a.nav-link.dropdown-toggle(id='navbarMails', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false') Mails
+					.dropdown-menu(aria-labelledby='navbarMails')
+						a.dropdown-item(href='/list/mailer') Report Mailers
+						a.dropdown-item(href='/list/mailrun') Mail Runs
 				li.nav-item
 					a.nav-link(href='/list/user') Users
 				li.nav-item.dropdown

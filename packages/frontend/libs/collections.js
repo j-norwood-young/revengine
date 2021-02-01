@@ -126,6 +126,16 @@ class Collections {
                     "name",
                 ]
             },
+            label: {
+                name: "Label",
+                fields: [
+                    { name: "Name", key: "name", d: data => data.name, link, list_view, note: "These labels could be visible to the reader. Refrain from insulting, demeaning, negative or avaricious names." },
+                    { name: "Rules", key: "rules", d: data => data.rules, "view": "code_array" }
+                ],
+                search_fields: [
+                    "name",
+                ]
+            },
             mailer: {
                 name: "Mailers",
                 fields: [
@@ -139,14 +149,28 @@ class Collections {
                     "name",
                 ]
             },
-            label: {
-                name: "Label",
+            mailrun: {
+                name: "Mail Run",
+                sortby: "createdAt",
+                sortdir: -1,
                 fields: [
-                    { name: "Name", key: "name", d: data => data.name, link, list_view, note: "These labels could be visible to the reader. Refrain from insulting, demeaning, negative or avaricious names." },
-                    { name: "Rules", key: "rules", d: data => data.rules, "view": "code_array" }
+                    { name: "Name", key: "name", d: data => data.name, link, list_view },
+                    { name: "Action", key: "action", d: data => data.action, view: "select", options: ["monthly_uber_mail"], list_view },
+                    { name: "Code", key: "code", d: data => data.code, note: "Must be unique, eg. monthly-uber-mail-2021-01" },
+                    { name: "State", key: "state", d: data => data.state, view: "select", options: ['due', 'running', 'complete', 'cancelled', 'paused' ], list_view },
+                    { name: "Start Date", key: "start_time", d: data => moment(data.start_time).format("YYYY-MM-DD HH:mm:ss"), "view": "datetime", list_view },
+                    { name: "End Date", key: "end_time", d: data => data.end_time ? moment(data.end_time).format("YYYY-MM-DD HH:mm:ss") : "", "view": "text", readonly, list_view },
                 ],
                 search_fields: [
                     "name",
+                ],
+                filters: [
+                    {
+                        name: "State",
+                        field: "state",
+                        multiple: false,
+                        options: () => [ {_id: 'due', name: "Due"}, {_id: 'running', name: "Running"}, {_id: 'complete', name: "Complete"}, {_id: 'cancelled', name: "Cancelled"}, {_id: 'paused', name: "Paused"} ]
+                    },
                 ]
             },
             reader: {
