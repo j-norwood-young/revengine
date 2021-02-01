@@ -191,17 +191,13 @@ exports.monthly_uber_mail = async (req, res) => {
     try {
         const per_page = 500;
         const transactional_id = config.touchbase.transactional_ids.uber_monthly_mail;
-        axios.defaults.headers.common['Authorization'] = `Bearer ${process.env.WORDPRESS_KEY}`;
-        axios.defaults.baseURL = config.wordpress.revengine_api;
         const mailrun = (await apihelper.postput("mailrun", "code", { state: "running", code: `monthly-uber-mail-${moment().format("YYYY-MM")}`, name: `Monthly Uber Mail ${moment().format("MMM YYYY")}`})).data;
         if (res) res.send({ status: "ok", message: "Mail Run running", mailrun_id: mailrun._id });
         // Get list of readers that have active memberships to the relevant product
         let relevant_memberships = []; // { email, user_id }
-        console.log(config.wordpress.revengine_api, `/woocommerce_memberships?status=active&per_page=1`);
-        const count = (await axios.get(`/woocommerce_memberships?status=active&per_page=1`)).data.total_count;
-        console.log({ total_count });
+        const count = (await axios.get(`${config.wordpress.revengine_api}/woocommerce_memberships?status=active&per_page=1`, { headers: { Authorization: `Bearer ${process.env.WORDPRESS_KEY}` }})).data.total_count;
         for (let page = 1; page <= Math.ceil(count / per_page); page++) {
-            const membership_data = (await axios.get(`/woocommerce_memberships?status=active&per_page=${per_page}&page=${page}`)).data;
+            const membership_data = (await axios.get(`${config.wordpress.revengine_api}/woocommerce_memberships?status=active&per_page=${per_page}&page=${page}`, { headers: { Authorization: `Bearer ${process.env.WORDPRESS_KEY}` }})).data;
             // console.log(memberships.data.slice(0, 2));
             const memberships = membership_data.data.filter(membership => (membership.product)).map(membership => {
                 const id = Number(membership.customer_id)
