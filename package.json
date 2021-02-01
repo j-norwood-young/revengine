@@ -25,7 +25,7 @@
     "dev:frontend": "env NODE_ENV=development nodemon --config packages/frontend/nodemon.json packages/frontend/bin/www",
     "dev:mailer": "env NODE_ENV=development nodemon --config packages/mailer/nodemon.json --trace-uncaught packages/mailer",
     "dev:wordpress_article_api": "env NODE_ENV=development nodemon --watch packages/wordpress_article_api packages/wordpress_article_api",
-    "dev:listeners": "env NODE_ENV=development nodemon --watch packages/listeners packages/listeners",
+    "dev:listeners": "env NODE_ENV=development nodemon --watch packages/mailer --watch packages/listeners packages/listeners",
     "test:pipeline": "env NODE_ENV=test mocha packages/pipeline/test/* --timeout=1000",
     "dev": "npm-run-all -p dev:*",
     "dev-track": "npm-run-all -p dev-track:*",
