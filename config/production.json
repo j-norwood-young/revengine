@@ -1,18 +1,23 @@
 {
     "name": "RevEngine",
+    "api_name": "dailymaverick-revengine",
     "debug": false,
     "locale": "en-GB",
     "timezone": "Johannesburg/Africa",
-    "kafka": {
-        "server": "localhost:9092",
-        "partitions": 1,
-        "replication_factor": 0
+    "api": {
+        "port": 4001,
+        "server": "https://api.revengine.dailymaverick.co.za",
+        "mongo": {
+            "connection_string": "mongodb://localhost/revengine-prod?retryWrites=true&w=majority",
+            "options": {}
+        },
+        "token_expiry": 86400,
+        "refresh_token_expiry": 2678400,
+        "shared_secret": "97a09d2567af0073855e786c428cfc322e5300ae"
     },
-    "tracker": {
-        "port": 4013,
-        "host": "localhost",
-        "cache_size": 1,
-        "kafka_topic": "revengine_events"
+    "bigquery": {
+        "keyFilename": "/root/daily-maverick-265110-0b8301e84f36.json",
+        "projectId": "revengine"
     },
     "consolidator": {
         "flush_timeout": 10000,
@@ -26,19 +31,11 @@
             ]
         }
     },
+    "content": {
+        "wordpress_api": "https://www.dailymaverick.co.za/wp-json/revengine/v1"
+    },
     "elasticsearch": {
         "server": "localhost:9200"
-    },
-    "api": {
-        "port": 4001,
-        "server": "https://api.revengine.dailymaverick.co.za",
-        "mongo": {
-            "connection_string": "mongodb://localhost/revengine-prod?retryWrites=true&w=majority",
-            "options": {}
-        },
-        "token_expiry": 86400,
-        "refresh_token_expiry": 2678400,
-        "shared_secret": "97a09d2567af0073855e786c428cfc322e5300ae"
     },
     "frontend": {
         "sitename": "DM RevEngine",
@@ -46,6 +43,14 @@
         "shared_secret": "SharedSecret",
         "url": "https://admin.revengine.dailymaverick.co.za/",
         "port": 4014
+    },
+    "kafka": {
+        "server": "localhost:9092",
+        "partitions": 1,
+        "replication_factor": 0
+    },
+    "listeners": {
+        "port": 4020
     },
     "mailer": {
         "port": 4017,
@@ -69,10 +74,38 @@
         "port": 4018,
         "server": "https://pipeline.revengine.dailymaverick.co.za"
     },
+    "touchbase": {
+        "api": "https://emailapi.touchbasepro.com/api/v3.2",
+        "transactional_ids": {
+            "new_insiders": "31878c5c-4f7f-478a-a87a-308b7bbdc4af",
+            "new_insider_uber_deal": "8082b481-7288-43f9-9854-34f7a997eff4",
+            "uber_monthly_mail": "86cba8ca-2c97-40a0-8356-7343b49e7d57"
+        },
+        "products_for_uber_deal": [
+            "Monthly Membership: R150 - R250 Range", 
+            "Monthly Membership: R250 - R350 Range",
+            "Monthly Membership: R350 - Rinfinite Range",
+            "Yearly Membership: R1 800 - R3 000 Range",
+            "Yearly Membership: R3 000 - R4 200 Range",
+            "Yearly Membership: R4 200 - Rinfinite Range"
+        ],
+        "live": true,
+        "override_to": "jason@10layer.com"
+    },
+    "tracker": {
+        "port": 4013,
+        "host": "localhost",
+        "cache_size": 1,
+        "kafka_topic": "revengine_events"
+    },
+    "woocommerce": {
+        "api": "https://www.dailymaverick.co.za/wp-json/wc/v2"
+    },
     "wordpress": {
         "server": "https://www.dailymaverick.co.za",
         "homepage": "https://www.dailymaverick.co.za",
         "front_page_admin": "https://www.dailymaverick.co.za/wp-admin/admin.php?page=featured-flagged-post",
-	"port": 4019
+        "port": 4019,
+        "revengine_api": "https://www.dailymaverick.co.za/wp-json/revengine/v1"
     }
 }
