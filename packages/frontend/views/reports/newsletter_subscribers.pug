@@ -1,0 +1,23 @@
+extends ../layout
+
+block content
+    .container
+        h2 Newsletter Subscribers
+        form(action="/report/top_newsletter_subscribers", method="post")
+            .form-group
+                label(for="days") Days
+                input#days.form-control(type="number", name="days", value=30)
+            .form-group
+                label(for="min") Minimum number of hits
+                input#min.form-control(type="number", name="min", value=10)
+            .form-group
+                label(for="event") Event
+                select#event.form-control(name="event")
+                    option(value="touchbaseevent-clicks" checked="checked") Touchbase Clicks
+                    option(value="touchbaseevent-opens") Touchbase Opens
+            .form-check
+                input.form-check-input#with_subscriptions(type="checkbox", name="with_subscriptions")
+                label.form-check-label(for="with_subscriptions") Readers with subscriptions?
+            .form-group.mt-3
+                input.btn.btn-primary(type="submit", value="Submit")
+                

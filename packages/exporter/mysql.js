@@ -17,6 +17,7 @@ const { Command } = require('commander');
 const program = new Command();
 program
     .option('-c, --collection <name>', 'collection name')
+    .option('-t, --truncate', 'truncate table and do a complete recopy of the collection')
     ;
 
 program.parse(process.argv);
@@ -33,6 +34,17 @@ const getSource = d => {
     if (!source) return null;
 }
 
+// Truncate table
+const truncate = async def => {
+    try {
+        const sql = `TRUNCATE ${def.table};`
+        await query(connection, sql);
+        console.log(`Truncated ${def.table}`);
+    } catch(err) {
+        return Promise.reject(err);
+    }
+}
+
 const defs = [
     {
         collection: "article",
@@ -43,7 +55,7 @@ const defs = [
             slug: d => d.urlid,
             date_published: d => format_date(d.date_published),
             date_modified: d => format_date(d.date_modified),
-            content: d => d.content,
+            content: d => (d.content) ? d.content.replace(/[^\x20-\x7E]+/g, '') : "",
             title: d => d.title,
             excerpt: d => d.excerpt,
             type: d => d.type,
@@ -295,6 +307,9 @@ const main = async() => {
         console.log("Found", articles.length, "articles");
         // Calculate total size
         for (let def of limited_defs) {
+            if (program.truncate) {
+                await truncate(def);
+            }
             def.count = await apihelper.count(def.collection, { "filter[updatedAt]": `$gte:${ new Date(def.last_updated) }`});
             max += def.count;
         }
@@ -302,6 +317,7 @@ const main = async() => {
         for (let def of limited_defs) {
             await fetchRecords(def).pipe(convertRecords).pipe(saveRecords).on("finish", () => {
                 connection.end();
+                console.log();
                 console.log(moment.duration(new Date() - timeStart).asSeconds(), "seconds");
             });
         }
