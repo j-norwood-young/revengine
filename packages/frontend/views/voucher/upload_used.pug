@@ -1,0 +1,18 @@
+extends ../layout
+
+block content
+    .container
+        h2 Upload Used Vouchers
+        form(action="/voucher/upload_used", method="post")
+            .form-group
+                label(for="valid_from") Valid From
+                input#valid_from.form-control(type="date", name="valid_from")
+            .form-group
+                label(for="valid_to") Valid To
+                input#valid_to.form-control(type="date", name="valid_to")
+            .form-group
+                label(for="codes") Data
+                textarea#codes.form-control(name="codes", rows="20")
+            .form-group.mt-3
+                input.btn.btn-primary(type="submit", value="Submit")
+                
