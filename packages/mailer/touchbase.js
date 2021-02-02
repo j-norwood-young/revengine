@@ -26,10 +26,10 @@ const get_vouchertypes = async () => {
     return (await apihelper.get("vouchertype")).data;
 }
 
-const create_reader = async data => {
+const create_reader = async user => {
     console.log("Creating User");
-    console.log(data);
-    const wordpressuser = (await apihelper.postput("wordpressuser", "id", data.user)).data;
+    console.log(user);
+    const wordpressuser = (await apihelper.postput("wordpressuser", "id", user)).data;
     const reader = {
         wordpressuser_id: wordpressuser._id,
         email: wordpressuser.user_email.toLowerCase().trim(),
@@ -47,11 +47,11 @@ const create_reader = async data => {
     return (await apihelper.postput("reader", "email", reader)).data;
 }
 
-const get_reader = async data => {
-    const reader = (await apihelper.get("reader", { "filter[wordpress_id]": data.user_id })).data;
+const get_reader = async user => {
+    const reader = (await apihelper.get("reader", { "filter[wordpress_id]": user.user_id })).data;
     if (reader.length) return reader[0];
     // No reader? Create one
-    return await create_reader(data);
+    return await create_reader(user);
 }
 
 const get_voucher = async (vouchertype, user_id) => {
@@ -175,10 +175,10 @@ exports.woocommerce_subscriptions_callback = async (req, res) => {
 exports.woocommerce_subscriptions_zapier_callback = async (req, res) => {
     try {
         const data = JSON.parse(req.body.data);
-        console.log(req.body);
+        // console.log(req.body);
         data.user = await get_woocommerce_user(data.user_id);
+        data.reader = await get_reader(data);
         const group = check_group(data);
-        console.log({ group });
         const group_action = group_actions(group);
         await group_action[group](data);
         res.send({ status: "ok" });
