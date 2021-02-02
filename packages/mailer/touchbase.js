@@ -191,11 +191,12 @@ exports.monthly_uber_mail = async (req, res) => {
     try {
         const per_page = 500;
         const transactional_id = config.touchbase.transactional_ids.uber_monthly_mail;
-        const mailrun = (await apihelper.postput("mailrun", "code", { state: "running", code: `monthly-uber-mail-${moment().format("YYYY-MM")}${ !config.touchbase.live ? "-test" : ""}`, name: `Monthly Uber Mail ${moment().format("MMM YYYY")}`})).data;
+        const mailrun = (await apihelper.postput("mailrun", "code", { state: "running", code: `monthly-uber-mail-${moment().format("YYYY-MM")}`, name: `Monthly Uber Mail ${moment().format("MMM YYYY")}`})).data;
         if (res) res.send({ status: "ok", message: "Mail Run running", mailrun_id: mailrun._id });
-        const sent_already = (await apihelper.get("sentmail", { "filter[mailrun_id]": mailrun._id, "fields": "reader_id" })).data.map(sentmail => sentmail.reader_id);
+        const sent_already = (await apihelper.get("sentmail", { "filter[mailrun_id]": mailrun._id, "fields": "reader_id", "populate[reader]": "wordpress_id" })).data.map(sentmail => sentmail.reader.wordpress_id);
         // Get list of readers that have active memberships to the relevant product
         const count = (await axios.get(`${config.wordpress.revengine_api}/woocommerce_memberships?status=active&per_page=1`, { headers: { Authorization: `Bearer ${process.env.WORDPRESS_KEY}` }})).data.total_count;
+        console.log(`Total active memberships: ${count}`);
         for (let page = 1; page <= Math.ceil(count / per_page); page++) {
             const membership_data = (await axios.get(`${config.wordpress.revengine_api}/woocommerce_memberships?status=active&per_page=${per_page}&page=${page}`, { headers: { Authorization: `Bearer ${process.env.WORDPRESS_KEY}` }})).data;
             // console.log(memberships.data.slice(0, 2));
@@ -210,7 +211,7 @@ exports.monthly_uber_mail = async (req, res) => {
                 }
             })
             .filter(user => config.touchbase.products_for_uber_deal.includes(user.product)) // Must have a product
-            .filter(user => !sent_already.includes(user._id)) // Make sure we haven't sent already
+            .filter(user => !sent_already.includes(user.user_id)) // Make sure we haven't sent already
             // .filter(user => (user.user && user.user.email)) // Must have a user
             ; 
             console.log(relevant_memberships.length);
