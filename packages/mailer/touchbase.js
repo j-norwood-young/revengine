@@ -32,9 +32,9 @@ const create_reader = async user => {
     if (user.email && !user.user_email) {
         user.user_email = user.email;
     }
-    console.log(user);
+    console.log({user});
     const wordpressuser = (await apihelper.postput("wordpressuser", "id", user)).data;
-    console.log(wordpressuser);
+    console.log({wordpressuser});
     const reader = {
         wordpressuser_id: wordpressuser._id,
         email: wordpressuser.user_email.toLowerCase().trim(),
