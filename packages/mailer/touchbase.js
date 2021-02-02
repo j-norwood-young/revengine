@@ -27,6 +27,8 @@ const get_vouchertypes = async () => {
 }
 
 const create_reader = async data => {
+    console.log("Creating User");
+    console.log(data);
     const wordpressuser = (await apihelper.postput("wordpressuser", "id", data.user)).data;
     const reader = {
         wordpressuser_id: wordpressuser._id,
@@ -194,6 +196,7 @@ exports.monthly_uber_mail = async (req, res) => {
         const mailrun = (await apihelper.postput("mailrun", "code", { state: "running", code: `monthly-uber-mail-${moment().format("YYYY-MM")}`, name: `Monthly Uber Mail ${moment().format("MMM YYYY")}`})).data;
         if (res) res.send({ status: "ok", message: "Mail Run running", mailrun_id: mailrun._id });
         const sent_already = (await apihelper.get("sentmail", { "filter[mailrun_id]": mailrun._id, "fields": "reader_id", "populate[reader]": "wordpress_id" })).data.map(sentmail => sentmail.reader.wordpress_id);
+        const vouchertypes = await get_vouchertypes();
         // Get list of readers that have active memberships to the relevant product
         const count = (await axios.get(`${config.wordpress.revengine_api}/woocommerce_memberships?status=active&per_page=1`, { headers: { Authorization: `Bearer ${process.env.WORDPRESS_KEY}` }})).data.total_count;
         console.log(`Total active memberships: ${count}`);
@@ -223,7 +226,6 @@ exports.monthly_uber_mail = async (req, res) => {
             }
 
             // Assign them all Uber codes
-            const vouchertypes = await get_vouchertypes();
             const results = {
                 success: [],
                 error: []
