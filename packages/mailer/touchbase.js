@@ -49,6 +49,7 @@ const create_reader = async user => {
             reader.uas.push(token.ua);
         }
     }
+    console.log({ reader });
     return (await apihelper.postput("reader", "email", reader)).data;
 }
 
