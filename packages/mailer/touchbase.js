@@ -28,6 +28,7 @@ const get_vouchertypes = async () => {
 
 const create_reader = async user => {
     console.log("Creating User");
+    if (user.user && user.user.id) user = user.user;
     console.log(user);
     const wordpressuser = (await apihelper.postput("wordpressuser", "id", user)).data;
     const reader = {
