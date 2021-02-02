@@ -16,5 +16,7 @@ const VoucherSchema = new JXPSchema({
     }
 });
 
+VoucherSchema.index({ vouchertype_id: 1, reader_id: 1, valid_from: 1, valid_to: 1 });
+
 const Voucher = JXPSchema.model('voucher', VoucherSchema);
 module.exports = Voucher;
