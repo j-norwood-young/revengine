@@ -14,8 +14,12 @@ const logged_in_only = (req, res, next) => {
 
 router.get("/settings", logged_in_only, async (req, res) => {
     try {
-        // const user = req.session.user;
-        res.render("account/settings", { title: `My Account`, apikey: req.session.apikey });
+        const user = req.session.user.data;
+        let message = null;
+        if (req.query.updated) {
+            message = { message: { type: "info", msg: "Account updated" }}
+        }
+        res.render("account/settings", { title: `My Account`, apikey: req.session.apikey, user, message });
     } catch(err) {
         console.error(err);
         res.render("error", err);
@@ -27,8 +31,8 @@ router.post("/settings", logged_in_only, async (req, res) => {
         if (req.body.password && req.body.password !== req.body.confirm_password) {
             throw ("Passwords don't match");
         }
-        await req.apihelper.put("user", req.session.user._id, req.body);
-        res.redirect("/account/settings");
+        await req.apihelper.put("user", req.session.user.data._id, req.body);
+        res.redirect("/account/settings?updated=1");
     } catch (err) {
         console.error(err);
         res.render("error", err);
