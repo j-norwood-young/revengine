@@ -205,6 +205,11 @@ exports.monthly_uber_mail = async (req, res) => {
         const vouchertypes = await get_vouchertypes();
         // Get list of readers that have active memberships to the relevant product
         const count = (await axios.get(`${config.wordpress.revengine_api}/woocommerce_memberships?status=active&per_page=1`, { headers: { Authorization: `Bearer ${process.env.WORDPRESS_KEY}` }})).data.total_count;
+        // Assign them all Uber codes
+        const results = {
+            success: [],
+            error: []
+        };
         console.log(`Total active memberships: ${count}`);
         for (let page = 1; page <= Math.ceil(count / per_page); page++) {
             const membership_data = (await axios.get(`${config.wordpress.revengine_api}/woocommerce_memberships?status=active&per_page=${per_page}&page=${page}`, { headers: { Authorization: `Bearer ${process.env.WORDPRESS_KEY}` }})).data;
@@ -231,11 +236,6 @@ exports.monthly_uber_mail = async (req, res) => {
                 readers.push(reader);
             }
 
-            // Assign them all Uber codes
-            const results = {
-                success: [],
-                error: []
-            };
             for (let reader of readers) {
                 try {
                     // Make sure we're still in a running state
