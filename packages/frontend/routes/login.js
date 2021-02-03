@@ -3,6 +3,7 @@ const router = express.Router();
 const config = require("config");
 const jwt = require("jsonwebtoken")
 const Mail = require("../libs/mail")
+const JXPHelper = require("jxp-helper");
 
 router.use((req, res, next) => {
     res.locals.sitename = config.frontend.sitename;
@@ -27,8 +28,7 @@ router.get("/forgot", (req, res) => {
 
 router.post("/forgot", async (req, res) => {
     try {
-        const JXPHelper = require("jxp-helper");
-        const apihelper = new JXPHelper({ server: config.api.server });
+        const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
         const result = await apihelper.getjwt(req.body.email);
         const mail = new Mail();
         const content = `Someone (hopefully you) forgot your password for ${config.sitename}. You can log in <a href="${config.url}login/token/${result.token}">HERE</a>.`

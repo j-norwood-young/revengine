@@ -3,7 +3,20 @@ const nodemailer = require("nodemailer")
 
 class Mail {
     constructor() {
-        this.transport = nodemailer.createTransport(config.smtp);
+        const auth = {};
+        if (process.env.SMTP_USER) {
+            auth.user = process.env.SMTP_USER;
+        }
+        if (process.env.SMTP_PASS) {
+            auth.pass = process.env.SMTP_PASS;
+        }
+        const smtp = Object.assign({
+            sendmail: true,
+            newline: 'unix',
+            path: '/usr/sbin/sendmail',
+            auth
+        }, config.mailer ? config.mailer.smtp : {});
+        this.transport = nodemailer.createTransport(smtp);
     }
 
     async send(data) {
@@ -12,7 +25,7 @@ class Mail {
             if (!data.subject) throw ("Subject required");
             if (!data.content) throw ("Content required");
             let msgdata = Object.assign({
-                from: config.smtp.from,
+                from: config.mailer.from,
                 html: data.content,
                 text: data.content
             }, data)
