@@ -165,7 +165,7 @@ const group_actions = () => {
 exports.woocommerce_subscriptions_callback = async (req, res) => {
     try {
         const data = req.body.data;
-        console.log(req.body);
+        // console.log(req.body);
         data.user = await get_woocommerce_user(data.user_id);
         data.reader = await get_reader(data);
         const group = check_group(data);
@@ -181,7 +181,7 @@ exports.woocommerce_subscriptions_callback = async (req, res) => {
 exports.woocommerce_subscriptions_zapier_callback = async (req, res) => {
     try {
         const data = JSON.parse(req.body.data);
-        console.log(req.body);
+        // console.log(req.body);
         data.user = await get_woocommerce_user(data.user_id);
         data.reader = await get_reader(data);
         const group = check_group(data);
