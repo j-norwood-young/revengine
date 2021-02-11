@@ -316,3 +316,46 @@ exports.monthly_uber_mail = async (req, res) => {
         }
     }
 }
+
+exports.test_monthly_uber_mail = async (reader_email, to, tid) => {
+    try {
+        const vouchertypes = await get_vouchertypes();
+        const transactional_id = config.touchbase.transactional_ids[tid];
+        console.log({ reader_email });
+        const reader = (await apihelper.get("reader", { "filter[email]": reader_email })).data.pop();
+        if (!reader) throw "Could not find reader";
+        const vouchers = {};
+        for (let vouchertype of vouchertypes) {
+            vouchers[vouchertype.code] = (await get_voucher(vouchertype, reader._id)).code;
+        }
+        reader.vouchers = vouchers;
+        // Send them the email
+        const d = Object.assign({
+            name: reader.first_name
+        }, vouchers);
+        const body = {
+            "To": [to],
+            "Data": d,
+            "ConsentToTrack": "unchanged"
+        }
+        let result = null;
+        if (!config.touchbase.live) {
+            console.log(body);
+            result = { state: "simulated", body }
+        } else {
+            result = await axios(`${config.touchbase.api}/transactional/smartemail/${transactional_id}/send`, {
+                method: "post",
+                data: body,
+                auth: {
+                    username: process.env.TOUCHBASE_APIKEY,
+                    password: 'x'
+                },
+            });
+            if (result.data.Code) throw result.data;
+        }
+        return result;
+    } catch(err) {
+        console.error(err);
+        return Promise.reject(err);
+    }
+}

@@ -1,5 +1,7 @@
 require("bootstrap/dist/js/bootstrap.bundle.js")
 require("./libs/confirm_passwords");
+require("./libs/email_typeahead");
+
 const CheckboxFixPost = require("checkbox-fix-post");
 const List = require("./list");
 global.Edit = require("./edit");
@@ -8,6 +10,7 @@ const checkboxfixpost = new CheckboxFixPost();
 window.ActivitiesD3 = require("./libs/activities_d3");
 window.Beam = require("../../libs/beam");
 window.Charts = require("../../libs/charts");
+window.$ = require("jquery");
 
 const CodeMirror = require("codemirror");
 const js = require("codemirror/mode/javascript/javascript");
