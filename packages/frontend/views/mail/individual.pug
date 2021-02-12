@@ -8,10 +8,10 @@ block content
                 label(for="reader_email") Reader
                 input#valid_to.form-control.email_typeahead(type="email", name="reader_email")
             .form-group 
-                label(for=transactional_id) Transactional Mail
-                select.form-control(name="transactional_id")
-                    for transactional_name in transactional_names
-                        option(value=transactional_name)= transactional_name
+                label(for=touchbasetransactional) Transactional Mail
+                select.form-control(name="touchbasetransactional")
+                    for touchbasetransactional in touchbasetransactionals
+                        option(value=touchbasetransactional._id)= touchbasetransactional.name
             .form-group
                 label(for="to") Override To (eg. for testing)
                 input#to.form-control(type="email", name="to")

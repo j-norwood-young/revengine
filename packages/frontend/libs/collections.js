@@ -240,6 +240,15 @@ class Collections {
                     "first_name", "last_name", "email"
                 ]
             },
+            touchbasetransactional: {
+                name: "Touchbase Transactional",
+                fields: [
+                    { name: "Name", key: "name", d: data => data.name, "view": "text", list_view, link },
+                    { name: "Touchbase ID", key: "touchbase_transactional_id", d: data => data.touchbase_transactional_id, "view": "text" },
+                    { name: "Function", key: "data_fn", d: data => data.data_fn, view: "code"},
+                    { name: "BCC", key: "bcc", d: data => data.bcc, view: "email" },
+                ]
+            },
             user: {
                 name: "User",
                 fields: [

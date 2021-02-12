@@ -27,6 +27,8 @@
     include text_array
 - if (field.view === "select")
     include select
+- if (field.view === "email")
+    include email
 if field.note
     p
         i.fa.fa-info-square.mr-2 

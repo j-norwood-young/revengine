@@ -32,7 +32,6 @@ const create_reader = async user => {
     if (user.email && !user.user_email) {
         user.user_email = user.email;
     }
-    console.log({user});
     const wordpressuser = (await apihelper.postput("wordpressuser", "id", user)).data;
     console.log({wordpressuser});
     const reader = {
@@ -49,7 +48,6 @@ const create_reader = async user => {
             reader.uas.push(token.ua);
         }
     }
-    console.log({ reader });
     return (await apihelper.postput("reader", "email", reader)).data;
 }
 
@@ -107,6 +105,9 @@ const group_actions = () => {
                     },
                     "ConsentToTrack": "unchanged"
                 }
+                if (config.touchbase.bcc) {
+                    body.Bcc = config.touchbase.bcc;
+                }
                 if (!config.touchbase.live) {
                     console.log(body);
                     return;
@@ -140,6 +141,9 @@ const group_actions = () => {
                     "To": [to],
                     "Data": d,
                     "ConsentToTrack": "unchanged"
+                }
+                if (config.touchbase.bcc) {
+                    body.Bcc = config.touchbase.bcc;
                 }
                 if (!config.touchbase.live) {
                     console.log(body);
@@ -344,6 +348,42 @@ exports.test_monthly_uber_mail = async (reader_email, to, tid) => {
             result = { state: "simulated", body }
         } else {
             result = await axios(`${config.touchbase.api}/transactional/smartemail/${transactional_id}/send`, {
+                method: "post",
+                data: body,
+                auth: {
+                    username: process.env.TOUCHBASE_APIKEY,
+                    password: 'x'
+                },
+            });
+            if (result.data.Code) throw result.data;
+        }
+        return result;
+    } catch(err) {
+        console.error(err);
+        return Promise.reject(err);
+    }
+}
+
+exports.run_transactional = async (reader_email, to, tid) => {
+    try {
+        const transactional = (await apihelper.getOne("touchbasetransactional", tid)).data;
+        const reader = (await apihelper.get("reader", { "filter[email]": reader_email })).data.pop();
+        const fn = new Function(transactional.data_fn);
+        const d = await fn()({ get_voucher, get_vouchertypes, reader });
+        const body = {
+            "To": [to],
+            "Data": d,
+            "ConsentToTrack": "unchanged"
+        }
+        if (transactional.bcc) {
+            body.Bcc = transactional.bcc;
+        }
+        let result = null;
+        if (!config.touchbase.live) {
+            console.log(body);
+            result = { state: "simulated", body }
+        } else {
+            result = await axios(`${config.touchbase.api}/transactional/smartemail/${transactional.touchbase_transactional_id}/send`, {
                 method: "post",
                 data: body,
                 auth: {
