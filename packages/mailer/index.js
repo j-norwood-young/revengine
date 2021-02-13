@@ -27,30 +27,34 @@ const render = async report => {
 }
 
 const mail = async (report, subject, to, from) => {
-    const auth = {};
-    if (process.env.SMTP_USER) {
-        auth.user = process.env.SMTP_USER;
+    try {
+        const auth = {};
+        if (process.env.SMTP_USER) {
+            auth.user = process.env.SMTP_USER;
+        }
+        if (process.env.SMTP_PASS) {
+            auth.pass = process.env.SMTP_PASS;
+        }
+        const smtp = Object.assign({
+            sendmail: true,
+            newline: 'unix',
+            path: '/usr/sbin/sendmail',
+            auth
+        }, config.mailer ? config.mailer.smtp : {});
+        let transporter = nodemailer.createTransport(smtp);
+        let html = await mailers[report].content();
+        if (!html) throw "Missing contents";
+        let info = await transporter.sendMail({
+            from: from || config.mailer ? config.mailer.from : "revengine@revengine.dailymaverick.co.za",
+            to: to,
+            subject: `${subject || "RevEngine"} - ${moment().format("dddd Do MMMM")}`,
+            text: "A RevEngine Report",
+            html
+        });
+        console.log("Message sent: %s", info.messageId);
+    } catch(err) {
+        console.error(err);
     }
-    if (process.env.SMTP_PASS) {
-        auth.pass = process.env.SMTP_PASS;
-    }
-    const smtp = Object.assign({
-        sendmail: true,
-        newline: 'unix',
-        path: '/usr/sbin/sendmail',
-        auth
-    }, config.mailer ? config.mailer.smtp : {});
-    let transporter = nodemailer.createTransport(smtp);
-    let html = await mailers[report].content();
-    
-    let info = await transporter.sendMail({
-        from: from || config.mailer ? config.mailer.from : "revengine@revengine.dailymaverick.co.za",
-        to: to,
-        subject: `${subject || "RevEngine"} - ${moment().format("dddd Do MMMM")}`,
-        text: "A RevEngine Report",
-        html
-    });
-    console.log("Message sent: %s", info.messageId);
 }
 
 let schedules = [];
