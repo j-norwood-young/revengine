@@ -50,7 +50,8 @@
         "replication_factor": 0
     },
     "listeners": {
-        "port": 4020
+        "public_port": 4020,
+        "protected_port": 4021
     },
     "mailer": {
         "port": 4017,
