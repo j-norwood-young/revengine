@@ -14,7 +14,7 @@
     "prod:api": "env NODE_ENV=production node packages/api",
     "prod:frontend": "env NODE_ENV=production node packages/frontend/bin/www",
     "prod:pipeline": "env NODE_ENV=production node packages/pipeline",
-    "prod:wordpress_article_api": "env NODE_ENV=production node packages/wordpress_article_api",
+    "prod:wordpress_api": "env NODE_ENV=production node packages/wordpress_api",
     "prod:mailer": "env NODE_ENV=production node packages/mailer",
     "prod:listeners": "env NODE_ENV=production node packages/listeners",
     "dev-track:consolidator": "env NODE_ENV=development nodemon packages/consolidator",
