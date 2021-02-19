@@ -20,5 +20,5 @@ public_server.listen(config.listeners.public_port || 3020, function () {
 
 const protected_server = require("@revengine/http_server");
 protected_server.listen(config.listeners.protected_port || 3021, function () {
-    console.log('%s listening at %s', server.name, server.url);
+    console.log('%s listening at %s', protected_server.name, protected_server.url);
 });
