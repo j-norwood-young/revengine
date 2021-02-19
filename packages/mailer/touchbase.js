@@ -19,6 +19,10 @@ const get_woocommerce_user = async (user_id) => {
 // This must become dynamic at some point
 const check_group = (data) => {
     if (config.touchbase.products_for_uber_deal.includes(data.line_items[0].name)) return "new_insider_uber_deal";
+    if (data.subscription && data.subscription.meta_data) {
+        const ossc = data.subscription.meta_data.find(meta_data => meta_data.key === "ossc_tracking");
+        if (ossc.coupon && ossc.coupon === "youth") return "new_insider_uber_deal";
+    }
     return "new_insider";
 }
 
@@ -166,10 +170,27 @@ const group_actions = () => {
     return actions;
 }
 
+const sync_user = async user_id => {
+    const user = (await axios.get(`${config.wordpress.revengine_api}/user/${user_id}`, { headers: { Authorization: `Bearer ${process.env.WORDPRESS_KEY}` }})).data.data.pop();
+    if (!user) return Promise.reject("User not found in Wordpress");
+    return (await apihelper.postput("wordpressuser", "id", user)).data;
+}
+
+const sync_subscription = async user_id => {
+    const subscription = (await axios.get(`${config.wordpress.revengine_api}/woocommerce_subscriptions?customer_id=${user_id}`, { headers: { Authorization: `Bearer ${process.env.WORDPRESS_KEY}` }})).data.data.pop();
+    if (!subscription) {
+        console.log("Subscription not found for user", user_id);
+        return null;
+    }
+    return (await apihelper.postput("woocommerce_subscription", "id", subscription)).data;
+}
+
 exports.woocommerce_subscriptions_callback = async (req, res) => {
     try {
         const data = req.body.data;
         // console.log(req.body);
+        await sync_user(data.user_id);
+        data.subscription = await sync_subscription(data.user_id);
         data.user = await get_woocommerce_user(data.user_id);
         data.reader = await get_reader(data);
         const group = check_group(data);
@@ -186,6 +207,8 @@ exports.woocommerce_subscriptions_zapier_callback = async (req, res) => {
     try {
         const data = JSON.parse(req.body.data);
         // console.log(req.body);
+        await sync_user(data.user_id);
+        data.subscription = await sync_subscription(data.user_id);
         data.user = await get_woocommerce_user(data.user_id);
         data.reader = await get_reader(data);
         const group = check_group(data);
