@@ -11,7 +11,6 @@ block content
         }
     .container
         h1= `${reader.display_name}`
-        
         .row
             .col-sm-6.col-md-4
                 .card
@@ -27,6 +26,9 @@ block content
                         if (reader.paying_customer)
                             p.card-text
                                 strong Paying Subscriber 
+                        if (reader.wordpress_id)
+                            p.card-text 
+                                a.btn.btn-primary(href=`https://www.dailymaverick.co.za/wp-admin/user-edit.php?user_id=${reader.wordpress_id}`, target="_blank") Open in Wordpress
             .col-sm-6.col-md-4
                 .card
                     .card-body
@@ -35,10 +37,7 @@ block content
                             h2.card-title Recency
                             p.card-text
                                 strong Last visit 
-                                | #{ reader.recency.timestamp }
-                            p.card-text
-                                strong Time ago 
-                                | #{ reader.recency.from_now } 
+                                | #{ moment(reader.recency.timestamp).format("YYYY-MM-DD HH:mm:ss") } (#{ reader.recency.from_now } ago)
                             p.card-text
                                 strong Score 
                                 | #{ reader.recency.score }
@@ -100,6 +99,63 @@ block content
                                     p.card-text 
                                         strong Product 
                                         | #{ product.name } x #{ product.quantity } = #{ product.total }
+                            p.card-text 
+                                a.btn.btn-primary(href=`https://www.dailymaverick.co.za/wp-admin/post.php?post=${reader.woocommerce_subscription[0].id}&action=edit`, target="_blank") Open in Wordpress
+                .col-sm-6.col-md-4
+                    .card
+                        .card-body
+                            h4.card-title WooCommerce Membership
+                            p.card-text 
+                                strong Status 
+                                | #{ reader.woocommerce_membership[0].status }
+                            p.card-text 
+                                strong Start Date 
+                                | #{ moment(reader.woocommerce_membership[0].start_date).format("YYYY-MM-DD") }
+                            if (reader.woocommerce_membership[0].cancelled_date)
+                                p.card-text 
+                                    strong Start Date 
+                                    | #{ moment(reader.woocommerce_membership[0].cancelled_date).format("YYYY-MM-DD") }
+                            if (reader.woocommerce_membership[0].paused_intervals && reader.woocommerce_membership[0].paused_intervals.length)
+                                p.card-text 
+                                    h5 Paused Intervals
+                                for paused_interval in reader.woocommerce_membership[0].paused_intervals
+                                    if (paused_interval.end)
+                                        p.card-text #{moment(paused_interval.start).format("YYYY-MM-DD")} - #{moment(paused_interval.end).format("YYYY-MM-DD")}
+                                    else 
+                                        p.card-text #{moment(paused_interval.start).format("YYYY-MM-DD")} (Currently Paused)
+                .col-sm-6.col-md-4
+                    .card
+                        .card-body 
+                            h4 Orders
+                            for order in reader.woocommerce_order 
+                                p.card-text 
+                                    strong= moment(order.date_created).format("YYYY-MM-DD")
+                                    |  R#{order.total} #{order.payment_method}
+                                    if (order.date_paid)
+                                        span.badge.badge-success.ml-1 Paid
+
+
+            hr
+        if (reader.vouchers)
+            .col-sm-12.mb-4 
+                h2 Vouchers
+            .row
+                for voucher in reader.vouchers
+                    .col-sm-6.col-md-4
+                        .card
+                            .card-body
+                                p.card-text
+                                    strong Type 
+                                    = voucher.vouchertype.name 
+                                p.card-text
+                                    strong Valid From 
+                                    = moment(voucher.validfrom).format("YYYY-MM-DD")
+                                p.card-text
+                                    strong Valid To 
+                                    = moment(voucher.validto).format("YYYY-MM-DD")
+                                p.card-text
+                                    strong Code 
+                                    = voucher.code
             hr
         .row
             .col-sm-12.mb-4 
@@ -119,7 +175,7 @@ block content
                             strong Email Client 
                             | #{ reader.touchbase_subscriber[0].email_client }
             for touchbase_subscriber in reader.touchbase_subscriber
-                .col-sm-6.col-md-4
+                .col-sm-6.col-md-4.mb-4
                     .card
                         .card-body
                             h4.card-title= touchbase_subscriber.touchbaselist.name
