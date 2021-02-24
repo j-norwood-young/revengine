@@ -12,54 +12,100 @@ block content
     .container
         h1= `${reader.display_name}`
         
-        .card-columns
-            .card
-                img.img-fluid(src=`https://www.gravatar.com/avatar/${reader.email_hash}?s=400`)
-                .card-body
-                    h4.card-title= reader.display_name
-                    p.card-text
-                        strong Email 
-                        a(href="mailto:" + reader.email)= reader.email
-                    p.card-text
-                        strong Registered 
-                        | #{ reader.user_registered }
-                    if (reader.paying_customer)
-                        p.card-text
-                            strong Paying Subscriber 
-            .card
-                .card-body
-                    h1.card-title RFV
-                    if (reader.recency)
-                        h2.card-title Recency
-                        p.card-text
-                            strong Last visit 
-                            | #{ reader.recency.timestamp }
-                        p.card-text
-                            strong Time ago 
-                            | #{ reader.recency.from_now } 
-                        p.card-text
-                            strong Score 
-                            | #{ reader.recency.score }
-                    if (reader.frequency)
-                        h2.card-title Frequency
-                        p.card-text
-                            strong Count 
-                            | #{ reader.frequency.count }
-                        p.card-text
-                            strong Score 
-                            | #{ reader.frequency.score } 
-                    if (reader.value)
-                        h2.card-title Value
-                        p.card-text
-                            strong Value 
-                            | #{ reader.value.value }
-                        p.card-text
-                            strong Score 
-                            | #{ reader.value.score } 
-
-
-            if (reader.woocommerce_subscription && reader.woocommerce_subscription[0])            
+        .row
+            .col-sm-6.col-md-4
                 .card
+                    img.img-fluid(src=`https://www.gravatar.com/avatar/${reader.email_hash}?s=400`)
+                    .card-body
+                        h4.card-title= reader.display_name
+                        p.card-text
+                            strong Email 
+                            a(href="mailto:" + reader.email)= reader.email
+                        p.card-text
+                            strong Registered 
+                            | #{ reader.user_registered }
+                        if (reader.paying_customer)
+                            p.card-text
+                                strong Paying Subscriber 
+            .col-sm-6.col-md-4
+                .card
+                    .card-body
+                        h1.card-title RFV
+                        if (reader.recency)
+                            h2.card-title Recency
+                            p.card-text
+                                strong Last visit 
+                                | #{ reader.recency.timestamp }
+                            p.card-text
+                                strong Time ago 
+                                | #{ reader.recency.from_now } 
+                            p.card-text
+                                strong Score 
+                                | #{ reader.recency.score }
+                        if (reader.frequency)
+                            h2.card-title Frequency
+                            p.card-text
+                                strong Count 
+                                | #{ reader.frequency.count }
+                            p.card-text
+                                strong Score 
+                                | #{ reader.frequency.score } 
+                        if (reader.value)
+                            h2.card-title Value
+                            p.card-text
+                                strong Value 
+                                | #{ reader.value.value }
+                            p.card-text
+                                strong Score 
+                                | #{ reader.value.score } 
+        hr
+        if (reader.woocommerce_subscription && reader.woocommerce_subscription[0])
+            .row
+                .col-sm-12.mb-4
+                    h2 Subscriptions and Memberships
+                .col-sm-6.col-md-4
+                    .card
+                        img.card-img-top.bg-light.p-3(src="https://upload.wikimedia.org/wikipedia/commons/2/2a/WooCommerce_logo.svg" alt="WooCommerce")
+                        .card-body
+                            h4.card-title WooCommerce Subscription
+                            p.card-text 
+                                strong Status 
+                                | #{ reader.woocommerce_subscription[0].status }
+                            if (reader.woocommerce_subscription[0].customer_note)
+                                p.card-text 
+                                    strong Customer Note 
+                                    | #{ reader.woocommerce_subscription[0].customer_note }
+                            p.card-text 
+                                strong Total Value 
+                                | #{ reader.woocommerce_subscription[0].total }
+                            p.card-text 
+                                strong Billing Interval 
+                                | #{ reader.woocommerce_subscription[0].billing_interval } #{ reader.woocommerce_subscription[0].billing_period }
+                            if schedule_next_payment
+                                p.card-text 
+                                    strong Schedule Next Payment 
+                                    | #{ reader.woocommerce_subscription[0].schedule_next_payment }
+                            p.card-text 
+                                strong Date Created 
+                                | #{ reader.woocommerce_subscription[0].date_created }
+                            p.card-text 
+                                strong Date Modified 
+                                | #{ reader.woocommerce_subscription[0].date_modified }
+                            if (reader.woocommerce_subscription[0].payment_method)
+                                p.card-text 
+                                    strong Payment Method 
+                                    | #{ reader.woocommerce_subscription[0].payment_method }
+                            if (reader.woocommerce_subscription[0].products.length)
+                                each product in reader.woocommerce_subscription[0].products
+                                    p.card-text 
+                                        strong Product 
+                                        | #{ product.name } x #{ product.quantity } = #{ product.total }
+            hr
+        .row
+            .col-sm-12.mb-4 
+                h2 Newsletters
+            .col-sm-6.col-md-4
+                .card.mb-4
                     img.card-img-top.bg-light.p-3(src="https://www.touchbasepro.com/Content/Images/TouchBasePro_Logo.svg" alt="Touchbase Pro")
                     .card-body
                         h4.card-title Touchbase Pro
@@ -72,43 +118,8 @@ block content
                         p.card-text
                             strong Email Client 
                             | #{ reader.touchbase_subscriber[0].email_client }
-                .card
-                    img.card-img-top.bg-light.p-3(src="https://upload.wikimedia.org/wikipedia/commons/2/2a/WooCommerce_logo.svg" alt="WooCommerce")
-                    .card-body
-                        h4.card-title WooCommerce Subscription
-                        p.card-text 
-                            strong Status 
-                            | #{ reader.woocommerce_subscription[0].status }
-                        if (reader.woocommerce_subscription[0].customer_note)
-                            p.card-text 
-                                strong Customer Note 
-                                | #{ reader.woocommerce_subscription[0].customer_note }
-                        p.card-text 
-                            strong Total Value 
-                            | #{ reader.woocommerce_subscription[0].total }
-                        p.card-text 
-                            strong Billing Interval 
-                            | #{ reader.woocommerce_subscription[0].billing_interval } #{ reader.woocommerce_subscription[0].billing_period }
-                        if schedule_next_payment
-                            p.card-text 
-                                strong Schedule Next Payment 
-                                | #{ reader.woocommerce_subscription[0].schedule_next_payment }
-                        p.card-text 
-                            strong Date Created 
-                            | #{ reader.woocommerce_subscription[0].date_created }
-                        p.card-text 
-                            strong Date Modified 
-                            | #{ reader.woocommerce_subscription[0].date_modified }
-                        if (reader.woocommerce_subscription[0].payment_method)
-                            p.card-text 
-                                strong Payment Method 
-                                | #{ reader.woocommerce_subscription[0].payment_method }
-                        if (reader.woocommerce_subscription[0].products.length)
-                            each product in reader.woocommerce_subscription[0].products
-                                p.card-text 
-                                    strong Product 
-                                    | #{ product.name } x #{ product.quantity } = #{ product.total }
-                for touchbase_subscriber in reader.touchbase_subscriber
+            for touchbase_subscriber in reader.touchbase_subscriber
+                .col-sm-6.col-md-4
                     .card
                         .card-body
                             h4.card-title= touchbase_subscriber.touchbaselist.name
@@ -116,6 +127,7 @@ block content
                                 p.card-text
                                     strong #{ data.Key } 
                                     | #{ data.Value }
+            hr
         //- .row
         //-     .col-sm-7
         //-         p

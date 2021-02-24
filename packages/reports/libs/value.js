@@ -12,9 +12,9 @@ moment.tz.setDefault(config.timezone || "UTC");
 // Last 6 months (24 weeks) = 2
 // Last year = 1
 const Value = async (reader_id) => {
-    const reader = (await jxphelper.getOne("reader", reader_id, { "fields": "id"})).data;
-    if (!reader.id) return false;
-    const result = await jxphelper.get("woocommerce_subscription", { "filter[customer_id]": reader.id, "filter[status]": "active", "order_by": "timestamp", "order_dir": -1, "limit": 1 });
+    const reader = (await jxphelper.getOne("reader", reader_id, { "fields": "wordpress_id"})).data;
+    if (!reader.wordpress_id) return false;
+    const result = await jxphelper.get("woocommerce_subscription", { "filter[customer_id]": reader.wordpress_id, "filter[status]": "active", "order_by": "timestamp", "order_dir": -1, "limit": 1 });
     if (!result.count) return false;
     const value = result.data.reduce((prev, curr) => {
         if (curr.billing_period === "year") return prev + (curr.total / 12);

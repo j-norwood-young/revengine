@@ -55,10 +55,10 @@ router.get("/view/:reader_id", async (req, res) => {
         d["populate[labels]"] = "name";
         const reader = (await req.apihelper.getOne("reader", req.params.reader_id, d)).data;
         reader.touchbase_subscriber = (await req.apihelper.get("touchbasesubscriber", { "filter[email]": reader.email, "populate": "touchbaselist" })).data;
-        if (reader.id) {
-            reader.woocommerce_membership = (await req.apihelper.get("woocommerce_membership", { "filter[customer_id]": reader.id })).data;
-            reader.woocommerce_order = (await req.apihelper.get("woocommerce_order", { "filter[customer_id]": reader.id })).data;
-            reader.woocommerce_subscription = (await req.apihelper.get("woocommerce_subscription", { "filter[customer_id]": reader.id })).data;
+        if (reader.wordpress_id) {
+            reader.woocommerce_membership = (await req.apihelper.get("woocommerce_membership", { "filter[customer_id]": reader.wordpress_id })).data;
+            reader.woocommerce_order = (await req.apihelper.get("woocommerce_order", { "filter[customer_id]": reader.wordpress_id })).data;
+            reader.woocommerce_subscription = (await req.apihelper.get("woocommerce_subscription", { "filter[customer_id]": reader.wordpress_id })).data;
         }
         let display_name = reader.email;
         if (reader.first_name || reader.last_name) display_name = `${reader.first_name || ""} ${reader.last_name || ""}`.trim();
