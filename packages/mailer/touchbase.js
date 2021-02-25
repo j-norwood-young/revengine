@@ -18,11 +18,11 @@ const get_woocommerce_user = async (user_id) => {
 // Apply rules to figure out which group to assign
 // This must become dynamic at some point
 const check_group = (data) => {
-    if (config.touchbase.products_for_uber_deal.includes(data.line_items[0].name)) return "new_insider_uber_deal";
     if (data.subscription && data.subscription.meta_data) {
         const ossc = data.subscription.meta_data.find(meta_data => meta_data.key === "ossc_tracking");
-        if (ossc.coupon && ossc.coupon === "youth") return "new_insider_uber_deal";
+        if (ossc.coupon && ossc.coupon === "youth") return "youth_deal";
     }
+    if (config.touchbase.products_for_uber_deal.includes(data.line_items[0].name)) return "new_insider_uber_deal";
     return "new_insider";
 }
 
@@ -130,6 +130,43 @@ const group_actions = () => {
             }
         },
         "new_insider_uber_deal": async data => {
+            try {
+                const transactional_id = config.touchbase.transactional_ids.new_insider_uber_deal;
+                const vouchertypes = await get_vouchertypes();
+                const vouchers = {};
+                for (let vouchertype of vouchertypes) {
+                    vouchers[vouchertype.code] = (await get_voucher(vouchertype, data.reader._id)).code;
+                }
+                const d = Object.assign({
+                    name: data.user.first_name
+                }, vouchers);
+                const to = config.touchbase.override_to || data.user.email;
+                const body = {
+                    "To": [to],
+                    "Data": d,
+                    "ConsentToTrack": "unchanged"
+                }
+                if (config.touchbase.bcc) {
+                    body.Bcc = config.touchbase.bcc;
+                }
+                if (!config.touchbase.live) {
+                    console.log(body);
+                    return;
+                }
+                const result = await axios(`${config.touchbase.api}/transactional/smartemail/${transactional_id}/send`, {
+                    method: "post",
+                    data: body,
+                    auth: {
+                        username: process.env.TOUCHBASE_APIKEY,
+                        password: 'x'
+                    },
+                });
+                if (result.data.Code) throw result.data;
+            } catch(err) {
+                return Promise.reject(err);
+            }
+        },
+        "youth_deal": async data => {
             try {
                 const transactional_id = config.touchbase.transactional_ids.new_insider_uber_deal;
                 const vouchertypes = await get_vouchertypes();
