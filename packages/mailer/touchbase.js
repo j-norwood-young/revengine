@@ -18,8 +18,11 @@ const get_woocommerce_user = async (user_id) => {
 // Apply rules to figure out which group to assign
 // This must become dynamic at some point
 const check_group = (data) => {
+    console.log({ data });
     if (data.subscription && data.subscription.meta_data) {
+        console.log({ subscription: data.subscription });
         const ossc = data.subscription.meta_data.find(meta_data => meta_data.key === "ossc_tracking");
+        console.log({ ossc });
         if (ossc.coupon && ossc.coupon === "youth") return "youth_deal";
     }
     if (config.touchbase.products_for_uber_deal.includes(data.line_items[0].name)) return "new_insider_uber_deal";
