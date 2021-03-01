@@ -80,12 +80,12 @@ const get_voucher = async (vouchertype, user_id) => {
             },
             {
                 "valid_from": {
-                    "$gte": "2021-02-01"
+                    "$gte": moment().startOf("month").format("YYYY-MM-DD")
                 }
             },
             {
                 "valid_to": {
-                    "$lte": "2021-02-28"
+                    "$lte": moment().endOf("month").format("YYYY-MM-DD")
                 }
             }
         ]
