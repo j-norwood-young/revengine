@@ -44,6 +44,7 @@ const set_esdata = (index, data) => {
         utm = new utmExtractor(data.url).get();
     } catch (err) {
         console.error(err);
+        console.log(data);
         return null;
     }
     let derived_referer_medium = "direct";
