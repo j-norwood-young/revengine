@@ -59,15 +59,15 @@ router.get("/view/:reader_id", async (req, res) => {
             reader.woocommerce_membership = (await req.apihelper.get("woocommerce_membership", { "filter[customer_id]": reader.wordpress_id, "sort[date_modified]": -1 })).data;
             reader.woocommerce_order = (await req.apihelper.get("woocommerce_order", { "filter[customer_id]": reader.wordpress_id, "sort[date_created]": -1 })).data;
             reader.woocommerce_subscription = (await req.apihelper.get("woocommerce_subscription", { "filter[customer_id]": reader.wordpress_id, "sort[date_modified]": -1 })).data;
+            reader.recency = await recency(reader._id);
+            reader.frequency = await frequency(reader._id);
+            reader.value = await value(reader._id);
         }
         reader.vouchers = (await req.apihelper.get("voucher", { "filter[reader_id]": reader._id, "sort[createdAt]": -1, "populate[vouchertype]": "name" })).data;
         let display_name = reader.email;
         if (reader.first_name || reader.last_name) display_name = `${reader.first_name || ""} ${reader.last_name || ""}`.trim();
         reader.display_name = display_name;
         reader.email_hash = crypto.createHash('md5').update(reader.email.trim().toLowerCase()).digest("hex")
-        reader.recency = await recency(reader._id);
-        reader.frequency = await frequency(reader._id);
-        reader.value = await value(reader._id);
         res.render("readers/reader", { title: `Reader: ${display_name}`, reader });
     } catch (err) {
         console.error(err);

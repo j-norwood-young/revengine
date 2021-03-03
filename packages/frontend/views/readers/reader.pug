@@ -29,34 +29,35 @@ block content
                         if (reader.wordpress_id)
                             p.card-text 
                                 a.btn.btn-primary(href=`https://www.dailymaverick.co.za/wp-admin/user-edit.php?user_id=${reader.wordpress_id}`, target="_blank") Open in Wordpress
-            .col-sm-6.col-md-4
-                .card
-                    .card-body
-                        h1.card-title RFV
-                        if (reader.recency)
-                            h2.card-title Recency
-                            p.card-text
-                                strong Last visit 
-                                | #{ moment(reader.recency.timestamp).format("YYYY-MM-DD HH:mm:ss") } (#{ reader.recency.from_now } ago)
-                            p.card-text
-                                strong Score 
-                                | #{ reader.recency.score }
-                        if (reader.frequency)
-                            h2.card-title Frequency
-                            p.card-text
-                                strong Count 
-                                | #{ reader.frequency.count }
-                            p.card-text
-                                strong Score 
-                                | #{ reader.frequency.score } 
-                        if (reader.value)
-                            h2.card-title Value
-                            p.card-text
-                                strong Value 
-                                | #{ reader.value.value }
-                            p.card-text
-                                strong Score 
-                                | #{ reader.value.score } 
+            if (reader.frequency)
+                .col-sm-6.col-md-4
+                    .card
+                        .card-body
+                            h1.card-title RFV
+                            if (reader.recency)
+                                h2.card-title Recency
+                                p.card-text
+                                    strong Last visit 
+                                    | #{ moment(reader.recency.timestamp).format("YYYY-MM-DD HH:mm:ss") } (#{ reader.recency.from_now } ago)
+                                p.card-text
+                                    strong Score 
+                                    | #{ reader.recency.score }
+                            if (reader.frequency)
+                                h2.card-title Frequency
+                                p.card-text
+                                    strong Count 
+                                    | #{ reader.frequency.count }
+                                p.card-text
+                                    strong Score 
+                                    | #{ reader.frequency.score } 
+                            if (reader.value)
+                                h2.card-title Value
+                                p.card-text
+                                    strong Value 
+                                    | #{ reader.value.value }
+                                p.card-text
+                                    strong Score 
+                                    | #{ reader.value.score } 
         hr
         if (reader.woocommerce_subscription && reader.woocommerce_subscription[0])
             .row
@@ -119,10 +120,11 @@ block content
                                 p.card-text 
                                     h5 Paused Intervals
                                 for paused_interval in reader.woocommerce_membership[0].paused_intervals
-                                    if (paused_interval.end)
-                                        p.card-text #{moment(paused_interval.start).format("YYYY-MM-DD")} - #{moment(paused_interval.end).format("YYYY-MM-DD")}
-                                    else 
-                                        p.card-text #{moment(paused_interval.start).format("YYYY-MM-DD")} (Currently Paused)
+                                    if (moment(paused_interval.start).diff(moment(paused_interval.end), days) > 1)
+                                        if (paused_interval.end)
+                                            p.card-text #{moment(paused_interval.start).format("YYYY-MM-DD")} - #{moment(paused_interval.end).format("YYYY-MM-DD")}
+                                        else 
+                                            p.card-text #{moment(paused_interval.start).format("YYYY-MM-DD")} (Currently Paused)
                 .col-sm-6.col-md-4
                     .card
                         .card-body 
@@ -136,7 +138,7 @@ block content
 
 
             hr
-        if (reader.vouchers)
+        if (reader.vouchers.length)
             .col-sm-12.mb-4 
                 h2 Vouchers
             .row
