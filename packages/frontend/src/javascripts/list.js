@@ -62,7 +62,6 @@ class List {
             this.loadingSpinners()
             let search = this.search;
             let search_fields = this.datadef.search_fields || [];
-
             const result = await $.post(`/list/paginate/${this.type}`, {
                 page: this.page,
                 sortby: this.sortby,
@@ -128,9 +127,13 @@ class List {
         if (!this.datadef.filters) return;
         $(document).on("change", ".list-filter", e => {
             let el = $(e.currentTarget);
-            self.filters[el.data("field")] = el.val();
-            if (self.filters[el.data("field")] === "*" || (Array.isArray(self.filters[el.data("field")]) && self.filters[el.data("field")].includes("*"))) {
-                delete (self.filters[el.data("field")]);
+            const field = el.data("field");
+            if (!self.filters[field]) self.filters[field] = {
+                "$all": []
+            };
+            self.filters[field]["$all"] = el.val();
+            if (self.filters[field] === "*" || (Array.isArray(self.filters[field]) && self.filters[field].includes("*"))) {
+                delete (self.filters[field]);
             }
             self.clear();
             self.loadData();
@@ -138,11 +141,12 @@ class List {
         $(document).on("change", ".list-checkbox-filter", e => {
             let el = $(e.currentTarget);
             const field = el.data("field")
-            if (!self.filters[field]) self.filters[field] = [];
+            if (!self.filters[field]) self.filters[field] = {};
+            if (!self.filters[field]["$all"]) self.filters[field]["$all"] = [];
             if (el.is(":checked")) {
-                self.filters[field].push(el.val());
+                self.filters[field]["$all"].push(el.val());
             } else {
-                self.filters[field].splice(self.filters[field].indexOf(el.val()), 1);
+                self.filters[field]["$all"].splice(self.filters[field].indexOf(el.val()), 1);
             }
             self.clear();
             self.loadData();
