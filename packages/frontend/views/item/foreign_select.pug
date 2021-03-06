@@ -2,4 +2,4 @@
     label= field.name
     select.form-control(name=field.key value=data[field.key])
         each option in field.options
-            option(value=option.key,selected=(option==data[field.key]))= option.name
+            option(value=option._id,selected=(option._id==data[field.key]))= option.name
