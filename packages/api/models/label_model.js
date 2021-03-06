@@ -1,3 +1,10 @@
+const config = require("config");
+require("dotenv").config();
+const moment = require("moment");
+const JXPHelper = require('jxp-helper');
+const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
+const fix_query = require("jxp/libs/query_manipulation").fix_query;
+
 const LabelSchema = new JXPSchema({
     name: { type: String, unique: true },
     rules: {
@@ -14,7 +21,8 @@ const LabelSchema = new JXPSchema({
             },
             message: props => `Rule is not valid JSON`
         }
-    }
+    },
+    code: String,
 }, {
     perms: {
         admin: "crud", // CRUD = Create, Retrieve, Update and Delete
@@ -27,8 +35,15 @@ const applyLabel = async function (label) {
     const Reader = require("./reader_model");
     try {
         let query = [];
+        if (!label.rules) return;
+        if (label.code) {
+            const fn = new Function(label.code);
+            const data = (await fn()({ jxphelper, moment })).data;
+            console.log(data);
+            await jxphelper.bulk_postput("reader", "_id", data);
+        }
         for (let rule of label.rules) {
-            query = JSON.parse(rule);
+            query = fix_query(JSON.parse(rule));
         }
         await Reader.updateMany({ "labels": label._id }, { $pull: { "labels": label._id } });
         let result = await Reader.updateMany(query, { $push: { "labels": label._id } });
