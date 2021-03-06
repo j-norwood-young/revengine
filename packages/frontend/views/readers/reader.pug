@@ -102,29 +102,30 @@ block content
                                         | #{ product.name } x #{ product.quantity } = #{ product.total }
                             p.card-text 
                                 a.btn.btn-primary(href=`https://www.dailymaverick.co.za/wp-admin/post.php?post=${reader.woocommerce_subscription[0].id}&action=edit`, target="_blank") Open in Wordpress
-                .col-sm-6.col-md-4
-                    .card
-                        .card-body
-                            h4.card-title WooCommerce Membership
-                            p.card-text 
-                                strong Status 
-                                | #{ reader.woocommerce_membership[0].status }
-                            p.card-text 
-                                strong Start Date 
-                                | #{ moment(reader.woocommerce_membership[0].start_date).format("YYYY-MM-DD") }
-                            if (reader.woocommerce_membership[0].cancelled_date)
+                if (reader.woocommerce_membership[0])
+                    .col-sm-6.col-md-4
+                        .card
+                            .card-body
+                                h4.card-title WooCommerce Membership
+                                p.card-text 
+                                    strong Status 
+                                    | #{ reader.woocommerce_membership[0].status }
                                 p.card-text 
                                     strong Start Date 
-                                    | #{ moment(reader.woocommerce_membership[0].cancelled_date).format("YYYY-MM-DD") }
-                            if (reader.woocommerce_membership[0].paused_intervals && reader.woocommerce_membership[0].paused_intervals.length)
-                                p.card-text 
-                                    h5 Paused Intervals
-                                for paused_interval in reader.woocommerce_membership[0].paused_intervals
-                                    if (moment(paused_interval.start).diff(moment(paused_interval.end), days) > 1)
-                                        if (paused_interval.end)
-                                            p.card-text #{moment(paused_interval.start).format("YYYY-MM-DD")} - #{moment(paused_interval.end).format("YYYY-MM-DD")}
-                                        else 
-                                            p.card-text #{moment(paused_interval.start).format("YYYY-MM-DD")} (Currently Paused)
+                                    | #{ moment(reader.woocommerce_membership[0].start_date).format("YYYY-MM-DD") }
+                                if (reader.woocommerce_membership[0].cancelled_date)
+                                    p.card-text 
+                                        strong Start Date 
+                                        | #{ moment(reader.woocommerce_membership[0].cancelled_date).format("YYYY-MM-DD") }
+                                if (reader.woocommerce_membership[0].paused_intervals && reader.woocommerce_membership[0].paused_intervals.length)
+                                    p.card-text 
+                                        h5 Paused Intervals
+                                    for paused_interval in reader.woocommerce_membership[0].paused_intervals
+                                        if (moment(paused_interval.start).diff(moment(paused_interval.end), days) > 1)
+                                            if (paused_interval.end)
+                                                p.card-text #{moment(paused_interval.start).format("YYYY-MM-DD")} - #{moment(paused_interval.end).format("YYYY-MM-DD")}
+                                            else 
+                                                p.card-text #{moment(paused_interval.start).format("YYYY-MM-DD")} (Currently Paused)
                 .col-sm-6.col-md-4
                     .card
                         .card-body 
