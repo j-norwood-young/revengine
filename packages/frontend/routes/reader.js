@@ -191,6 +191,16 @@ router.get("/list/authors", async(req, res) => {
     }
 })
 
+router.get("/list/labels", async (req, res) => {
+    try {
+        const labels = (await req.apihelper.get("label", { "sort[name]": 1 })).data;
+        res.send(labels);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({ error: err });
+    }
+})
+
 router.get("/list/sections", async (req, res) => {
     try {
         const pipeline = [
