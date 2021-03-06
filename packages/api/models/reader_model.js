@@ -66,6 +66,9 @@ const ReaderSchema = new JXPSchema({
     height: Number,
     width: Number,
 
+    // Label Data
+    label_data: [Mixed],
+    
     _owner_id: ObjectId
 },
 {
