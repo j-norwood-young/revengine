@@ -2,11 +2,22 @@ const express = require('express');
 const router = express.Router();
 const config = require("config");
 const isEmpty = require("../libs/utils").isEmpty;
-
-const JXPHelper = require("jxp-helper");
-const apihelper = new JXPHelper({ server: config.api.server });
 const Collections = require("../libs/collections");
 const collections = new Collections();
+
+const loadForeignCollection = async (datadef, apihelper) => {
+    try {
+        for (let field of datadef.fields) {
+            if (field.foreign_collection) {
+                field.options = (await apihelper.get(field.foreign_collection, { fields: "_id,name", "sort[name]": 1 })).data;
+                console.log(field.options);
+            }
+        }
+        return datadef;
+    } catch(err) {
+        console.error(err);
+    }
+}
 
 const getCollection = (req, res, next) => {
     try {
@@ -39,6 +50,8 @@ router.use("/edit/:type/:id", getCollection, async (req, res) => {
             await req.apihelper.put(req.params.type, req.params.id, req.body);
         }
         const data = (await req.apihelper.getOne(req.params.type, req.params.id)).data;
+        res.locals.collection = await loadForeignCollection(res.locals.collection, req.apihelper);
+        console.log(res.locals.collection);
         res.render("item/edit", { title: data.name || res.locals.collection.name, data, type: req.params.type });
     } catch (err) {
         console.error(err);

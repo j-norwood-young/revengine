@@ -18,9 +18,19 @@ const populate = ((req, res, next) => {
     next();
 });
 
+router.get("/json/raw/:type", async (req, res) => {
+    try {
+        const data = (await req.apihelper.get(req.params.type, req.query.fields));
+        res.send(data);
+    } catch(err) {
+        console.error(err);
+        res.status(500).send({ message: "An error occured", state: "error", error: err });
+    }
+})
+
 router.get("/json/:type", populate, async (req, res) => {
     try {
-        const data = (await apihelper.get(res.locals.type, { fields: res.locals.fields, page: res.locals.page, limit: res.locals.limit, "sort[date_created]": -1 }));
+        const data = (await apihelper.get(res.locals.type, { fields: res.locals.fields, page: res.locals.page, limit: res.locals.limit, "sort[createdAt]": -1 }));
         res.send(data);
     } catch(err) {
         console.error(err);
