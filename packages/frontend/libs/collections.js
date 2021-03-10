@@ -130,7 +130,10 @@ class Collections {
                 name: "Label",
                 fields: [
                     { name: "Name", key: "name", d: data => data.name, link, list_view, note: "These labels could be visible to the reader. Refrain from insulting, demeaning, negative or avaricious names." },
-                    { name: "Rules", key: "rules", d: data => data.rules, "view": "code_array" }
+                    { name: "Download", d: data => `<a href="/label/download/json/${data._id}">JSON</a> | <a href="/label/download/csv/${data._id}">CSV</a>`, view: "none", list_view},
+                    { name: "Code", key: "code", d: data => data.code, },
+                    { name: "Prep Function", key: "fn", d: data => data.code, "view": "code", note: "Optional. Runs before applying rule. Eg: return async opts => { return [ {_id: <user_id>, name: \"val\" } ] } Available: opts.jxphelper, opts.moment. " },
+                    { name: "Rules", key: "rules", d: data => data.rules, "view": "code_array", note: `Eg: { "label_data.email_clicks_in_last_5_days": { "$gte": 5 } }` },
                 ],
                 search_fields: [
                     "name",
@@ -155,12 +158,20 @@ class Collections {
                 sortdir: -1,
                 fields: [
                     { name: "Name", key: "name", d: data => data.name, link, list_view },
-                    { name: "Action", key: "action", d: data => data.action, view: "select", options: ["monthly_uber_mail"], list_view },
+                    { name: "Transactional Mail", key: "touchbasetransactional_id", d: data => data.transacionalmail_id, foreign_collection: "touchbasetransactional", view: "foreign_select", },
                     { name: "Code", key: "code", d: data => data.code, note: "Must be unique, eg. monthly-uber-mail-2021-01" },
-                    { name: "State", key: "state", d: data => data.state, view: "select", options: ['due', 'running', 'complete', 'cancelled', 'paused' ], list_view },
-                    { name: "Start Date", key: "start_time", d: data => moment(data.start_time).format("YYYY-MM-DD HH:mm:ss"), "view": "datetime", list_view },
+                    { name: "State", key: "state", d: data => data.state, view: "select", options: ['due', 'running', 'complete', 'cancelled', 'paused', 'failed' ], list_view },
+                    { name: "Start Date", key: "start_time", d: data => data.start_time ? moment(data.start_time).format("YYYY-MM-DD HH:mm:ss") : "", "view": "datetime", list_view },
                     { name: "End Date", key: "end_time", d: data => data.end_time ? moment(data.end_time).format("YYYY-MM-DD HH:mm:ss") : "", "view": "text", readonly, list_view },
+                    { name: "", d: data => `<a href="/mailrun/progress/${data._id}">View Progress</a>`, list_view, view: "none"},
+                    { name: "Queued", d: data => data.queued_reader_ids.length, list_view: true, view: "none" },
+                    { name: "Sent", d: data => data.sent_reader_ids.length, list_view: true, view: "none" },
+                    { name: "Failed", d: data => data.failed_reader_ids.length, list_view: true, view: "none" },
+                    // { name: "Queued Mails", key: "queued", view: "list", }
                 ],
+                populate: {
+                    "queued": "name,email"
+                },
                 search_fields: [
                     "name",
                 ],
@@ -184,55 +195,68 @@ class Collections {
                 ],
                 filters: [
                     {
-                        name: "Recency",
-                        field: "recency_score",
-                        multiple: true,
-                        options: () => rating_template
-                    },
-                    {
-                        name: "Frequency",
-                        field: "frequency_score",
-                        multiple: true,
-                        options: () => rating_template
-                    },
-                    {
-                        name: "Volume",
-                        field: "volume_score",
-                        multiple: true,
-                        options: () => rating_template
-                    },
-                    {
-                        name: "Value",
-                        field: "monetary_value_score",
-                        multiple: true,
-                        options: () => rating_template
-                    },
-                    {
-                        name: "Authors",
-                        field: "authors",
+                        name: "Labels",
+                        field: "labels",
                         multiple: true,
                         options: async () => {
-                            return (await $.get(`/reader/list/authors`)).map(author => {
+                            return (await $.get(`/reader/list/labels`)).map(label => {
                                 return {
-                                    _id: author,
-                                    name: author
+                                    _id: label._id,
+                                    name: label.name
                                 }
                             });
                         }
                     },
-                    {
-                        name: "Sections",
-                        field: "sections",
-                        multiple: true,
-                        options: async () => {
-                            return (await $.get(`/reader/list/sections`)).map(author => {
-                                return {
-                                    _id: author,
-                                    name: author
-                                }
-                            });
-                        }
-                    },
+                    // {
+                    //     name: "Recency",
+                    //     field: "recency_score",
+                    //     multiple: true,
+                    //     options: () => rating_template
+                    // },
+                    // {
+                    //     name: "Frequency",
+                    //     field: "frequency_score",
+                    //     multiple: true,
+                    //     options: () => rating_template
+                    // },
+                    // {
+                    //     name: "Volume",
+                    //     field: "volume_score",
+                    //     multiple: true,
+                    //     options: () => rating_template
+                    // },
+                    // {
+                    //     name: "Value",
+                    //     field: "monetary_value_score",
+                    //     multiple: true,
+                    //     options: () => rating_template
+                    // },
+                    // {
+                    //     name: "Authors",
+                    //     field: "authors",
+                    //     multiple: true,
+                    //     options: async () => {
+                    //         return (await $.get(`/reader/list/authors`)).map(author => {
+                    //             return {
+                    //                 _id: author,
+                    //                 name: author
+                    //             }
+                    //         });
+                    //     }
+                    // },
+                    // {
+                    //     name: "Sections",
+                    //     field: "sections",
+                    //     multiple: true,
+                    //     options: async () => {
+                    //         return (await $.get(`/reader/list/sections`)).map(author => {
+                    //             return {
+                    //                 _id: author,
+                    //                 name: author
+                    //             }
+                    //         });
+                    //     }
+                    // },
                 ],
                 populate: {
                 },
