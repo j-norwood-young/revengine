@@ -18,7 +18,7 @@ const ReaderSchema = new JXPSchema({
     wordpressuser_id: { type: ObjectId, link: "wordpressuser" },
 
     // Segments and labels
-    labels: [ { type: ObjectId, link: "label" } ],
+    label_id: [ { type: ObjectId, link: "label" } ],
     // segment: { type: ObjectId, link: "segment" },
 
     // General Data
@@ -68,6 +68,9 @@ const ReaderSchema = new JXPSchema({
 
     // Label Data
     label_data: [Mixed],
+
+    // Uber Code Overrides
+    uber_code_override: { type: String, enum: ['send', 'withhold', 'auto'], default: "auto", index: true },
     
     _owner_id: ObjectId
 },
