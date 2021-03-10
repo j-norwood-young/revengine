@@ -67,7 +67,7 @@ const ReaderSchema = new JXPSchema({
     width: Number,
 
     // Label Data
-    label_data: [Mixed],
+    label_data: Mixed,
 
     // Uber Code Overrides
     uber_code_override: { type: String, enum: ['send', 'withhold', 'auto'], default: "auto", index: true },
