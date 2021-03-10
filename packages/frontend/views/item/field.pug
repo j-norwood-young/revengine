@@ -31,6 +31,8 @@
     include email
 - if (field.view === "foreign_select")
     include foreign_select
+- if (field.view === "list")
+    include list
 if field.note
     p
         i.fa.fa-info-square.mr-2 
