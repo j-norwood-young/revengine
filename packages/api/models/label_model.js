@@ -38,6 +38,7 @@ const applyLabel = async function (label) {
         let query = [];
         if (!label.rules) return;
         if (label.fn) {
+            await Reader.updateMany({ label_data: { $exists: true }}, { $set: { "label_data": null} });
             const fn = new Function(label.fn);
             const data = (await fn()({ jxphelper, moment })).data;
             const post_data = data.map(d => {
