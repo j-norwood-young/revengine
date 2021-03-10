@@ -1,22 +1,20 @@
 extends ../layout
 
 block content
-    -
-        let labels = [];
-        for (label of reader.labels) {
-            labels.push(`<strong>${label.name}</strong>`);
-        }
-        if (labels.length > 1) {
-            labels[labels.length-1] = `and a ${labels[labels.length-1]}`
-        }
     .container
         h1= `${reader.display_name}`
+        .row.mb-2 
+            .col-sm-12 
+                h3
+                    each label in reader.labels 
+                            .badge.badge-secondary.badge-pill.mr-3= label
         .row
             .col-sm-6.col-md-4
                 .card
                     img.img-fluid(src=`https://www.gravatar.com/avatar/${reader.email_hash}?s=400`)
                     .card-body
                         h4.card-title= reader.display_name
+                        p.reader.labels
                         p.card-text
                             strong Email 
                             a(href="mailto:" + reader.email)= reader.email

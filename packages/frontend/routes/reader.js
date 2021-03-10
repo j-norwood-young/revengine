@@ -54,6 +54,8 @@ router.get("/view/:reader_id", async (req, res) => {
         const d = {};
         d["populate[labels]"] = "name";
         const reader = (await req.apihelper.getOne("reader", req.params.reader_id, d)).data;
+        const labels = (await req.apihelper.get("label", { "sort[name]": 1, "fields": "name" })).data;
+        reader.labels = labels.filter(label => reader.label_id.includes(label._id)).map(label => label.name);
         reader.touchbase_subscriber = (await req.apihelper.get("touchbasesubscriber", { "filter[email]": reader.email, "populate": "touchbaselist" })).data;
         if (reader.wordpress_id) {
             reader.woocommerce_membership = (await req.apihelper.get("woocommerce_membership", { "filter[customer_id]": reader.wordpress_id, "sort[date_modified]": -1 })).data;
