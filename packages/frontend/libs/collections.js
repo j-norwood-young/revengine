@@ -196,7 +196,7 @@ class Collections {
                 filters: [
                     {
                         name: "Labels",
-                        field: "labels",
+                        field: "label_id",
                         multiple: true,
                         options: async () => {
                             return (await $.get(`/reader/list/labels`)).map(label => {
