@@ -1,0 +1,35 @@
+extends ../layout
+
+block content
+    .container
+        h2 Send Group Mail
+        form(action="/mailer/group", method="post")
+            .form-group
+                label(for="label_id") Label
+                select.form-control(name="label_id")
+                    for label in labels 
+                        option(value=label._id)= label.name
+            .form-group 
+                label(for=mailrun) Mailrun
+                select.form-control(name="mailrun")
+                    option(value="new") New Mailrun
+                    for mailrun in mailruns
+                        option(value=mailrun._id)= mailrun.name
+            .form-group 
+                h4 New Mailrun
+                label(for=new_mailrun_name) New Mailrun Name
+                input.form-control(name="new_mailrun_name", placeholder="New Mailrun Name")
+            .form-group 
+                label(for=new_mailrun_code) New Mailrun Code
+                input.form-control(name="new_mailrun_code", placeholder="New Mailrun Code")
+                p
+                    i.fa.fa-info-square.mr-2
+                    | Must be unique, eg. monthly-uber-mail-2021-01
+            .form-group 
+                label(for=touchbasetransactional) Transactional Mail
+                select.form-control(name="touchbasetransactional_id")
+                    for touchbasetransactional in touchbasetransactionals
+                        option(value=touchbasetransactional._id)= touchbasetransactional.name
+            .form-group.mt-3
+                input.btn.btn-primary(type="submit", value="Submit")
+                

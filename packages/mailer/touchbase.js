@@ -424,7 +424,7 @@ exports.test_monthly_uber_mail = async (reader_email, to, tid) => {
     }
 }
 
-exports.run_transactional = async (reader_email, to, tid) => {
+const run_transactional = async (reader_email, to, tid) => {
     try {
         const transactional = (await apihelper.getOne("touchbasetransactional", tid)).data;
         const reader = (await apihelper.get("reader", { "filter[email]": reader_email })).data.pop();
@@ -459,3 +459,36 @@ exports.run_transactional = async (reader_email, to, tid) => {
         return Promise.reject(err);
     }
 }
+
+const run_mailrun = async mailrun_id => {
+    try {
+        const mailrun = (await apihelper.getOne("mailrun", mailrun_id, { "populate[queued]": "email" })).data;
+        if (mailrun.state !== "due") {
+            return Promise.reject(`Mailrun is in state ${mailrun.state}, cannot run`);
+        }
+        await apihelper.put("mailrun", mailrun_id, { state: "running", start_time: new Date() });
+        for (let reader of mailrun.queued) {
+            try {
+                await this.run_transactional(reader.email, reader.email, mailrun.touchbasetransactional_id);
+                await apihelper.call("mailrun", "move_to_sent", { mailrun_id, reader_id: reader._id });
+                await apihelper.put("mailrun", mailrun_id, { state: "running" });
+            } catch(err) {
+                await apihelper.call("mailrun", "move_to_failed", { mailrun_id, reader_id: reader._id });
+                console.error(`Error sending to ${reader.email}`);
+                console.error(err);
+            }
+        }
+        await apihelper.put("mailrun", mailrun_id, { state: "complete", end_time: new Date() });
+    } catch(err) {
+        console.error(err);
+        try {
+            await apihelper.put("mailrun", mailrun_id, { state: "failed", data: { error: err.toString() } });
+        } catch(err) {
+            console.error(err);
+        }
+        return Promise.reject(err);
+    }
+}
+
+exports.run_mailrun = run_mailrun;
+exports.run_transactional = run_transactional;

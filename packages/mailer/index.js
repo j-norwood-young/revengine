@@ -8,6 +8,7 @@ const server = require("@revengine/http_server");
 const schedule = "* * * * *";
 const crypto = require('crypto');
 const moment = require("moment-timezone");
+const touchbase = require("./touchbase");
 moment.tz.setDefault(config.timezone || "UTC");
 
 const mailer_names = [
@@ -86,7 +87,8 @@ const load_schedule = async () => {
 
 const scheduler = async () => {
     // await load_schedule();
-    cron.schedule(schedule, load_schedule)
+    cron.schedule(schedule, load_schedule);
+    cron.schedule(schedule, mailrun_schedule);
 }
 
 server.get("/report/:report", async (req, res) => {
@@ -104,6 +106,15 @@ const start_http_server = () => {
     server.listen(config.mailer.port || 3017, function () {
         console.log('%s listening at %s', server.name, server.url);
     });
+}
+
+const mailrun_schedule = async () => {
+    const mailruns = (await apihelper.get("mailrun", { "filter[state]": "due" })).data;
+    for (let mailrun of mailruns) {
+        if (!mailrun.start_time) continue;
+        if (+new Date(mailrun.start_time) > +new Date()) continue;
+        touchbase.run_mailrun(mailrun._id);
+    }
 }
 
 if (require.main === module) {
