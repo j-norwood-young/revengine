@@ -11,7 +11,7 @@
   "license": "MIT",
   "dependencies": {
     "config": "^3.3.3",
-    "jxp-helper": "^1.3.6",
+    "jxp-helper": "^1.3.9",
     "moment-timezone": "0.5.32",
     "apicache": "1.5.3"
   }
