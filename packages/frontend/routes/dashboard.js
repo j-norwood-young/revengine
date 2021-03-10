@@ -7,11 +7,12 @@ router.get("/", async (req, res) => {
     try {
         const labels = (await req.apihelper.get("label")).data;
         for (let label of labels) {
-            label.length = (await req.apihelper.get("reader", { limit: 1, "filter[labels]": label._id })).count;
+            const result = (await req.apihelper.aggregate("reader", [{ "$match": { "label_id": `ObjectId(\"${label._id}\")` } }, { "$count": "count" } ])).data.pop();
+            console.log(result);
+            label.length = result ? result.count : 0;
         }
         labels.sort((a, b) => b.length - a.length);
-        const reader_count = (await req.apihelper.get("reader", { limit: 1 })).count;
-        res.render("dashboard", { title: "Dashboard", reader_count, labels });
+        res.render("dashboard", { title: "Dashboard", labels });
     } catch(err) {
         console.error(err);
         res.render("error", err);

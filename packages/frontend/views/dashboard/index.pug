@@ -9,12 +9,13 @@ block content
         //-             .card-body
         //-                 canvas#beamArticleProgress
         .row
-            .col-sm-4
-                .card.mb-4
-                    .card-body
-                        .big-number.mb-4
-                            .number= formatNumber(reader_count)
-                            .content Total Readers
+            for label in labels
+                .col-sm-4
+                    .card.mb-4
+                        .card-body
+                            .big-number.mb-4
+                                .number= formatNumber(label.length)
+                                .content= label.name
         canvas#beamArticleProgress(width="300" height="100")
 block scripts
     script.
