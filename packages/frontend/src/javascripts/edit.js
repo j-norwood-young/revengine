@@ -12,10 +12,8 @@ class Edit {
     }
 
     async loadData() {
-        console.log(`${apiserver}/api/${this.type}/${this._id}?apikey=${apikey}`);
         try {
             this.data = await $.get(`${apiserver}/api/${this.type}/${this._id}?apikey=${apikey}`);
-            console.log(this.data);
             this.loadActions();
         } catch(err) {
             console.error(err);
