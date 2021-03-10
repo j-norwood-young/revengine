@@ -23,6 +23,7 @@ const LabelSchema = new JXPSchema({
         }
     },
     code: String,
+    fn: String,
 }, {
     perms: {
         admin: "crud", // CRUD = Create, Retrieve, Update and Delete
@@ -36,17 +37,24 @@ const applyLabel = async function (label) {
     try {
         let query = [];
         if (!label.rules) return;
-        if (label.code) {
-            const fn = new Function(label.code);
+        if (label.fn) {
+            const fn = new Function(label.fn);
             const data = (await fn()({ jxphelper, moment })).data;
-            console.log(data);
-            await jxphelper.bulk_postput("reader", "_id", data);
+            const post_data = data.map(d => {
+                const _id = d._id;
+                delete(d._id);
+                return {
+                    _id,
+                    label_data: d
+                }
+            })
+            await jxphelper.bulk_postput("reader", "_id", post_data);
         }
         for (let rule of label.rules) {
             query = fix_query(JSON.parse(rule));
         }
-        await Reader.updateMany({ "labels": label._id }, { $pull: { "labels": label._id } });
-        let result = await Reader.updateMany(query, { $push: { "labels": label._id } });
+        await Reader.updateMany({ "label_id": label._id }, { $pull: { "label_id": label._id } });
+        let result = await Reader.updateMany(query, { $push: { "label_id": label._id } });
         return result
     } catch (err) {
         console.error(err);
