@@ -24,6 +24,7 @@ const LabelSchema = new JXPSchema({
     },
     code: String,
     fn: String,
+    display_on_dashboard: Boolean,
 }, {
     perms: {
         admin: "crud", // CRUD = Create, Retrieve, Update and Delete
@@ -38,7 +39,6 @@ const applyLabel = async function (label) {
         let query = [];
         if (!label.rules) return;
         if (label.fn) {
-            await Reader.updateMany({ label_data: { $exists: true }}, { $set: { "label_data": null} });
             const fn = new Function(label.fn);
             const data = (await fn()({ jxphelper, moment })).data;
             const post_data = data.map(d => {
@@ -49,6 +49,17 @@ const applyLabel = async function (label) {
                     label_data: d
                 }
             })
+            const keys = new Set();
+            for (let d of post_data) {
+                keys.add(...Object.keys(d.label_data));
+            }
+            for (let key of keys) {
+                const u = {};
+                const q = {};
+                q[`label_data.${key}`] = { $exists: true };
+                u[`label_data.${key}`] = null;
+                await Reader.updateMany(q, u);
+            }
             await jxphelper.bulk_postput("reader", "_id", post_data);
         }
         for (let rule of label.rules) {
@@ -65,22 +76,23 @@ const applyLabel = async function (label) {
 
 LabelSchema.statics.apply_label = async function(data) {
     try {
+        if (!data.id) throw("id required");
         const label = await Label.findById(data.id);
         console.log(`Applying ${label.name}`);
         return await applyLabel(label);
     } catch (err) {
         console.error(err);
-        return "An error occured";
+        return `An error occured: ${err.toString()}`;
     }
 }
 
 LabelSchema.statics.apply_labels = async function () {
     try {
-        const labels = await Label.find({});
+        const labels = await Label.find({ name: { $exists: 1 }});
         let results = {};
         for (let label of labels) {
             console.log(`Applying ${label.name}`);
-            results[label.name] = await applyLabel(label);
+            results[label.name] = await applyLabel(label).catch(err => `Error applying label: ${err.toString()}`);
         }
         return results;
     } catch (err) {
