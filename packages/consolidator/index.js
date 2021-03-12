@@ -45,6 +45,7 @@ const flush = async () => {
             const result = await esBulk({ maxRetries: 5, body: cache });
             cache = [];
             if (config.debug) {
+                console.log(result);
                 console.log(`Flushed cache, loop ${count++}, items ${result.items.length}`);
                 for (let item of result.items) {
                     if (item.index.error) {
@@ -55,6 +56,7 @@ const flush = async () => {
             consumer.resume();    
         } catch(err) {
             consumer.resume();
+            console.log("We hit an error");
             console.error(err);
         }
     }

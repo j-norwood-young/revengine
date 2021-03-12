@@ -81,7 +81,6 @@ const set_esdata = (index, data) => {
         derived_referer_source,
         referer: data.referer,
         signed_in: !!(data.user_id),
-        tags: data.post_tags,
         sections: data.post_sections,
         time: new Date(),
         url: data.url,
@@ -103,7 +102,6 @@ const set_esdata = (index, data) => {
 
 const post_hit = async (req, res) => {
     try {
-        // console.log(req);
         let parts = [];
         req.on('data', (chunk) => {
             parts.push(chunk);
@@ -174,12 +172,13 @@ const get_hit = async (req, res) => {
             index = "pageviews";
         }
         if (!index) throw `No index found for action ${data.action}`;
-        const referer = req.headers.referer;
+        const referer = req.headers.referer || data.referer;
         if (!referer) return; // This is common with bots or noreferrer policy, we can't track it anyway, so don't worry about throwing an error
         data.url = referer;
         data.user_agent = req.headers["user-agent"];
         if (req.headers["x-real-ip"]) data.user_ip = req.headers["x-real-ip"];
         const esdata = set_esdata(index, data);
+        if (config.debug) console.log(esdata);
         await new Promise((resolve, reject) => {
             producer.send([{
                 topic,
@@ -195,6 +194,8 @@ const get_hit = async (req, res) => {
 }
 
 console.log(`===${config.name} Tracker Started===`);
+if (config.debug) console.log("Debug mode on");
+
 http.createServer((req, res) => {
     if (req.url == '/favicon.ico') return;
     if (config.debug) {
