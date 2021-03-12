@@ -234,11 +234,13 @@ const get_hit = async (req, res) => {
                     },
                 ])
             ).data.pop();
-            if (user_data.labels) {
-                user_labels = user_data.labels.map(label => label.code);
-            }
-            if (user_segments) {
-                user_segments = user_data.segments.map(segment => segment.code);
+            if (user_data) {
+                if (user_data.labels) {
+                    user_labels = user_data.labels.map(label => label.code);
+                }
+                if (user_data.user_segments) {
+                    user_segments = user_data.segments.map(segment => segment.code);
+                }
             }
         }
     } catch (err) {
