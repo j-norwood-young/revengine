@@ -1,0 +1,27 @@
+extends ../layout
+
+block content
+    .container
+        h2= title
+        form(method="post") 
+            .form-group 
+                .label(for="name") Name *
+                input#name(type="text", name="name", required, value=segmentation.name).form-control
+            .form-group 
+                .label(for="code") Code *
+                input#code(type="text", name="code", required, value=segmentation.code).form-control
+            .row 
+                .col-sm-6
+                    .form-group 
+                        .label(for="labels_and") Labels to Include
+                        select#labels_and(name="labels_and", multiple, size=30)
+                            for label in labels 
+                                option(value=label._id, selected=segmentation.labels_and_id.includes(label._id))= label.name
+                .col-sm-6
+                    .form-group 
+                        .label(for="labels_not") Labels to Exclude
+                        select#labels_not(name="labels_not", multiple, size=30)
+                            for label in labels 
+                                option(value=label._id, selected=segmentation.labels_not_id.includes(label._id))= label.name
+            .form-group 
+                input(type="submit", value="Submit").btn.btn-primary

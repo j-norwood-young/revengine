@@ -269,8 +269,8 @@ class Collections {
                 name: "Segmentation",
                 fields: [
                     { name: "Name", key: "name", d: data => data.name, "view": "text", list_view, link },
-                    { name: "Code", key: "code", d: data => data.code, "view": "text", list_view, link },
-                    
+                    { name: "Code", key: "code", d: data => data.code, "view": "text", list_view },
+                    { name: "Query", key: "query", d: data => data.query, view: "code" },
                 ]
             },
             touchbasetransactional: {

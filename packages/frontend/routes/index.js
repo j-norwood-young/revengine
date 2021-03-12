@@ -105,5 +105,6 @@ router.use("/mailer", require("./mailer"));
 router.use("/report", require("./report"));
 router.use("/voucher", require("./voucher"));
 router.use("/label", require("./label"));
+router.use("/segmentation", require("./segmentation"));
 
 module.exports = router;
