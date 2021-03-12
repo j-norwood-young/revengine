@@ -22,7 +22,7 @@ const LabelSchema = new JXPSchema({
             message: props => `Rule is not valid JSON`
         }
     },
-    code: String,
+    code: { type: String, required: true },
     fn: String,
     display_on_dashboard: Boolean,
 }, {
