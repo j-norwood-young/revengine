@@ -1,41 +1,51 @@
 const config = require("config");
-const http = require('http')
-const kafka = require('kafka-node');
+const http = require("http");
+const kafka = require("kafka-node");
 const Bowser = require("bowser");
 const utmExtractor = require("utm-extractor").Utm;
 const qs = require("qs");
-const Referer = require('referer-parser');
+const Referer = require("referer-parser");
+const JXPHelper = require("jxp-helper");
+require("dotenv").config();
+const jxphelper = new JXPHelper({
+    server: config.api.server,
+    apikey: process.env.APIKEY,
+});
 
 const name = config.name || "revengine";
-const port = config.tracker.port || 3012
-const host = config.tracker.host || "127.0.0.1"
+const port = config.tracker.port || 3012;
+const host = config.tracker.host || "127.0.0.1";
 const topic = config.tracker.kafka_topic || `${name}_events`;
 const headers = {
-    'Content-Type': 'text/html',
-    'Content-Disposition': 'inline',
-    'Access-Control-Allow-Origin': '*',
-    'X-Powered-By': `${name}`
+    "Content-Type": "text/html",
+    "Content-Disposition": "inline",
+    "Access-Control-Allow-Origin": "*",
+    "X-Powered-By": `${name}`,
 };
 
 const Producer = kafka.Producer;
-const client = new kafka.KafkaClient({ kafkaHost: config.kafka.server || "localhost:9092" });
+const client = new kafka.KafkaClient({
+    kafkaHost: config.kafka.server || "localhost:9092",
+});
 const producer = new Producer(client);
 
 // Ensure we have the topic created
-client.createTopics([
-    {
-        topic,
-        partitions: config.kafka.partitions || 1,
-        replicationFactor: config.kafka.replication_factor || 1
+client.createTopics(
+    [
+        {
+            topic,
+            partitions: config.kafka.partitions || 1,
+            replicationFactor: config.kafka.replication_factor || 1,
+        },
+    ],
+    (err, result) => {
+        if (err) {
+            console.error("Error creating topic");
+            console.error(err);
+            return process.exit(1);
+        }
     }
-], (err, result) => {
-    if (err) {
-        console.error("Error creating topic");
-        console.error(err);
-        return process.exit(1);
-    }
-    // console.log(result);
-});
+);
 
 const set_esdata = (index, data) => {
     const ua = Bowser.parse(data.user_agent);
@@ -49,7 +59,7 @@ const set_esdata = (index, data) => {
             utm_content: null,
             utm_source: null,
             utm_term: null,
-        }
+        };
     }
     let derived_referer_medium = "direct";
     let derived_referer_source = "";
@@ -57,15 +67,14 @@ const set_esdata = (index, data) => {
         let derived_referer = new Referer(data.referer, data.url);
         derived_referer_medium = derived_referer.medium;
         derived_referer_source = derived_referer.referer;
-        if (derived_referer_medium === "unknown") derived_referer_medium = "external";
-        if (config.debug) {
-            console.log({ known: derived_referer.known, referer: derived_referer.referer, medium: derived_referer.medium, search_parameter: derived_referer.search_parameter, search_term: derived_referer.search_term });
-        }
+        if (derived_referer_medium === "unknown")
+            derived_referer_medium = "external";
     }
     if (data.user_id === "0") {
         data.user_id = null;
     }
     if (utm.utm_medium === "email") derived_referer_medium = "email";
+    // Populate sections and tags
     const esdata = {
         index,
         action: "hit",
@@ -80,8 +89,7 @@ const set_esdata = (index, data) => {
         derived_referer_medium,
         derived_referer_source,
         referer: data.referer,
-        signed_in: !!(data.user_id),
-        sections: data.post_sections,
+        signed_in: !!data.user_id,
         time: new Date(),
         url: data.url,
         user_agent: data.user_agent,
@@ -92,20 +100,35 @@ const set_esdata = (index, data) => {
         utm_source: utm.utm_source,
         utm_term: utm.utm_term,
         browser_id: data.browser_id,
-    }
+    };
     if (data.user_ip) esdata.user_ip = data.user_ip;
-    if (config.debug) {
-        console.log({ esdata });
-    }
     return esdata;
-}
+};
+
+const get_article_data = async (post_id) => {
+    let sections = null;
+    let tags = null;
+    if (post_id) {
+        const article = (
+            await jxphelper.get("article", {
+                "filter[post_id]": post_id,
+                fields: "tags,sections",
+            })
+        ).data.pop();
+        if (article) {
+            tags = article.tags;
+            sections = article.sections;
+        }
+    }
+    return { sections, tags };
+};
 
 const post_hit = async (req, res) => {
     try {
         let parts = [];
-        req.on('data', (chunk) => {
+        req.on("data", (chunk) => {
             parts.push(chunk);
-        }).on('end', async () => {
+        }).on("end", async () => {
             const body = Buffer.concat(parts).toString();
             let data = null;
             try {
@@ -116,12 +139,14 @@ const post_hit = async (req, res) => {
                 res.writeHead(200, headers);
                 res.write("");
                 res.end();
-            } catch(err) {
+            } catch (err) {
                 res.writeHead(500, headers);
-                res.write(JSON.stringify({
-                    status: "error",
-                    error: JSON.stringify(err)
-                }))
+                res.write(
+                    JSON.stringify({
+                        status: "error",
+                        error: JSON.stringify(err),
+                    })
+                );
                 res.end();
                 console.error(err);
                 return null;
@@ -135,36 +160,102 @@ const post_hit = async (req, res) => {
                 }
                 if (!index) throw `No index found for action ${data.action}`;
                 const esdata = set_esdata(index, data);
+                if (data.post_id) {
+                    const article_data = await get_article_data(data.post_id);
+                    esdata.tags = article_data.tags;
+                    esdata.sections = article_data.sections;
+                }
+                if (config.debug) console.log(esdata);
                 await new Promise((resolve, reject) => {
-                    producer.send([{
-                        topic,
-                        messages: JSON.stringify(esdata),
-                    }], (err, data) => {
-                        if (err) return reject(err);
-                        return resolve(data);
-                    });
+                    producer.send(
+                        [
+                            {
+                                topic,
+                                messages: JSON.stringify(esdata),
+                            },
+                        ],
+                        (err, data) => {
+                            if (err) return reject(err);
+                            return resolve(data);
+                        }
+                    );
                 });
-            } catch(err) {
+            } catch (err) {
                 console.error(err);
             }
         });
     } catch (err) {
         console.error(err);
     }
-}
+};
+
+const parse_url = (url) => {
+    if (!url) throw "No url";
+    let parts = url.split("?");
+    if (parts.length !== 2) throw `Misformed url ${url}`;
+    return qs.parse(parts[1]);
+};
 
 const get_hit = async (req, res) => {
+    let user_labels = [];
+    let user_segments = [];
+    try {
+        const url = req.url;
+        const data = parse_url(url);
+        if (data.user_id) {
+            const user_data = (
+                await jxphelper.aggregate("reader", [
+                    {
+                        $match: {
+                            wordpress_id: Number(data.user_id),
+                        },
+                    },
+                    {
+                        $lookup: {
+                            from: "labels",
+                            localField: "label_id",
+                            foreignField: "_id",
+                            as: "labels"
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: "segmentations",
+                            localField: "segmentation_id",
+                            foreignField: "_id",
+                            as: "segments"
+                        }
+                    },
+                    { 
+                        $project: { 
+                            "labels.code": 1,
+                            "segments.code": 1,
+                        } 
+                    },
+                ])
+            ).data.pop();
+            if (user_data.labels) {
+                user_labels = user_data.labels.map(label => label.code);
+            }
+            if (user_segments) {
+                user_segments = user_data.segments.map(segment => segment.code);
+            }
+        }
+    } catch (err) {
+        console.error(err);
+    }
     res.writeHead(200, headers);
-    res.write(JSON.stringify({
-        status: "ok"
-    }))
+    res.write(
+        JSON.stringify({
+            status: "ok",
+            user_labels,
+            user_segments,
+        })
+    );
     res.end();
     try {
         const url = req.url;
-        if (!url) throw "No url";
-        let parts = url.split("?");
-        if (parts.length !== 2) throw `Misformed url ${url}`;
-        let data = qs.parse(parts[1]);
+        const data = parse_url(url);
         if (!data) throw `No data ${url}`;
         if (!data.action) throw `No action ${url}`;
         let index = null;
@@ -178,31 +269,46 @@ const get_hit = async (req, res) => {
         data.user_agent = req.headers["user-agent"];
         if (req.headers["x-real-ip"]) data.user_ip = req.headers["x-real-ip"];
         const esdata = set_esdata(index, data);
-        if (config.debug) console.log(esdata);
+        if (data.post_id) {
+            const article_data = await get_article_data(data.post_id);
+            esdata.tags = article_data.tags;
+            esdata.sections = article_data.sections;
+        }
+        if (config.debug) {
+            console.log({ esdata });
+        }
         await new Promise((resolve, reject) => {
-            producer.send([{
-                topic,
-                messages: JSON.stringify(esdata),
-            }], (err, data) => {
-                if (err) return reject(err);
-                return resolve(data);
-            });
+            producer.send(
+                [
+                    {
+                        topic,
+                        messages: JSON.stringify(esdata),
+                    },
+                ],
+                (err, data) => {
+                    if (err) return reject(err);
+                    return resolve(data);
+                }
+            );
         });
     } catch (err) {
         console.error(err);
     }
-}
+};
 
 console.log(`===${config.name} Tracker Started===`);
 if (config.debug) console.log("Debug mode on");
 
 http.createServer((req, res) => {
-    if (req.url == '/favicon.ico') return;
+    if (req.url == "/favicon.ico") return;
     if (config.debug) {
-        console.log(req.headers);
+        console.log({ headers: req.headers });
     }
-    if (req.method === "POST" && req.headers["content-type"] === "application/json") {
-        post_hit(req, res)
+    if (
+        req.method === "POST" &&
+        req.headers["content-type"] === "application/json"
+    ) {
+        post_hit(req, res);
     }
     if (req.method === "GET") {
         get_hit(req, res);
