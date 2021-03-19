@@ -60,7 +60,6 @@ const applyLabel = async function (label) {
                 u[`label_data.${key}`] = null;
                 await Reader.updateMany(q, u);
             }
-            console.log("bulk_postput");
             const updates = post_data.map(item => {
 				const updateQuery = {
 					"updateOne": {
@@ -78,9 +77,7 @@ const applyLabel = async function (label) {
         for (let rule of label.rules) {
             query = fix_query(JSON.parse(rule));
         }
-        console.log("pull");
         await Reader.updateMany({ "label_id": label._id }, { $pull: { "label_id": label._id } });
-        console.log("push");
         let result = await Reader.updateMany(query, { $push: { "label_id": label._id } });
         return result
     } catch (err) {
@@ -101,7 +98,7 @@ LabelSchema.statics.apply_label = async function(data) {
     }
 }
 
-LabelSchema.statics.apply_labels = async function () {
+const apply_labels = async function () {
     try {
         const labels = await Label.find({ name: { $exists: 1 }});
         let results = {};
@@ -116,10 +113,15 @@ LabelSchema.statics.apply_labels = async function () {
     }
 }
 
+LabelSchema.statics.apply_labels = apply_labels;
+
 LabelSchema.post('save', async function(doc) {
     console.log(`Applying ${doc.name}`);
     await applyLabel(doc);
 });
+
+// Apply labels every hour
+setInterval(apply_labels, 60 * 60 * 1000);
 
 const Label = JXPSchema.model('Label', LabelSchema);
 module.exports = Label;

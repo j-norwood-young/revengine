@@ -48,7 +48,7 @@ const applySegmentation = async function (segmentation) {
     }
 }
 
-SegmentationSchema.statics.apply_segmentations = async function () {
+const apply_segmentations = async function () {
     try {
         const segmentations = await Segmentation.find({ name: { $exists: 1 }});
         let results = {};
@@ -63,10 +63,15 @@ SegmentationSchema.statics.apply_segmentations = async function () {
     }
 }
 
+SegmentationSchema.statics.apply_segmentations = apply_segmentations;
+
 SegmentationSchema.post('save', async function(doc) {
     console.log(`Applying ${doc.name}`);
     await applySegmentation(doc);
 });
+
+// Apply labels every half-hour
+setInterval(apply_segmentations, 30 * 60 * 1000);
 
 const Segmentation = JXPSchema.model('segmentation', SegmentationSchema);
 module.exports = Segmentation;
