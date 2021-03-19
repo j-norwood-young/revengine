@@ -60,12 +60,27 @@ const applyLabel = async function (label) {
                 u[`label_data.${key}`] = null;
                 await Reader.updateMany(q, u);
             }
-            await jxphelper.bulk_postput("reader", "_id", post_data);
+            console.log("bulk_postput");
+            const updates = post_data.map(item => {
+				const updateQuery = {
+					"updateOne": {
+						"upsert": true
+					}
+				}
+				updateQuery.updateOne.update = item;
+				updateQuery.updateOne.filter = {};
+				updateQuery.updateOne.filter["_id"] = item["_id"];
+				return updateQuery;
+			});
+            await Reader.bulkWrite(updates);
+            // await jxphelper.bulk_postput("reader", "_id", post_data);
         }
         for (let rule of label.rules) {
             query = fix_query(JSON.parse(rule));
         }
+        console.log("pull");
         await Reader.updateMany({ "label_id": label._id }, { $pull: { "label_id": label._id } });
+        console.log("push");
         let result = await Reader.updateMany(query, { $push: { "label_id": label._id } });
         return result
     } catch (err) {
