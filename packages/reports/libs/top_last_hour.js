@@ -21,7 +21,7 @@ class TopLastHour {
             article_id: null,
             section: null
         }, opts);
-        const size = opts.size + 1;
+        const size = opts.size + 2;
         const query = {
             index: "pageviews_copy",
             body: {
@@ -72,7 +72,7 @@ class TopLastHour {
         }
         const result = await esclient.search(query);
         // console.log(result.aggregations.result);
-        return result.aggregations.result.buckets;
+        return result.aggregations.result.buckets.slice(0, size);
     }
 }
 
