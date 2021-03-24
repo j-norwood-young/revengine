@@ -72,7 +72,7 @@ class TopLastHour {
         }
         const result = await esclient.search(query);
         // console.log(result.aggregations.result);
-        return result.aggregations.result.buckets.slice(0, size);
+        return result.aggregations.result.buckets.slice(0, size - 1);
     }
 }
 
