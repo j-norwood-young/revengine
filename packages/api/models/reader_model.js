@@ -29,6 +29,8 @@ const ReaderSchema = new JXPSchema({
 
     wordpress_id: { type: Number, index: true },
     remp_beam_id: Number,
+
+    user_registered_on_wordpress: Date,
     
     member: Boolean,
     monthly_contribution: Number,
