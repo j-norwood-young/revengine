@@ -37,9 +37,9 @@ server.get("/top_articles/:period", async (req, res) => {
             }
         ])).data;
         for (let article of articles) {
-            article.hits_last_month = top_articles.find(hit => hit.key === article.post_id).doc_count;
+            article.hits = top_articles.find(hit => hit.key === article.post_id).doc_count;
         }
-        articles.sort((a, b) => b.hits_last_month - a.hits_last_month);
+        articles.sort((a, b) => b.hits - a.hits);
         res.send(articles);
     } catch(err) {
         console.error(err);
