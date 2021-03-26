@@ -4,6 +4,7 @@ const $ = require("jquery");
 const moment = require("moment-timezone");
 const { data } = require("jquery");
 const rating_template = [{ _id: 5, name: "5" }, { _id: 4, name: "4" }, { _id: 3, name: "3" }, { _id: 2, name: "2" }, { _id: 1, name: "1" }, { _id: 0, name: "0" }];
+const nlp = require("@revengine/frontend/libs/nlp");
 
 class Collections {
     constructor(opts) {
@@ -21,6 +22,7 @@ class Collections {
                     { name: "Headline", key: "title", d: data => `<a href="/article/view/${data._id}">${data.title}</a>`, list_view },
                     { name: "Link", key: "url", d: data => `<a href="https://www.dailymaverick.co.za/article/${data.urlid}" target="_blank"><i class="fa fa-link"></i></a>` || "", list_view },
                     { name: "Author", key: "author", d: data => data.author || "", list_view },
+                    { name: "Sentiment", d: data => nlp.sentiment(data.content).sentiment, list_view }
                     // { name: "Sections", key: "sections", d: data => data.sections || "", list_view },
                 ],
                 filters: [

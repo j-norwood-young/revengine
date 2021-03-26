@@ -7762,4 +7762,8 @@ svg {
   display: flex;
   flex-direction: column; }
 
+.article-content img {
+  max-width: 100%;
+  height: auto; }
+
 /*# sourceMappingURL=style.css.map */

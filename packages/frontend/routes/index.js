@@ -108,5 +108,6 @@ router.use("/label", require("./label"));
 router.use("/segmentation", require("./segmentation"));
 router.use("/goals", require("./goals"));
 router.use("/settings", require("./settings"));
+router.use("/article", require("./article"));
 
 module.exports = router;

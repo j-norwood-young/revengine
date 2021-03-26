@@ -1,0 +1,16 @@
+extends ../layout
+
+block content
+    .container
+        p Sentiment: #{sentiment.sentiment} (#{sentiment.sentiment_score})
+        h1= article.title
+        h5= article.author 
+        p Published #{moment(article.date_published).format("YYYY-MM-DD HH:mm:ss")} | Last Modified #{moment(article.date_modified).format("YYYY-MM-DD HH:mm:ss")}
+        each section in article.sections 
+            .badge.badge-primary.mr-1= section
+        each tag in article.tags 
+            .badge.badge-secondary.mr-1= tag
+        h3.mt-4= article.excerpt
+        a(href=homepage + "/article/" + article.urlid target="_blank")
+            .fa.fa-link
+        .article-content !{article.content.replace(/\n/g, '<br/>')}
