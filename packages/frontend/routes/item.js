@@ -37,7 +37,7 @@ router.use("/add/:type", getCollection, async (req, res) => {
             const result = await req.apihelper.post(req.params.type, req.body);
             res.redirect(`/item/edit/${req.params.type}/${ result.data._id }`)
         }
-        res.render("item/add", { title: res.locals.collection.name, data: {} });
+        res.render("item/add", { title: res.locals.collection.name, data: {}, pg: req.params.type });
     } catch (err) {
         console.error(err);
         res.status(500).render("error", err);
@@ -52,7 +52,7 @@ router.use("/edit/:type/:id", getCollection, async (req, res) => {
         const data = (await req.apihelper.getOne(req.params.type, req.params.id)).data;
         res.locals.collection = await loadForeignCollection(res.locals.collection, req.apihelper);
         console.log(res.locals.collection);
-        res.render("item/edit", { title: data.name || res.locals.collection.name, data, type: req.params.type });
+        res.render("item/edit", { title: data.name || res.locals.collection.name, data, type: req.params.type, pg: req.params.type });
     } catch (err) {
         console.error(err);
         res.status(500).render("error", err);

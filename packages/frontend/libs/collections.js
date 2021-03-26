@@ -40,6 +40,18 @@ class Collections {
                     "headline", "author"
                 ]
             },
+            goal: {
+                name: "Goals",
+                sortby: "name",
+                sortdir: 1,
+                fields: [
+                    { name: "Name", key: "name", d: data => data.name, link, list_view },
+                ],
+                filters: [
+                ],
+                populate: {
+                },
+            },
             datasource: {
                 name: "Data Source",
                 sortby: "name",
@@ -296,10 +308,43 @@ class Collections {
             voucher: {
                 name: "Voucher",
                 fields: [
-                    { name: "Type", key: "vouchertype_id", d: data => data.vouchertype_id, "view": "text", list_view, link },
-                    { name: "Valid From", key: "valid_from", d: data => data.valid_from, "view": "date", list_view },
-                    { name: "Valid To", key: "valid_to", d: data => data.valid_to, "view": "date", list_view },
-                    { name: "User ID", key: "user_id", d: data => data.user_id, "view": "text", list_view },
+                    { name: "Code", key: "code", d: data => data.code, view: "text", list_view, link },
+                    { name: "Type", key: "vouchertype_id", d: data => data.vouchertype.name, "view": "text", list_view },
+                    { name: "Valid From", key: "valid_from", d: data => moment(data.valid_from).format("YYYY-MM-DD"), "view": "date", list_view },
+                    { name: "Valid To", key: "valid_to", d: data => moment(data.valid_to).format("YYYY-MM-DD"), "view": "date", list_view },
+                    { name: "User ID", key: "reader_id", d: data => (data.reader && data.reader.email) ? data.reader.email : "Unassigned", "view": "text", list_view },
+                ],
+                populate: [
+                    "vouchertype",
+                    "reader"
+                ],
+                search_fields: [
+                    "code"
+                ],
+                filters: [
+                    {
+                        name: "Months",
+                        field: "valid_from",
+                        // multiple: true,
+                        options: async () => {
+                            const months = [];
+                            const m = new moment();
+                            for (let x = 0; x < 12; x++) {
+                                months.push(moment().add(x, "month").startOf("month"));
+                            }
+                            return months.map(month => {
+                                return {
+                                    _id: month.format("YYYY-MM-DD"),
+                                    name: month.format("MMMM YYYY")
+                                }
+                            });
+                        }
+                    },
+                    {
+                        name: "Types",
+                        field: "vouchertype_id",
+                        options: async () => (await $.get(`/list/json/raw/vouchertype`)).data
+                    },
                 ]
             },
             vouchertype: {

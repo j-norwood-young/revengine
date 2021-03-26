@@ -94,7 +94,7 @@ router.post("/paginate/:type", async (req, res) => {
 router.get("/:type", (req, res) => {
     try {
         const collection = collections.datadefs[req.params.type];
-        res.render("list", { title: collection.name, type: req.params.type });
+        res.render("list", { title: collection.name, type: req.params.type, pg: req.params.type });
     } catch (err) {
         console.error(err);
         res.render("error", err);

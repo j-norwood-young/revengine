@@ -11,7 +11,7 @@ router.get("/", async (req, res) => {
             label.length = result ? result.count : 0;
         }
         labels.sort((a, b) => b.length - a.length);
-        res.render("dashboard", { title: "Dashboard", labels });
+        res.render("dashboard", { title: "Dashboard", labels, pg: "dashboard" });
     } catch(err) {
         console.error(err);
         res.render("error", err);

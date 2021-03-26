@@ -4,6 +4,16 @@ const Reports = require("@revengine/reports");
 const jsonexport = require("jsonexport");
 const moment = require("moment");
 
+router.use("/", (req, res, next) => {
+    res.locals.pg = "report";
+    res.locals.title = "Reports";
+    next();
+})
+
+router.get("/", (req, res) => {
+    res.render("reports");
+})
+
 router.get("/newsletter_subscribers", (req, res) => {
     res.render("reports/newsletter_subscribers");
 })

@@ -2,6 +2,15 @@ const express = require('express');
 const router = express.Router();
 const moment = require("moment");
 
+router.use("/", async(req, res, next) => {
+    res.locals.pg = "voucher";
+    next();
+})
+
+router.get("/", (req, res) => {
+    res.render("voucher", { title: "Vouchers" });
+})
+
 router.get("/upload", async (req, res) => {
     const vouchertypes = (await req.apihelper.get("vouchertype", { "sort[name]": 1 })).data;
     res.render("voucher/upload", { title: "Upload Vouchers", vouchertypes });

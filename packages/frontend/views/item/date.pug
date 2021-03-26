@@ -1,3 +1,3 @@
 .form-group
     label= field.name
-    input.form-control(type="date" name=field.key value=data[field.key])
+    input.form-control(type="date" name=field.key value=moment(data[field.key]).format("YYYY-MM-DD"))

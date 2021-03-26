@@ -1,0 +1,44 @@
+nav#sidebarMenu.col-md-3.col-lg-2.d-md-block.bg-light.sidebar.collapse
+    .position-sticky.pt-3
+        ul.nav.flex-column
+            li.nav-item 
+                a.nav-link(href="/dashboard" class=(pg === "dashboard" ? "active" : undefined))
+                    i.fa.fa-home 
+                    |  Dashboard
+            li.nav-item 
+                a.nav-link(href="/list/goal" class=(pg === "goal" ? "active" : undefined))
+                    i.fa.fa-chart-line 
+                    |  Goals
+            li.nav-item 
+                a.nav-link(href="/report" class=(pg === "report" ? "active" : undefined))
+                    i.fa.fa-chart-bar 
+                    |  Reports
+            li.nav-item 
+                a.nav-link(href="/list/reader" class=(pg === "reader" ? "active" : undefined))
+                    i.fa.fa-users 
+                    |  Readers
+            li.nav-item 
+                a.nav-link(href="/list/article" class=(pg === "article" ? "active" : undefined))
+                    i.fa.fa-book-reader 
+                    |  Articles
+            li.nav-item 
+                a.nav-link(href="/list/label" class=(pg === "label" ? "active" : undefined))
+                    i.fa.fa-chart-pie 
+                    |  Labels and Segments
+            li.nav-item 
+                a.nav-link(href="/mails" class=(pg === "mails" ? "active" : undefined))
+                    i.fa.fa-mail-bulk
+                    |  Mail
+            li.nav-item 
+                a.nav-link(href="/voucher" class=(pg === "voucher" ? "active" : undefined))
+                    i.fa.fa-ticket
+                    |  Vouchers
+            li.nav-item 
+                a.nav-link(href="/list/pipeline" class=(pg === "pipeline" ? "active" : undefined))
+                    i.fa.fa-project-diagram 
+                    |  Data Pipeline
+            li.nav-item 
+                a.nav-link(href="/settings" class=(pg === "settings" ? "active" : undefined))
+                    i.fa.fa-cog 
+                    |  Settings
+            

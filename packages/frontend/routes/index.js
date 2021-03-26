@@ -101,10 +101,12 @@ router.use("/reader", require("./reader"));
 router.use("/stats", require("./stats"));
 router.use("/api", require("./api"));
 router.use("/config", require("./config"));
-router.use("/mailer", require("./mailer"));
+router.use("/mails", require("./mails"));
 router.use("/report", require("./report"));
 router.use("/voucher", require("./voucher"));
 router.use("/label", require("./label"));
 router.use("/segmentation", require("./segmentation"));
+router.use("/goals", require("./goals"));
+router.use("/settings", require("./settings"));
 
 module.exports = router;

@@ -1,0 +1,26 @@
+extends ../layout
+
+block content
+    .container
+        h1= title
+        .row.row-cols-1.row-cols-sm-2.row-cols-md-3.g-3
+            .col
+                .card.shadow-sm
+                    .card-header 
+                        h2 
+                            i.fa.fa-users
+                            |  Users
+                    .card-body
+                        .d-flex.justify-content-between.align-items-center
+                            .btn-group 
+                                a.btn.btn-small.btn-outline-secondary(href="/list/user") Manage Users
+            .col
+                .card.shadow-sm
+                    .card-header 
+                        h2 
+                            i.fa.fa-user
+                            |  Profile
+                    .card-body
+                        .d-flex.justify-content-between.align-items-center
+                            .btn-group 
+                                a.btn.btn-small.btn-outline-secondary(href="/account/settings") My Account

@@ -1,7 +1,9 @@
-$body-bg: #343a40;
-$body-color: #adb0b2;
+$body-bg: rgb(248, 248, 248);
+$body-color: #6a6b6d;
 
 $dark-bg: darken($color: $body-bg, $amount: 2);
+
+$bg-light: #e8e7e7;
 
 $blue: #007bff;
 $indigo: #674eec;
