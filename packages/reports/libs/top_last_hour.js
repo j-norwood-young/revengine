@@ -1,5 +1,4 @@
 const config = require("config");
-const JXPHelper = require("jxp-helper");
 require("dotenv").config();
 const moment = require("moment-timezone");
 moment.tz.setDefault(config.timezone || "UTC");

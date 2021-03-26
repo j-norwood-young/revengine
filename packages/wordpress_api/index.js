@@ -11,6 +11,42 @@ const server = restify.createServer();
 server.use(restify.plugins.queryParser());
 server.use(apicache.middleware("5 minutes"));
 
+server.get("/top_articles/:period", async (req, res) => {
+    try {
+        const report = new Reports.TopLastPeriod();
+        const size = +req.query.size || 5;
+        const top_articles = await report.run({ size, period: req.params.period });
+        const articles = (await jxphelper.aggregate("article", [
+            {
+                $match: {
+                    post_id: { $in: top_articles.map(a => a.key) }
+                }
+            },
+            {
+                $project: {
+                    post_id: 1,
+                    title: 1,
+                    urlid: 1,
+                    author: 1,
+                    exceprt: 1,
+                    sections: 1,
+                    tags: 1,
+                    date_published: 1,
+                    date_modified: 1
+                }
+            }
+        ])).data;
+        for (let article of articles) {
+            article.hits_last_month = top_articles.find(hit => hit.key === article.post_id).doc_count;
+        }
+        articles.sort((a, b) => b.hits_last_month - a.hits_last_month);
+        res.send(articles);
+    } catch(err) {
+        console.error(err);
+        res.send(500, { status: "error", error: err });
+    }
+})
+
 server.get("/top_articles", async (req, res) => {
     try {
         const report = new Reports.TopLastHour();

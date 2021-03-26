@@ -144,80 +144,84 @@ class ArticleLongTails {
     }
 
     async run(section) {
-        var month = new Date();
-        month.setDate(month.getDate() - 30);
-        const month_str = month.toISOString();
-        var week = new Date();
-        week.setDate(week.getDate() - 7);
-        const week_str = week.toISOString();
-        let filters = [
-            {
-                $lte: [
-                    "$date_published",
-                    {
-                        $dateFromString: {
-                            dateString: month_str
+        try {
+            var month = new Date();
+            month.setDate(month.getDate() - 30);
+            const month_str = month.toISOString();
+            var week = new Date();
+            week.setDate(week.getDate() - 7);
+            const week_str = week.toISOString();
+            let filters = [
+                {
+                    $lte: [
+                        "$date_published",
+                        {
+                            $dateFromString: {
+                                dateString: month_str
+                            }
+                        }
+                    ]
+                },
+            ];
+            if (section) filters.push({
+                "$section": section
+            });
+            const result = await jxphelper.aggregate("article", [
+                {
+                    $match: {
+                        "hits.count": { $gte: 1000 }
+                    }
+                },
+                {
+                    $match: { 
+                        $expr: {
+                            $and: filters
                         }
                     }
-                ]
-            },
-        ];
-        if (section) filters.push({
-            "$section": section
-        });
-        const result = await jxphelper.aggregate("article", [
-            {
-                $match: {
-                    "hits.count": { $gte: 1000 }
-                }
-            },
-            {
-                $match: { 
-                    $expr: {
-                        $and: filters
+                },
+                { $unwind: "$hits" },
+                { $project: { _id: 1, urlid: 1, title: 1, author: 1, date_published: 1, hit_date: "$hits.date", hit_count: "$hits.count" } },
+                {
+                    $addFields: {
+                        hit_date: { $toDate: "$hit_date" }
                     }
-                }
-            },
-            { $unwind: "$hits" },
-            { $project: { _id: 1, urlid: 1, title: 1, author: 1, date_published: 1, hit_date: "$hits.date", hit_count: "$hits.count" } },
-            {
-                $addFields: {
-                    hit_date: { $toDate: "$hit_date" }
-                }
-            },
-            {
-                $match: {
-                    "hit_count": { $gte: 1000 }
-                }
-            },
-            { 
-                $match: {
-                    $expr: {
-                        $and: [
-                            {
-                                $gte: [
-                                    "$hit_date",
-                                    { 
-                                        $dateFromString: { 
-                                            dateString: week_str 
-                                        } 
-                                    }
-                                ]
-                            }
-                        ]
+                },
+                {
+                    $match: {
+                        "hit_count": { $gte: 1000 }
                     }
+                },
+                { 
+                    $match: {
+                        $expr: {
+                            $and: [
+                                {
+                                    $gte: [
+                                        "$hit_date",
+                                        { 
+                                            $dateFromString: { 
+                                                dateString: week_str 
+                                            } 
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+            ]);
+            let articles = result.data.sort((a, b) => {
+                try {
+                    return b.hit_count - a.hit_count
+                } catch (err) {
+                    console.log({ a, b });
                 }
-            },
-        ]);
-        let articles = result.data.sort((a, b) => {
-            try {
-                return b.hit_count - a.hit_count
-            } catch (err) {
-                console.log({ a, b });
-            }
-        });
-        return articles;
+            });
+            return articles;
+        } catch(err) {
+            return Promise.reject(err);
+        }
     }
 }
 
-module.exports = { ArticleHits, ArticleTags, ArticleSections, CompareFeatures, ArticleLongTails, TopLastHour: require("./libs/top_last_hour"), Hits24H: require("./libs/hits_24h"), Newsletter: require("./libs/newsletter"), NewsletterSubscribers: require("./libs/top_newsletter_subscribers") };
+module.exports = { ArticleHits, ArticleTags, ArticleSections, CompareFeatures, ArticleLongTails, TopLastHour: require("./libs/top_last_hour"), TopLastPeriod: require("./libs/top_last_period"), Hits24H: require("./libs/hits_24h"), Newsletter: require("./libs/newsletter"), NewsletterSubscribers: require("./libs/top_newsletter_subscribers") };
