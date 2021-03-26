@@ -14,8 +14,8 @@ class TopLastPeriod {
                 day: "now-1d/d",
                 week: "now-1w/w",
                 month: "now-1M/M",
-                sixmonth: "now-6M/M",
-                year: "now-1y/y",
+                // sixmonth: "now-6M/M",
+                // year: "now-1y/y",
             }
             opts = Object.assign({
                 size: 40,
