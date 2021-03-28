@@ -224,4 +224,15 @@ class ArticleLongTails {
     }
 }
 
-module.exports = { ArticleHits, ArticleTags, ArticleSections, CompareFeatures, ArticleLongTails, TopLastHour: require("./libs/top_last_hour"), TopLastPeriod: require("./libs/top_last_period"), Hits24H: require("./libs/hits_24h"), Newsletter: require("./libs/newsletter"), NewsletterSubscribers: require("./libs/top_newsletter_subscribers") };
+module.exports = { 
+    ArticleHits, 
+    ArticleTags, 
+    ArticleSections, 
+    CompareFeatures, 
+    ArticleLongTails,
+    TopLastHour: require("./libs/top_last_hour"),
+    TopLastPeriod: require("./libs/top_last_period"),
+    Hits24H: require("./libs/hits_24h"),
+    Newsletter: require("./libs/newsletter"),
+    NewsletterSubscribers: require("./libs/top_newsletter_subscribers") 
+};

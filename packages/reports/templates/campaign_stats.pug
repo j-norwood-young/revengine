@@ -1,0 +1,11 @@
+.article
+    .article-count.big_num= numberFormat.format(campaign.total_recipients)
+    .article-title Sent
+.article
+    .article-count.big_num= numberFormat.format(campaign.opens / campaign.total_recipients * 100)
+        | %
+    .article-title Opens (#{ numberFormat.format(campaign.opens) })
+.article
+    .article-count.big_num= numberFormat.format(campaign.clicks / campaign.total_recipients * 100)
+        | %
+    .article-title Clicks (#{ numberFormat.format(campaign.clicks) })

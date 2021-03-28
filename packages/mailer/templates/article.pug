@@ -1,9 +1,0 @@
-.article
-    .article-date= moment(article.date_published).format("ddd D MMM YYYY HH:mm Z")
-    if (article.peak)
-        .article-count.big_num= numberFormat.format(article.peak.count)
-    else if (article.hit_count)
-        .article-count.big_num= numberFormat.format(article.hit_count)
-    .article-title 
-        a(href="https://dailymaverick.co.za/" + article.urlid) #{article.title}
-    .article-author= article.author

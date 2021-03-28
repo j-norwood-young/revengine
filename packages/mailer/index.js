@@ -12,14 +12,14 @@ const touchbase = require("./touchbase");
 moment.tz.setDefault(config.timezone || "UTC");
 
 const mailer_names = [
-    "revengine-mailer",
-    "newsletter-mailer",
-    "newsletter-management-mailer"
+    "newsletter_content_report",
+    "newsletter_management_report",
+    "website_content_report",
 ]
 
 const mailers = {};
 for (mailer_name of mailer_names) {
-    mailers[mailer_name] = require(`./${mailer_name}`);
+    mailers[mailer_name] = require(`@revengine/reports/reports/${mailer_name}`);
 }
 
 const render = async report => {

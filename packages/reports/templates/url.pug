@@ -1,0 +1,8 @@
+- var article = articles.find(article => url[0].includes(`${ moment(article.date_published).format("YYYY-MM-DD")}-${article.urlid}`));
+.article
+    .article-count.big_num= numberFormat.format(url[1])
+    .article-title 
+        if (article)
+            a(href=url[0]) #{article.title}
+        else
+            a(href=url[0]) #{url[0]}

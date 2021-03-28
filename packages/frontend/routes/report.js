@@ -18,6 +18,12 @@ router.get("/newsletter_subscribers", (req, res) => {
     res.render("reports/newsletter_subscribers");
 })
 
+router.get("/mail_report/:report", async (req, res) => {
+    const report = require(`@revengine/reports/reports/${ req.params.report }`);
+    const content = await report.content();
+    res.render("reports/mail_report", { content });
+})
+
 router.post("/top_newsletter_subscribers", async (req, res) => {
     try {
         const days = Number(req.body.days) || 30;
