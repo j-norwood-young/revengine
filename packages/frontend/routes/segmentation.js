@@ -3,17 +3,28 @@ const router = express.Router();
 const config = require("config");
 const moment = require("moment");
 
+router.use("/", (req, res, next) => {
+    res.locals.pg = "label";
+    next();
+})
+
 router.get("/add", async (req, res) => {
     const labels = (await req.apihelper.get("label", { "sort[name]": 1 })).data;
-    res.render("segmentation/edit", { title: "Add Segmentation", labels });
+    const segmentation = {
+        labels_and_id: [],
+        labels_not_id: []
+    }
+    res.render("segmentation/edit", { title: "Add Segmentation", labels, pg: "label", segmentation });
 })
 
 router.post("/add", async (req, res) => {
     try {
         const result = await req.apihelper.post("segmentation", { name: req.body.name, code: req.body.code, labels_and_id: req.body.labels_and, labels_not_id: req.body.labels_not });
-        res.send(result);
+        const labels = (await req.apihelper.get("label", { "sort[name]": 1 })).data;
+        const segmentation = result.data;
+        res.render("segmentation/edit", { title: "Edit Segmentation", labels, segmentation, pg: "label" });
     } catch(err) {
-        res.send(err.toString())
+        res.status(500).render("error", {error: err});
     }
 })
 
@@ -21,7 +32,7 @@ router.get("/edit/:segmentation_id", async (req, res) => {
     try {
         const labels = (await req.apihelper.get("label", { "sort[name]": 1 })).data;
         const segmentation = (await req.apihelper.getOne("segmentation", req.params.segmentation_id)).data;
-        res.render("segmentation/edit", { title: "Edit Segmentation", labels, segmentation });
+        res.render("segmentation/edit", { title: "Edit Segmentation", labels, segmentation, pg: "label" });
     } catch(err) {
         res.status(500).render("error", {error: err});
     }

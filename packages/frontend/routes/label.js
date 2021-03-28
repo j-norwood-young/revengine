@@ -3,6 +3,15 @@ const router = express.Router();
 const config = require("config");
 const moment = require("moment");
 
+router.use("/", (req, res, next) => {
+    res.locals.pg="label";
+    next();
+})
+
+router.get("/", (req, res) => {
+    res.render("label");
+})
+
 router.get("/download/json/:label_id", async (req, res) => {
     try {
         const readers = (await req.apihelper.get("reader", { "filter[label_id]": req.params.label_id, "fields": "email,first_name,last_name,createdAt,updatedAt,label_id" })).data;
