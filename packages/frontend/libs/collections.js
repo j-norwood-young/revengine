@@ -282,7 +282,7 @@ class Collections {
             segmentation: {
                 name: "Segmentation",
                 fields: [
-                    { name: "Name", key: "name", d: data => data.name, "view": "text", list_view, link },
+                    { name: "Name", key: "name", d: data => `<a href="/segmentation/edit/${data._id}">${data.name}</a>`, "view": "text", list_view },
                     { name: "Code", key: "code", d: data => data.code, "view": "text", list_view },
                     { name: "Query", key: "query", d: data => data.query, view: "code" },
                 ]
