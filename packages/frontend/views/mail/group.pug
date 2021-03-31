@@ -3,7 +3,7 @@ extends ../layout
 block content
     .container
         h2 Send Group Mail
-        form(action="/mailer/group", method="post")
+        form(action="/mails/group", method="post")
             .form-group
                 label(for="label_id") Label
                 select.form-control(name="label_id")

@@ -3,7 +3,7 @@ extends ../layout
 block content
     .container
         h2 Send Individual Mail
-        form(action="/mailer/individual", method="post")
+        form(action="/mails/individual", method="post")
             .form-group
                 label(for="reader_email") Reader
                 input#valid_to.form-control.email_typeahead(type="email", name="reader_email")
