@@ -41,3 +41,6 @@ document.addEventListener("DOMContentLoaded", async e => {
 
 const Search = require("./libs/search");
 const search = new Search();
+
+const Progressbar = require("./libs/progress_bar");
+const progressbar = new Progressbar();

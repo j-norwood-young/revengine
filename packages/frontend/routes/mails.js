@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const config = require("config");
-const test_monthly_uber_mail = require("@revengine/mailer/touchbase").test_monthly_uber_mail;
+const moment = require("moment");
 
 const mailer = require("@revengine/mailer");
 
@@ -96,6 +96,34 @@ router.post("/group", async (req, res) => {
     } catch(err) {
         console.error(err);
         res.status(500).render("error", {message: err.toString()});
+    }
+})
+
+router.get("/mailrun/progress/:mailrun_id", async (req, res) => {
+    try {
+        console.log(req.params.mailrun_id);
+        const mailrun = (await req.apihelper.getOne("mailrun", req.params.mailrun_id)).data;
+        res.render("mail/mailrun", { mailrun, title: mailrun.name });
+    } catch(err) {
+        console.error(err);
+        res.status(500).render("error", {message: err.toString()});
+    }
+})
+
+router.get("/mailrun/progressbar_data/:mailrun_id", async (req, res) => {
+    try {
+        const mailrun = (await req.apihelper.getOne("mailrun", req.params.mailrun_id)).data;
+        const total = mailrun.queued_reader_ids.length + mailrun.sent_reader_ids.length;
+        const start_time = moment(mailrun.start_time);
+        const now = moment();
+        const diff = now.diff(start_time, "seconds");
+        const per_sec = mailrun.sent_reader_ids.length / diff;
+        const time_remaining = mailrun.queued_reader_ids.length * per_sec;
+        const time_remaining_human = moment.duration(time_remaining, "seconds").humanize();
+        res.send({ perc: mailrun.sent_reader_ids.length / total * 100, remaining: mailrun.queued_reader_ids.length, complete: mailrun.sent_reader_ids.length, total, start_time: mailrun.start_time, running_time: diff, per_sec, time_remaining, time_remaining_human })
+    } catch(err) {
+        console.error(err);
+        res.status(500).send({ status: "error", message: err.toString()});
     }
 })
 

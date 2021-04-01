@@ -1,0 +1,27 @@
+extends ../layout
+
+block content
+    .container
+        h2 Mailrun Progress - #{mailrun.name}
+        .row.row-cols-1.row-cols-sm-2.row-cols-md-3.g-3
+            .col
+                .card.shadow-sm
+                    .card-header 
+                        h2 
+                            i.fa.fa-envelope
+                            |  Queue
+                    .card-body.dynamic-progress(src=`/mails/mailrun/progressbar_data/${mailrun._id}`)
+                        h4 Total 
+                        p.total
+                        h4 Complete 
+                        p.complete= mailrun.sent_reader_ids.length
+                        h4 Queued 
+                        p.remaining
+                        .progress
+                            #progressbar.progress-bar(role="progressbar" style=`width: 0%` aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" )
+                        p
+                            span.perc
+                            | % 
+                        p
+                            span.time_remaining_human
+                            |  remaining

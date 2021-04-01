@@ -178,7 +178,7 @@ class Collections {
                     { name: "State", key: "state", d: data => data.state, view: "select", options: ['due', 'running', 'complete', 'cancelled', 'paused', 'failed' ], list_view },
                     { name: "Start Date", key: "start_time", d: data => data.start_time ? moment(data.start_time).format("YYYY-MM-DD HH:mm:ss") : "", "view": "datetime", list_view },
                     { name: "End Date", key: "end_time", d: data => data.end_time ? moment(data.end_time).format("YYYY-MM-DD HH:mm:ss") : "", "view": "text", readonly, list_view },
-                    { name: "", d: data => `<a href="/mailrun/progress/${data._id}">View Progress</a>`, list_view, view: "none"},
+                    { name: "", d: data => `<a href="/mails/mailrun/progress/${data._id}">View Progress</a>`, list_view, view: "none"},
                     { name: "Queued", d: data => data.queued_reader_ids.length, list_view: true, view: "none" },
                     { name: "Sent", d: data => data.sent_reader_ids.length, list_view: true, view: "none" },
                     { name: "Failed", d: data => data.failed_reader_ids.length, list_view: true, view: "none" },
