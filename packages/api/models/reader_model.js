@@ -19,7 +19,7 @@ const ReaderSchema = new JXPSchema({
 
     // Segments and labels
     label_id: [ { type: ObjectId, link: "label" } ],
-    segmentation_id: { type: ObjectId, link: "segmentation" },
+    segmentation_id: [{ type: ObjectId, link: "segmentation" }],
 
     // General Data
     last_login: Date,
@@ -48,6 +48,14 @@ const ReaderSchema = new JXPSchema({
     
     authors: [{ type: String, index: true }],
     sections: [{ type: String, index: true }],
+    authors_last_30_days: [{ 
+        count: Number,
+        name: String
+    }],
+    sections_last_30_days: [{ 
+        count: Number,
+        name: String
+    }],
     favourite_author: String,
     favourite_section: String,
     
