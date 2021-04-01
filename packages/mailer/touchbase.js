@@ -443,6 +443,9 @@ const run_transactional = async (reader_email, to, tid) => {
             console.log(body);
             result = { state: "simulated", body }
         } else {
+            if (config.debug) {
+                console.log({ body });
+            }
             result = await axios(`${config.touchbase.api}/transactional/smartemail/${transactional.touchbase_transactional_id}/send`, {
                 method: "post",
                 data: body,
@@ -451,6 +454,9 @@ const run_transactional = async (reader_email, to, tid) => {
                     password: 'x'
                 },
             });
+            if (config.debug) {
+                console.log(result.data);
+            }
             if (result.data.Code) throw result.data;
         }
         return result;
