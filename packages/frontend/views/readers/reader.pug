@@ -142,7 +142,7 @@ block content
                 h2 Vouchers
             .row
                 for voucher in reader.vouchers
-                    .col-sm-6.col-md-4
+                    .col-sm-6.col-md-4.mb-4
                         .card
                             .card-body
                                 p.card-text
@@ -158,33 +158,34 @@ block content
                                     strong Code 
                                     = voucher.code
             hr
-        .row
-            .col-sm-12.mb-4 
-                h2 Newsletters
-            .col-sm-6.col-md-4
-                .card.mb-4
-                    img.card-img-top.bg-light.p-3(src="https://www.touchbasepro.com/Content/Images/TouchBasePro_Logo.svg" alt="Touchbase Pro")
-                    .card-body
-                        h4.card-title Touchbase Pro
-                        p.card-text
-                            strong Name 
-                            | #{ reader.touchbase_subscriber[0].name }
-                        p.card-text
-                            strong State 
-                            | #{ reader.touchbase_subscriber[0].state }
-                        p.card-text
-                            strong Email Client 
-                            | #{ reader.touchbase_subscriber[0].email_client }
-            for touchbase_subscriber in reader.touchbase_subscriber
-                .col-sm-6.col-md-4.mb-4
-                    .card
+        if (reader.touchbase_subscriber[0])
+            .row
+                .col-sm-12.mb-4 
+                    h2 Newsletters
+                .col-sm-6.col-md-4
+                    .card.mb-4
+                        img.card-img-top.bg-light.p-3(src="https://www.touchbasepro.com/Content/Images/TouchBasePro_Logo.svg" alt="Touchbase Pro")
                         .card-body
-                            h4.card-title= touchbase_subscriber.touchbaselist.name
-                            each data in touchbase_subscriber.data
-                                p.card-text
-                                    strong #{ data.Key } 
-                                    | #{ data.Value }
-            hr
+                            h4.card-title Touchbase Pro
+                            p.card-text
+                                strong Name 
+                                | #{ reader.touchbase_subscriber[0].name }
+                            p.card-text
+                                strong State 
+                                | #{ reader.touchbase_subscriber[0].state }
+                            p.card-text
+                                strong Email Client 
+                                | #{ reader.touchbase_subscriber[0].email_client }
+                for touchbase_subscriber in reader.touchbase_subscriber
+                    .col-sm-6.col-md-4.mb-4
+                        .card
+                            .card-body
+                                h4.card-title= touchbase_subscriber.touchbaselist.name
+                                each data in touchbase_subscriber.data
+                                    p.card-text
+                                        strong #{ data.Key } 
+                                        | #{ data.Value }
+                hr
         //- .row
         //-     .col-sm-7
         //-         p
