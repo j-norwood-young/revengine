@@ -51,27 +51,16 @@ const Frequency = async (reader_id, months = 3) => {
     // Touchbase
     const touchbasehits = (await jxphelper.aggregate("touchbaseevent", [
         {
-            $addFields: {
-                sd: {
-                    $dateFromString: {
-                        dateString: months_ago.toISOString()
-                    }
-                }
+            $match: {
+                "timestamp": {
+                    $gte: `new Date(\"${months_ago.toISOString()}\")`
+                },
+                "email": reader.email
             }
         },
-            {
-                $match: {
-                    $expr: {
-                        $gte: [
-                            "$timestamp", "$sd"
-                        ]
-                    },
-                    "email": reader.email
-                }
-            },
-            {
-                $count: "count"
-            }
+        {
+            $count: "count"
+        }
     ]));
     hits += (touchbasehits.data.length) ? touchbasehits.data[0].count : 0;
     const count = hits;

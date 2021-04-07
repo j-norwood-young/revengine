@@ -11,25 +11,9 @@ const TopNewsletterSubscribers = async (days = 30, min_hits = 10, source = "touc
     const query = [
         { 
             "$match": {
-                "$expr": {
-                    "$and": [
-                        {
-                         "$eq": ["$source", source ]
-                        },
-                        // {
-                        //     "$eq": [ "$email", "bruce@gmig.net" ]
-                        // },
-                        {
-                            "$gte": [
-                                "$timestamp",
-                                { 
-                                    "$dateFromString": { 
-                                        "dateString": from_date.toISOString()
-                                    } 
-                                }
-                            ]
-                        }
-                    ]
+                "source": source,
+                "timestamp": {
+                    $gte: `new Date(\"${from_date.toISOString()}\")`
                 }
             }
         },
@@ -83,25 +67,9 @@ const TopNewsletterSubscribersWithSubscriptions = async (days = 30, min_hits = 1
     const query = [
         { 
             "$match": {
-                "$expr": {
-                    "$and": [
-                        {
-                         "$eq": ["$source", source ]
-                        },
-                        // {
-                        //     "$eq": [ "$email", "bruce@gmig.net" ]
-                        // },
-                        {
-                            "$gte": [
-                                "$timestamp",
-                                { 
-                                    "$dateFromString": { 
-                                        "dateString": from_date.toISOString()
-                                    } 
-                                }
-                            ]
-                        }
-                    ]
+                "source": source,
+                "timestamp": {
+                    $gte: `new Date(\"${from_date.toISOString()}\")`
                 }
             }
         },

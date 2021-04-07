@@ -90,19 +90,8 @@ const RFV = async () => {
     const f_pipeline = [
         { 
             $match: {
-                $expr: {
-                    $and: [
-                        {
-                            $gte: [
-                                "$hit_date",
-                                { 
-                                    $dateFromString: { 
-                                        dateString: twomonth_str 
-                                    } 
-                                }
-                            ]
-                        }
-                    ]
+                "hit_date": {
+                    $gte: `new Date(\"${twomonth.toISOString()}\")`
                 }
             }
         },
