@@ -13,7 +13,7 @@ const content = async () => {
         const newsletter_report = new Reports.Newsletter();
         const newsletter_data = await newsletter_report.list_report();
         const lists = newsletter_data.lists;
-        const stats = newsletter_data.stats;
+        const stats = newsletter_data.stats.filter(n => n.new_active_subscribers_this_month || n.unsubscribes_this_month || n.bounces_this_month);
         const template = pug.compileFile(path.join(__dirname, "../templates/newsletter_management_report.pug"));
         return template({ moment, numberFormat, stats, lists });
     } catch (err) {
