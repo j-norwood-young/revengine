@@ -53,7 +53,7 @@ block content
                         h2 Bottom Tags (one week)
                         h3 #{moment().subtract(week_start_days_ago, "days").startOf("day").format("Do MMM")} to #{moment().subtract(week_end_days_ago, "days").startOf("day").format("Do MMM")}
                     .card-body
-                        each tag in tags_one_week.slice(-5)
+                        each tag in tags_one_week.slice(-5).sort((a,b) => a.count - b.count)
                             include tag
         tr.cards
             td
@@ -70,7 +70,7 @@ block content
                         h2 Bottom Sections (one week)
                         h3 #{moment().subtract(week_start_days_ago, "days").startOf("day").format("Do MMM")} to #{moment().subtract(week_end_days_ago, "days").startOf("day").format("Do MMM")}
                     .card-body
-                        each section in sections_one_week.slice(-5)
+                        each section in sections_one_week.slice(-5).sort((a,b) => a.count - b.count)
                             include section
         tr.cards
             td

@@ -40,9 +40,9 @@ const content = async () => {
         const one_week = await article_report.run(week_start_days_ago, week_end_days_ago);
         const template = pug.compileFile(path.join(__dirname, "../templates/website_content_report.pug"));
         const top_articles_one_day = one_day.filter(filter_articles).slice(0,5);
-        const bottom_articles_one_day = one_day.filter(filter_articles).slice(-5);
+        const bottom_articles_one_day = one_day.filter(filter_articles).slice(-5).sort((a,b) => a.peak.count - b.peak.count);
         const top_articles_one_week = one_week.filter(filter_articles).slice(0, 5);
-        const bottom_articles_one_week = one_week.filter(filter_articles).slice(-5);
+        const bottom_articles_one_week = one_week.filter(filter_articles).slice(-5).sort((a,b) => a.peak.count - b.peak.count);
         
         // Tags
         const tag_report = new Reports.ArticleTags();
@@ -70,7 +70,7 @@ const content = async () => {
         const bottom_articles_per_section = {};
         for (let section of sections) {
             top_articles_per_section[section] = one_week.filter(article => article.sections.includes(section)).filter(filter_articles).slice(0, 5);
-            bottom_articles_per_section[section] = one_week.filter(article => article.sections.includes(section)).filter(filter_articles).slice(-5);
+            bottom_articles_per_section[section] = one_week.filter(article => article.sections.includes(section)).filter(filter_articles).slice(-5).sort((a,b) => a.peak.count - b.peak.count);
         }
 
         // console.log(top_articles_per_section);
