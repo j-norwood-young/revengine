@@ -40,20 +40,9 @@ class Newsletter {
         }
         const aggregate = [
             {
-                $addFields: {
-                    sd: {
-                        $dateFromString: {
-                            dateString: moment(opts.start).toISOString()
-                        }
-                    }
-                }
-            },
-            {
                 $match: {
-                    $expr: {
-                        $gte: [
-                            "$timestamp", "$sd"
-                        ]
+                    "timestamp": {
+                        $gte: `new Date(\"${moment(opts.start).toISOString()}\")`
                     }
                 }
             },
@@ -68,8 +57,9 @@ class Newsletter {
             }
             
         ];
-        
+        console.time("touchbaseevent-aggregate");
         const aggregate_result = await jxphelper.aggregate("touchbaseevent", aggregate);
+        console.timeEnd("touchbaseevent-aggregate");
         const total_url_count = {};
         const events = aggregate_result.data;
         // console.log(events.length);
