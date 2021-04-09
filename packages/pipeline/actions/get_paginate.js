@@ -30,6 +30,7 @@ class Get extends Action {
                 this.options.page = page;
                 console.log(this.options);
                 this.data = await jxphelper.get(this.instructions.collection, this.options);
+                console.log(this.data.length);
                 if (this.instructions.parse) {
                     this.log("Parsing", this.index);
                     this.data = await this.instructions.parse(this);
@@ -51,6 +52,7 @@ class Get extends Action {
                     this.global_data = this.data;
                     this.data = tmp;
                 }
+                console.log(this.data.length);
                 const result = await this.next(this.data, this.global_data);
                 console.log(result);
             }
