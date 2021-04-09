@@ -6,11 +6,10 @@ const HitSchema = new JXPSchema({
     url: String,
     user_agent: String,
     email: { type: String, index: true },
-    article_id: { type: ObjectId, link: "article" },
+    article_id: { type: ObjectId, link: "article", index: true },
     reader_id: { type: ObjectId, link: "reader", index: true },
     campaign_id: { type: ObjectId, link: "touchbasecampaign" },
-    post_id: Number,
-    ip_addr: String,
+    ip_address: String,
     source: String,
 },
 {
