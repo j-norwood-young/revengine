@@ -5,6 +5,7 @@ const actions = {
     save: require("../actions/save"),
     save_raw: require("../actions/save_raw"),
     get: require("../actions/get"),
+    get_paginate: require("../actions/get_paginate"),
     es: require("../actions/es"),
     aggregate: require("../actions/aggregate"),
     // merge: highland.merge,
