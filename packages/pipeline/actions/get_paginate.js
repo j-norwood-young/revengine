@@ -17,10 +17,11 @@ class Get extends Action {
         try {
             const tmp = _.cloneDeep(this.data);
             this.options = this.instructions.options || {};
-            if (!this.options.per_page) this.options.per_page = 1000;
+            if (!this.options.per_page) this.options.per_page = 10000;
             this.pg = 0;
             const count = await jxphelper.count(this.instructions.collection, this.options);
-            console.log({ count });
+            this.options.limit = this.options.per_page;
+            console.log(this.options);
             const pages = Math.ceil(count / this.options.per_page);
             for (let page = 0; page < pages; page++) {
                 const complete = page * this.options.per_page;
@@ -28,10 +29,7 @@ class Get extends Action {
                 const perc = complete / count * 100;
                 console.log({pages, page, complete, to_go, perc});
                 this.options.page = page;
-                console.log(this.options);
                 this.data = (await jxphelper.get(this.instructions.collection, this.options)).data;
-                console.log(this.data);
-                console.log({ length_before: this.data.length });
                 if (this.instructions.parse) {
                     this.log("Parsing", this.index);
                     this.data = await this.instructions.parse(this);
