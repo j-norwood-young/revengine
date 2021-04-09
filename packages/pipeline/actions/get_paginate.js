@@ -29,8 +29,8 @@ class Get extends Action {
                 console.log({pages, page, complete, to_go, perc});
                 this.options.page = page;
                 console.log(this.options);
-                this.data = await jxphelper.get(this.instructions.collection, this.options);
-                console.log(this.data.length);
+                this.data = (await jxphelper.get(this.instructions.collection, this.options)).data;
+                console.log({ length_before: this.data.length });
                 if (this.instructions.parse) {
                     this.log("Parsing", this.index);
                     this.data = await this.instructions.parse(this);
@@ -52,7 +52,7 @@ class Get extends Action {
                     this.global_data = this.data;
                     this.data = tmp;
                 }
-                console.log(this.data.length);
+                console.log({ length_after: this.data.length });
                 const result = await this.next(this.data, this.global_data);
                 console.log(result);
             }
