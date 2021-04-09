@@ -30,6 +30,7 @@ class Get extends Action {
                 this.options.page = page;
                 console.log(this.options);
                 this.data = (await jxphelper.get(this.instructions.collection, this.options)).data;
+                console.log(this.data);
                 console.log({ length_before: this.data.length });
                 if (this.instructions.parse) {
                     this.log("Parsing", this.index);
