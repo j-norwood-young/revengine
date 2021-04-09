@@ -19,13 +19,13 @@ class Get extends Action {
             this.options = this.instructions.options || {};
             if (!this.options.per_page) this.options.per_page = 1000;
             this.pg = 0;
-            const count = await jxphelper.count(this.instructions.collection, this.options);
+            const count = (await jxphelper.count(this.instructions.collection, this.options)).count;
             const pages = Math.ceil(count / this.options.per_page);
             for (let page = 0; page < pages; page++) {
                 const complete = page * this.options.per_page;
                 const to_go = count - complete;
                 const perc = complete / count * 100;
-                console.log(page, complete, to_go, perc);
+                console.log({pages, page, complete, to_go, perc});
                 this.options.pg = page;
                 this.data = await jxphelper.get(this.instructions.collection, this.options);
                 if (this.instructions.parse) {
