@@ -27,7 +27,8 @@ class Get extends Action {
                 const to_go = count - complete;
                 const perc = complete / count * 100;
                 console.log({pages, page, complete, to_go, perc});
-                this.options.pg = page;
+                this.options.page = page;
+                console.log(this.options);
                 this.data = await jxphelper.get(this.instructions.collection, this.options);
                 if (this.instructions.parse) {
                     this.log("Parsing", this.index);
