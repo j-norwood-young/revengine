@@ -20,6 +20,7 @@ class Get extends Action {
             if (!this.options.per_page) this.options.per_page = 1000;
             this.pg = 0;
             const count = (await jxphelper.count(this.instructions.collection, this.options)).count;
+            console.log({ count });
             const pages = Math.ceil(count / this.options.per_page);
             for (let page = 0; page < pages; page++) {
                 const complete = page * this.options.per_page;
