@@ -50,7 +50,8 @@ class Get extends Action {
                     this.global_data = this.data;
                     this.data = tmp;
                 }
-                await this.next(this.data, this.global_data);
+                const result = await this.next(this.data, this.global_data);
+                console.log(result);
             }
             return [];
         } catch (err) {
