@@ -17,7 +17,7 @@ class Get extends Action {
         try {
             const tmp = _.cloneDeep(this.data);
             this.options = this.instructions.options || {};
-            if (!this.options.per_page) this.options.per_page = 10000;
+            if (!this.options.per_page) this.options.per_page = 1000;
             this.pg = 0;
             const count = await jxphelper.count(this.instructions.collection, this.options);
             this.options.limit = this.options.per_page;
