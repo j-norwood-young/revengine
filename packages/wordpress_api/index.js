@@ -143,12 +143,17 @@ server.get("/top_articles_by_section/:section", async (req, res) => {
 })
 
 server.get("/reader/:wordpress_id", async (req, res) => {
-    const wordpress_id = req.params.wordpress_id;
-    const reader = (await jxphelper.get("reader", { "filter[wordpress_id]": wordpress_id })).data.pop();
-    if (!reader) {
-        return res.send(404, { status: "error", message: "Reader not found"});
+    try {
+        const wordpress_id = req.params.wordpress_id;
+        const reader = (await jxphelper.get("reader", { "filter[wordpress_id]": wordpress_id, "populate[segment]": "code", "fields": "segmentation_id" })).data.pop();
+        if (!reader) {
+            return res.send(404, { status: "error", message: "Reader not found"});
+        }
+        res.send({ status: "ok", data: { segments: reader.segment.map(segment => segment.code), labels: reader.lbl, authors: reader.authors, sections: reader.sections }});
+    } catch(err) {
+        console.error(err);
+        res.send({ status: "error" });
     }
-    res.send({ status: "ok", data: { labels: reader.labels, authors: reader.authors, sections: reader.sections }});
 })
 
 server.listen(config.wordpress.port, () => {
