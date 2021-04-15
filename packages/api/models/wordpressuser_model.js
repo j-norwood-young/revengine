@@ -36,7 +36,9 @@ const WordpressUserSchema = new JXPSchema({
     "dm-ad-free-toggle": Boolean,
     "last_update": Date,
     "paying_customer": Boolean,
-    "billing_phone": String
+    "billing_phone": String,
+    "cc_expiry_date": String,
+    "cc_last4_digits": String,
 },
 {
     perms: {
