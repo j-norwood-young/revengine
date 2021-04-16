@@ -203,6 +203,16 @@ router.get("/list/labels", async (req, res) => {
     }
 })
 
+router.get("/list/segments", async (req, res) => {
+    try {
+        const segments = (await req.apihelper.get("segmentation", { "sort[name]": 1 })).data;
+        res.send(segments);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({ error: err });
+    }
+})
+
 router.get("/list/sections", async (req, res) => {
     try {
         const pipeline = [

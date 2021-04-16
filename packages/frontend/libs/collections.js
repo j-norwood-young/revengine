@@ -222,6 +222,19 @@ class Collections {
                             });
                         }
                     },
+                    {
+                        name: "Segments",
+                        field: "segmentation_id",
+                        multiple: true,
+                        options: async () => {
+                            return (await $.get(`/reader/list/segments`)).map(segment => {
+                                return {
+                                    _id: segment._id,
+                                    name: segment.name
+                                }
+                            });
+                        }
+                    },
                     // {
                     //     name: "Recency",
                     //     field: "recency_score",
