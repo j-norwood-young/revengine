@@ -82,6 +82,10 @@ const ReaderSchema = new JXPSchema({
     // Uber Code Overrides
     uber_code_override: { type: String, enum: ['send', 'withhold', 'auto'], default: "auto", index: true },
     
+    // Credit Cards
+    cc_expiry_date: Date,
+    cc_last4_digits: String,
+    
     _owner_id: ObjectId
 },
 {
