@@ -37,7 +37,7 @@ const WordpressUserSchema = new JXPSchema({
     "last_update": Date,
     "paying_customer": Boolean,
     "billing_phone": String,
-    "cc_expiry_date": String,
+    "cc_expiry_date": Date,
     "cc_last4_digits": String,
 },
 {
