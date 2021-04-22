@@ -28,6 +28,8 @@ const ReaderSchema = new JXPSchema({
     paying_customer: Boolean,
 
     wordpress_id: { type: Number, index: true },
+    test_wordpress_id: { type: Number, index: true }, // To be deprecated after testing
+
     remp_beam_id: Number,
 
     user_registered_on_wordpress: Date,
