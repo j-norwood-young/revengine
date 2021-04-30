@@ -5,9 +5,9 @@ block content
         h1= `${reader.display_name}`
         .row.mb-2 
             .col-sm-12 
-                h3
+                p
                     each label in reader.labels 
-                            .badge.badge-secondary.badge-pill.mr-3= label
+                            .badge.badge-primary.badge-pill.mr-1= label
         .row
             .col-sm-6.col-md-4
                 .card
@@ -31,9 +31,9 @@ block content
                 .col-sm-6.col-md-4
                     .card
                         .card-body
-                            h1.card-title RFV
+                            h3.card-title RFV
                             if (reader.recency)
-                                h2.card-title Recency
+                                h4.card-title Recency
                                 p.card-text
                                     strong Last visit 
                                     | #{ moment(reader.recency.timestamp).format("YYYY-MM-DD HH:mm:ss") } (#{ reader.recency.from_now } ago)
@@ -41,7 +41,7 @@ block content
                                     strong Score 
                                     | #{ reader.recency.score }
                             if (reader.frequency)
-                                h2.card-title Frequency
+                                h4.card-title Frequency
                                 p.card-text
                                     strong Count 
                                     | #{ reader.frequency.count }
@@ -49,13 +49,23 @@ block content
                                     strong Score 
                                     | #{ reader.frequency.score } 
                             if (reader.value)
-                                h2.card-title Value
+                                h4.card-title Value
                                 p.card-text
                                     strong Value 
                                     | #{ reader.value.value }
                                 p.card-text
                                     strong Score 
                                     | #{ reader.value.score } 
+            .col-sm-6.col-md-4
+                .card
+                    .card-body
+                        h3.card-title Customise
+                        .form-group
+                            label Send Uber code?
+                            select#send_uber_code.form-control
+                                option(value="auto" selected=(reader.uber_code_override == "auto")) Auto
+                                option(value="send" selected=(reader.uber_code_override == "send")) Always Send
+                                option(value="withhold" selected=(reader.uber_code_override == "withhold")) Never Send
         hr
         if (reader.woocommerce_subscription && reader.woocommerce_subscription[0])
             .row
@@ -226,4 +236,6 @@ block content
     //-         const charts = new Charts();
     //-         beam.drawCharts(beamdata);
     //-     })
-        
+block scripts
+    script.
+        const reader_id = "#{reader._id}";

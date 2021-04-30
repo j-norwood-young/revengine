@@ -44,3 +44,6 @@ const search = new Search();
 
 const Progressbar = require("./libs/progress_bar");
 const progressbar = new Progressbar();
+
+const ReaderView = require("./reader/reader_view");
+const reader_view = new ReaderView();
