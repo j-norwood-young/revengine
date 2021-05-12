@@ -5,13 +5,13 @@ const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env
 const moment = require("moment-timezone");
 moment.tz.setDefault(config.timezone || "UTC");
 
-const TopNewsletterSubscribers = async (days = 30, min_hits = 10, source = "touchbaseevent-clicks") => {
+const TopNewsletterSubscribers = async (days = 30, min_hits = 10, event = "clicks") => {
     const from_date = moment();
     from_date.subtract(days, "days");
     const query = [
         { 
             "$match": {
-                "source": source,
+                "event": event,
                 "timestamp": {
                     $gte: `new Date(\"${from_date.toISOString()}\")`
                 }
@@ -22,7 +22,7 @@ const TopNewsletterSubscribers = async (days = 30, min_hits = 10, source = "touc
         // },
         {
             "$group": {
-                "_id": { "email": "$email" },
+                "_id": { "email": { "$toLower": "$email" } },
                 "hit": { "$first": "$$ROOT" },
                 "count": { "$sum": 1 }
             }
@@ -35,8 +35,8 @@ const TopNewsletterSubscribers = async (days = 30, min_hits = 10, source = "touc
         {
             "$lookup": {
                 "from": "readers",
-                "localField": "hit.reader_id",
-                "foreignField": "_id",
+                "localField": "_id.email",
+                "foreignField": "email",
                 "as": "reader"
             }
         },
@@ -45,9 +45,11 @@ const TopNewsletterSubscribers = async (days = 30, min_hits = 10, source = "touc
         },
         {
             "$project": {
-                "_id": "$_id.email",
+                "email": "$_id.email",
                 "count": 1,
-                "wordpress_id": "$reader.wordpress_id"
+                "wordpress_id": "$reader.wordpress_id",
+                "wordpress_link": { "$concat": [ "https://www.dailymaverick.co.za/wp-admin/user-edit.php?user_id=", { "$toString": "$reader.wordpress_id" } ] },
+                "revengine_link": { "$concat": [ `${config.frontend.url}reader/view/`, { "$toString": "$reader._id" } ] }
             }
         },
         {
@@ -56,7 +58,7 @@ const TopNewsletterSubscribers = async (days = 30, min_hits = 10, source = "touc
             }
         }
     ];
-    const result = await jxphelper.aggregate("hit", query,  { allowDiskUse: true });
+    const result = await jxphelper.aggregate("touchbaseevent", query,  { allowDiskUse: true });
 
     return result;
 }

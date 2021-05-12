@@ -28,16 +28,16 @@ router.post("/top_newsletter_subscribers", async (req, res) => {
     try {
         const days = Number(req.body.days) || 30;
         const min = Number(req.body.min) || 10;
-        const event = req.body.event || "touchbaseevent-clicks";
+        const event = req.body.event || "clicks";
         const with_subscriptions = req.body.with_subscriptions === "on" || false;
-        console.log({ days, min, event, with_subscriptions });
+        // console.log({ days, min, event, with_subscriptions });
         let results = null;
         if (with_subscriptions) {
             results = await Reports.NewsletterSubscribers.TopNewsletterSubscribersWithSubscriptions(days, min, event);
         } else {
             results = await Reports.NewsletterSubscribers.TopNewsletterSubscribers(days, min, event);
         }
-        console.log(JSON.stringify(results.data.slice(0,10), null, "\t"));
+        // console.log(JSON.stringify(results.data.slice(0,10), null, "\t"));
         const csv = await jsonexport(results.data);
         res.attachment(`revengine_report-top_newsletter_subscribers-days_${days}-min_${min}-event_${event}${ with_subscriptions ? '-with_subscriptions' : '' }-${moment().format("YYYYMMDDHHmmss")}.csv`);
         res.send(csv);
