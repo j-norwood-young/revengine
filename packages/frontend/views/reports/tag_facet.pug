@@ -7,5 +7,8 @@ block content
             .form-group
                 label Facet readers by tag
                 input#valid_to.form-control.tag_typeahead(type="tag", name="tag")
+            .form-check.mb-2 
+                    input#csv.form-check-input(type="checkbox", name="csv")
+                    label.form-check-label Download CSV 
             .form-group
                 input.btn.btn-primary(type="submit", value="Submit")

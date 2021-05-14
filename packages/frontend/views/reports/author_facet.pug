@@ -9,5 +9,8 @@ block content
                 select#author.form-control(name="author")
                     each author in authors
                         option= author
+            .form-check.mb-2 
+                    input#csv.form-check-input(type="checkbox", name="csv")
+                    label.form-check-label Download CSV 
             .form-group
                 input.btn.btn-primary(type="submit", value="Submit")

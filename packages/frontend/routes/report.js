@@ -40,7 +40,13 @@ router.post("/facet/author", async (req, res) => {
             const reader = (await req.apihelper.get("reader", { "filter[wordpress_id]": result.wordpress_id, "fields": "id,display_name,first_name,last_name,email"})).data[0];
             readers.push(Object.assign(result, reader));
         }
-        res.render("reports/reader_facet_result", { title: `Author ${author}'s readers `, readers });
+        if (req.body.csv) {
+            const csv = await jsonexport(readers);
+            res.attachment(`revengine_report-reader-facet-author-${author}-${moment().format("YYYYMMDDHHmmss")}.csv`);
+            res.send(csv);
+        } else {
+            res.render("reports/reader_facet_result", { title: `Author ${author}'s readers `, readers });
+        }
     } catch(err) {
         console.error(err);
         res.status(500).send(err);
@@ -79,7 +85,13 @@ router.post("/facet/tag", async (req, res) => {
             const reader = (await req.apihelper.get("reader", { "filter[wordpress_id]": result.wordpress_id, "fields": "id,display_name,first_name,last_name,email"})).data[0];
             readers.push(Object.assign(result, reader));
         }
-        res.render("reports/reader_facet_result", { title: `Tag ${tag}'s readers `, readers });
+        if (req.body.csv) {
+            const csv = await jsonexport(readers);
+            res.attachment(`revengine_report-reader-facet-tag-${tag}-${moment().format("YYYYMMDDHHmmss")}.csv`);
+            res.send(csv);
+        } else {
+            res.render("reports/reader_facet_result", { title: `Tag ${tag}'s readers `, readers });
+        }
     } catch(err) {
         console.error(err);
         res.status(500).send(err);
