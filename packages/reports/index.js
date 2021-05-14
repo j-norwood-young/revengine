@@ -234,5 +234,6 @@ module.exports = {
     TopLastPeriod: require("./libs/top_last_period"),
     Hits24H: require("./libs/hits_24h"),
     Newsletter: require("./libs/newsletter"),
-    NewsletterSubscribers: require("./libs/top_newsletter_subscribers") 
+    NewsletterSubscribers: require("./libs/top_newsletter_subscribers"),
+    Facets: require("./libs/facets"),
 };

@@ -1,0 +1,22 @@
+extends ../layout
+
+block content
+    .container
+        h2= title
+        table.table.table-striped 
+            thead 
+                tr 
+                    th Email 
+                    th First Name 
+                    th Last Name 
+                    th Count 
+                    th Quantile Rank
+            tbody 
+                each reader in readers 
+                    tr 
+                        td
+                            a(href=`/reader/view/${reader._id}`)= reader.email 
+                        td= reader.first_name 
+                        td= reader.last_name 
+                        td= reader.count 
+                        td= reader.quantile_rank.toFixed(1)

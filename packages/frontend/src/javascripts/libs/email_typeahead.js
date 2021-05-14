@@ -13,9 +13,26 @@ const email_matcher = new Bloodhound({
                     id: d.id
                 }
             });
-            console.log(result);
             return result;
         }
+    }
+})
+
+const tag_matcher = new Bloodhound({
+    datumTokenizer: Bloodhound.tokenizers.whitespace,
+    queryTokenizer: Bloodhound.tokenizers.whitespace,
+    remote: {
+        url: `/report/typeahead/tag/%QUERY`,
+        wildcard: '%QUERY',
+        // filter: function (data) {
+        //     const result = data.data.map(d => {
+        //         return {
+        //             name: d,
+        //             id: d.id
+        //         }
+        //     });
+        //     return result;
+        // }
     }
 })
 
@@ -29,9 +46,21 @@ document.addEventListener("DOMContentLoaded", async e => {
     {
         name: "email",
         displayKey: function(email) {
-            console.log({ email });
             return email.name;        
         },
         source: email_matcher
+    });
+
+    $(".tag_typeahead").typeahead({
+        // hint: true,
+        // highlight: true,
+        minLength: 4,
+    },
+    {
+        name: "tag",
+        displayKey: function(tag) {
+            return tag;        
+        },
+        source: tag_matcher
     })
 });

@@ -1,0 +1,13 @@
+extends ../layout
+
+block content
+    .container
+        h2 Authors
+        form(method="POST")
+            .form-group
+                label Facet readers by author
+                select#author.form-control(name="author")
+                    each author in authors
+                        option= author
+            .form-group
+                input.btn.btn-primary(type="submit", value="Submit")
