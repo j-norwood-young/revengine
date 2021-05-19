@@ -18,6 +18,10 @@ router.get("/newsletter_subscribers", (req, res) => {
     res.render("reports/newsletter_subscribers");
 })
 
+router.get("/membership", (req, res) => {
+    res.render("reports/membership_report");
+})
+
 router.get("/facet/author", async (req, res) => {
     const author_query = [
         { $group: { _id: { author: '$author' } } },
