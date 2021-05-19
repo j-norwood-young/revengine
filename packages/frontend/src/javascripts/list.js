@@ -128,6 +128,12 @@ class List {
         $(document).on("change", ".list-filter", e => {
             let el = $(e.currentTarget);
             const field = el.data("field");
+            if (el.val()[0] === "*") {
+                delete(self.filters[field]);
+                self.clear();
+                self.loadData();
+                return;
+            }
             if (!self.filters[field]) self.filters[field] = {
                 "$all": []
             };
