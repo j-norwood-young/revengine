@@ -57,7 +57,7 @@ router.post("/facet/author", async (req, res) => {
             const reader = (await req.apihelper.get("reader", { "filter[wordpress_id]": result.wordpress_id, "fields": "id,display_name,first_name,last_name,email"})).data[0];
             readers.push(Object.assign(result, reader));
         }
-        if (req.body.csv) {
+        if (req.body.csv === "csv") {
             const csv = await jsonexport(readers);
             res.attachment(`revengine_report-reader-facet-author-${author}-${moment().format("YYYYMMDDHHmmss")}.csv`);
             res.send(csv);
@@ -102,7 +102,7 @@ router.post("/facet/tag", async (req, res) => {
             const reader = (await req.apihelper.get("reader", { "filter[wordpress_id]": result.wordpress_id, "fields": "id,display_name,first_name,last_name,email"})).data[0];
             readers.push(Object.assign(result, reader));
         }
-        if (req.body.csv) {
+        if (req.body.csv === "csv") {
             const csv = await jsonexport(readers);
             res.attachment(`revengine_report-reader-facet-tag-${tag}-${moment().format("YYYYMMDDHHmmss")}.csv`);
             res.send(csv);
