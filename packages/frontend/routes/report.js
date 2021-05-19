@@ -22,6 +22,19 @@ router.get("/membership", (req, res) => {
     res.render("reports/membership_report");
 })
 
+router.get("/frequency", async (req, res) => {
+    try {
+        console.time("frequency");
+        const rfv = new Reports.RFV();
+        const frequency = await rfv.calculate_frequencies();
+        res.send(frequency.slice(0, 100));
+        console.timeEnd("frequency");
+    } catch(err) {
+        console.error(err);
+        res.send(err);
+    }
+})
+
 router.get("/facet/author", async (req, res) => {
     const author_query = [
         { $group: { _id: { author: '$author' } } },

@@ -5,6 +5,7 @@ require("dotenv").config();
 const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
 const moment = require("moment-timezone");
 moment.tz.setDefault(config.timezone || "UTC");
+const ss = require("simple-statistics");
 
 const calc_recency_score = last_hit => {
     const now = moment();
@@ -72,67 +73,88 @@ const calc_monetary_value_score = value => {
     return score;
 }
 
-const RFV = async () => {
-    const rv_pipeline = [
-        {
-            $group: {
-                _id: { email: "$email" },
-                last: { $last: "$timestamp" },
-                count: { $sum: 1 }
-            }
-        }
-    ]
-    const rv_hits = (await jxphelper.aggregate("hit", rv_pipeline)).data;
-    const twomonth = new Date();
-    twomonth.setDate(twomonth.getDate() - 60);
-    twomonth_str = twomonth.toISOString();
-    // We should limit the timestamp to last x months
-    const f_pipeline = [
-        { 
-            $match: {
-                "hit_date": {
-                    $gte: `new Date(\"${twomonth.toISOString()}\")`
+class RFV {
+    constructor() {
+        const d30_date = new Date();
+        d30_date.setDate(d30_date.getDate() - 30);
+        this.d30 = d30_date.toISOString();
+    }
+
+    async calculate_frequencies() {
+        const f_pipeline = [
+            { 
+                $match: {
+                    "timestamp": {
+                        $gte: `new Date(\"${this.d30}\")`
+                    },
+                    "event": "clicks",
+                }
+            },
+            {
+                $match: {
+                    "url": {
+                        "$regex": "dailymaverick.co.za"
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: { email: "$email" },
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $project: {
+                    "email": "$_id.email",
+                    "count": 1,
+                    "_id": false
                 }
             }
-        },
-        {
-            $sort: {
-                email: 1
-            }
-        },
-        {
-            $group: {
-                _id: { email: "$email", dow: { $dayOfWeek: "$timestamp" } },
-            }
-        },
-        {
-            $group: {
-                _id: "$_id.email",
-                dow: { $push: "$_id.dow" },
-                count: { $sum: 1 }
-            }
+        ]
+        const frequency_result = (await jxphelper.aggregate("touchbaseevent", f_pipeline)).data;
+        frequency_result.sort((a, b) => b.count - a.count);
+        const values = frequency_result.map(a => a.count).sort((a, b) => a-b);
+        for (let frequency of frequency_result) {
+            frequency.email = frequency.email.toLowerCase();
+            frequency.quantile_rank = ss.quantileRankSorted(values, frequency.count)
         }
-    ]
-    const f_hits = (await jxphelper.aggregate("hit", f_pipeline)).data;
-    const readers = [];
-    for (let hit of rv_hits) {
-        if (!hit._id.email) continue;
-        const reader = { email: hit._id.email };
-        if (hit.reader_id) reader._id = hit.reader_id;
-        reader.recency_score = calc_recency_score(hit.last);
-        reader.recency = hit.last;
-        reader.volume_score = calc_volume_score(hit.count);
-        reader.volume = hit.count;
-        reader.frequency_score = 0;
-        reader.frequency = 0;
-        const f_hit = f_hits.find(f_hit => f_hit._id === hit._id.email);
-        if (f_hit) {
-            reader.frequency_score = calc_frequency_score(f_hit.count);
-            reader.frequency = f_hit.count;
-        }
-        readers.push(reader);
+        return frequency_result;
     }
-    return readers;
+    // const rv_pipeline = [
+    //     {
+    //         $group: {
+    //             _id: { email: "$email" },
+    //             last: { $last: "$timestamp" },
+    //             count: { $sum: 1 }
+    //         }
+    //     }
+    // ]
+    // const rv_hits = (await jxphelper.aggregate("hit", rv_pipeline)).data;
+    // const onemonth = new Date();
+    // onemonth.setDate(onemonth.getDate() - 60);
+    // onemonth_str = onemonth.toISOString();
+    // // We should limit the timestamp to last x months
+    
+    // const f_hits = (await jxphelper.aggregate("hit", f_pipeline)).data;
+    // const readers = [];
+    // for (let hit of rv_hits) {
+    //     if (!hit._id.email) continue;
+    //     const reader = { email: hit._id.email };
+    //     if (hit.reader_id) reader._id = hit.reader_id;
+    //     reader.recency_score = calc_recency_score(hit.last);
+    //     reader.recency = hit.last;
+    //     reader.volume_score = calc_volume_score(hit.count);
+    //     reader.volume = hit.count;
+    //     reader.frequency_score = 0;
+    //     reader.frequency = 0;
+    //     const f_hit = f_hits.find(f_hit => f_hit._id === hit._id.email);
+    //     if (f_hit) {
+    //         reader.frequency_score = calc_frequency_score(f_hit.count);
+    //         reader.frequency = f_hit.count;
+    //     }
+    //     readers.push(reader);
+    // }
+    // return readers;
 }
 
 module.exports = RFV;

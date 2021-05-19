@@ -87,6 +87,11 @@ const ReaderSchema = new JXPSchema({
     // Credit Cards
     cc_expiry_date: Date,
     cc_last4_digits: String,
+
+    //RFV
+    frequency_quantile_rank: Number,
+    recency_quantile_rank: Number,
+    volume_quantile_rank: Number,
     
     _owner_id: ObjectId
 },

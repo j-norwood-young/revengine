@@ -4,6 +4,7 @@ const moment = require("moment");
 const JXPHelper = require('jxp-helper');
 const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
 const fix_query = require("jxp/libs/query_manipulation").fix_query;
+const ss = require("simple-statistics");
 
 const LabelSchema = new JXPSchema({
     name: { type: String, unique: true },
@@ -40,7 +41,7 @@ const applyLabel = async function (label) {
         if (!label.rules) return;
         if (label.fn) {
             const fn = new Function(label.fn);
-            const data = (await fn()({ jxphelper, moment })).data;
+            const data = (await fn()({ jxphelper, moment, ss })).data;
             const post_data = data.map(d => {
                 const _id = d._id;
                 delete(d._id);
