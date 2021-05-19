@@ -41,6 +41,9 @@ class TopLastPeriod {
                                         "field": "article_id"
                                     }
                                 },
+                                
+                            ],
+                            "filter": [
                                 {
                                     "range": {
                                         "time": {
@@ -72,9 +75,11 @@ class TopLastPeriod {
             }
             if (opts.author) {
                 query.body.query.bool.must.push({
-                    "match": {
-                        author: opts.author
-                    }
+                    // "match": { 
+                        "term": {
+                            "author": opts.author
+                        }
+                    // }
                 })
             }
             if (opts.tag) {
