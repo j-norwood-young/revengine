@@ -14,8 +14,9 @@ server.use(apicache.middleware("5 minutes"));
 server.get("/top_articles/:period", async (req, res) => {
     try {
         const report = new Reports.TopLastPeriod();
-        const size = +req.query.size || 5;
-        const top_articles = await report.run({ size, period: req.params.period });
+        const params = Object.assign({ size: 5 }, req.params, req.query);
+        // console.log(params);
+        const top_articles = await report.run(params);
         const articles = (await jxphelper.aggregate("article", [
             {
                 $match: {

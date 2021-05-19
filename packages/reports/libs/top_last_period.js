@@ -11,6 +11,7 @@ class TopLastPeriod {
     async run(opts) {
         try {
             const periods = {
+                hour: "now-1h/h",
                 day: "now-1d/d",
                 week: "now-1w/w",
                 month: "now-1M/M",
@@ -21,11 +22,13 @@ class TopLastPeriod {
                 size: 40,
                 article_id: null,
                 section: null,
+                author: null,
+                tag: null,
                 period: "week"
             }, opts);
             if (!periods[opts.period]) throw `Unknown period. Choose from ${ Object.keys(periods).join(", ")}`;
-            const size = opts.size + 2;
-            console.log(periods[opts.period]);
+            const size = Number(opts.size) + 2;
+            // console.log(opts);
             const query = {
                 index: "pageviews_copy",
                 body: {
@@ -67,6 +70,20 @@ class TopLastPeriod {
                     }
                 })
             }
+            if (opts.author) {
+                query.body.query.bool.must.push({
+                    "match": {
+                        author: opts.author
+                    }
+                })
+            }
+            if (opts.tag) {
+                query.body.query.bool.must.push({
+                    "match": {
+                        tags: opts.tag
+                    }
+                })
+            }
             if (opts.section) {
                 query.body.query.bool.must.push({
                     "match": {
@@ -74,8 +91,9 @@ class TopLastPeriod {
                     }
                 })
             }
+            // console.log(JSON.stringify(query, null, "\t"));
             const result = (await esclient.search(query)).aggregations.result.buckets.sort((a, b) => b.doc_count - a.doc_count).slice(0, size - 1);
-            console.log(result);
+            // console.log(result);
             return result;
         } catch(err) {
             return Promise.reject(err);
