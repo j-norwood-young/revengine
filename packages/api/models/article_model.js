@@ -13,6 +13,7 @@ const ArticleSchema = new JXPSchema({
     tags: [ String ],
     sections: [ String ],
     img_thumbnail: String,
+    img_medium: String,
     img_full: String,
     hits: [ Mixed ],
 },
