@@ -69,7 +69,10 @@ server.get("/top_articles", async (req, res) => {
                     sections: 1,
                     tags: 1,
                     date_published: 1,
-                    date_modified: 1
+                    date_modified: 1,
+                    img_thumbnail: 1,
+                    img_medium: 1,
+                    img_full: 1
                 }
             }
         ])).data;
