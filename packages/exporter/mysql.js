@@ -266,7 +266,11 @@ const saveRecords = new Stream.Writable({
         try {
             const sql = chunk.toString();
             // console.log({ sql });
-            const result = await query(connection, sql);
+            try {
+                const result = await query(connection, sql);
+            } catch(err) {
+                console.error(err);
+            }
             // console.log(result);
             bar1.increment();
             callback();
