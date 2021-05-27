@@ -94,6 +94,21 @@ const defs = [
         }
     },
     {
+        collection: "device",
+        table: "devices",
+        relationships: {
+            uid: d => d._id,
+            reader_id: d => d.wordpress_id,
+            browser: d => d.browser,
+            browser_version: d => d.browser_version,
+            os: d => d.os,
+            os_version: d => d.os_version,
+            platform: d => d.platform,
+            count: d => d.count,
+            date_updated: d => format_date(d.updatedAt),
+        }
+    },
+    {
         collection: "woocommerce_subscription",
         table: "woocommerce_subscriptions",
         relationships: {
