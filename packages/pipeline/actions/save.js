@@ -16,7 +16,12 @@ class Save extends Action {
         try {
             if (Array.isArray(this.data)) {
                 const resolved_data = await Promise.all(this.data);
-                let result = await jxphelper.bulk_postput(this.instructions.collection, this.instructions.key, resolved_data);
+                let result = [];
+                const pages = Math.ceil(resolved_data.length / 1000);
+                for(let x = 0; x < pages; x++) {
+                    // console.log(x, "/", pages, resolved_data.length);
+                    result.push(await jxphelper.bulk_postput(this.instructions.collection, this.instructions.key, resolved_data.splice(0, 1000)));
+                }
                 return [result];
             } else {
                 const resolved_data = await Promise.resolve(this.data);
