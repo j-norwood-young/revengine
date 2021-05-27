@@ -77,7 +77,7 @@ server.get("/top_articles", async (req, res) => {
             article.hits_last_hour = top_articles.find(hit => hit.key === article.post_id).doc_count;
         }
         articles.sort((a, b) => b.hits_last_hour - a.hits_last_hour);
-        res.send(articles);
+        res.send(articles.slice(0, size));
     } catch(err) {
         console.error(err);
         res.send(500, { status: "error", error: err });
