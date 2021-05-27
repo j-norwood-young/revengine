@@ -2,7 +2,7 @@
 
 const DeviceSchema = new JXPSchema({
     reader_id: { type: ObjectId, link: "reader", index: true },
-    wordpress_id: { type: ObjectId, link: "wordpressuser", index: true },
+    wordpress_id: { type: Number, index: true },
     browser: String,
     browser_version: String,
     os: String,
