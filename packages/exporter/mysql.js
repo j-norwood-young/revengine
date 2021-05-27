@@ -298,18 +298,20 @@ const main = async() => {
             limited_defs = defs.filter(def => def.collection === program.collection);
         }
         if (!limited_defs.length) throw `Collection ${program.collection} not found`;
-        // Find time this collection was last updated
+        // Truncate, then Find time this collection was last updated
         for (let def of limited_defs) {
-            def.last_updated = await findLastUpdated(def);
+            if (program.truncate) {
+                await truncate(def);
+                def.last_updated = "1977-01-01";
+            } else {
+                def.last_updated = await findLastUpdated(def);
+            }
         }
         // Populate global articles
         articles = (await apihelper.get("article", { "fields": "_id,urlid" })).data;
         console.log("Found", articles.length, "articles");
         // Calculate total size
         for (let def of limited_defs) {
-            if (program.truncate) {
-                await truncate(def);
-            }
             def.count = await apihelper.count(def.collection, { "filter[updatedAt]": `$gte:${ new Date(def.last_updated) }`});
             max += def.count;
         }
