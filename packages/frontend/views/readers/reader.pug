@@ -144,6 +144,16 @@ block content
                                     |  R#{order.total} #{order.payment_method}
                                     if (order.date_paid)
                                         span.badge.badge-success.ml-1 Paid
+                if (reader.cc_expiry_date)
+                    .col-sm-6.col-md-4.mt-4
+                        .card
+                            .card-body 
+                                h4 Credit Card
+                                p.card-text 
+                                    | xxxx-xxxx-xxxx-#{reader.cc_last4_digits}
+                                p.card-text 
+                                    strong Expires 
+                                    = moment(reader.cc_expiry_date).format("MM/YY")
 
 
             hr
