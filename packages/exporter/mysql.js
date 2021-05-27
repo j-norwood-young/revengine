@@ -98,7 +98,7 @@ const defs = [
         table: "devices",
         relationships: {
             uid: d => d._id,
-            reader_id: d => d.wordpress_id,
+            wordpress_id: d => d.wordpress_id,
             browser: d => d.browser,
             browser_version: d => d.browser_version,
             os: d => d.os,
