@@ -1,6 +1,7 @@
 /* global JXPSchema */
 
 const DeviceSchema = new JXPSchema({
+    uid: { type: String, index: true },
     reader_id: { type: ObjectId, link: "reader", index: true },
     wordpress_id: { type: Number, index: true },
     browser: String,
