@@ -10,7 +10,29 @@ block content
             .badge.badge-primary.mr-1= section
         each tag in article.tags 
             .badge.badge-secondary.mr-1= tag
-        h3.mt-4= article.excerpt
         a(href=homepage + "/article/" + article.urlid target="_blank")
             .fa.fa-link
+        canvas#articleHits
+        h5.mt-4 Total Hits: #{formatNumber(article.hits.reduce((acc, val) => acc + val.count ,0))}
+        hr
+        .flex-horiz.mb-4
+            h3.mt-4= article.excerpt
+            if (article.img_medium)
+                img.ml-4(src=article.img_medium)
         .article-content !{article.content.replace(/\n/g, '<br/>')}
+block scripts
+    script.
+        document.addEventListener("DOMContentLoaded", async (event) => {
+            const beam = new Beam();
+            let article_data = await beam.get("/article/hits/#{article._id}")
+            const charts = new Charts();
+            charts.drawHistogram({
+                element: "#articleHits", 
+                data: article_data, 
+                label: "Hits",
+                key_label: "date",
+                value_label: "count",
+                unit: "day",
+                type: "bar"
+            });
+        })

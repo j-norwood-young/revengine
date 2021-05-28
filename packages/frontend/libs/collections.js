@@ -18,10 +18,20 @@ class Collections {
                 sortby: "date_published",
                 sortdir: -1,
                 fields: [
+                    {
+                        name: "Pic",
+                        d: data => `<img src="${data.img_thumbnail}" width="50" height="50" />`,
+                        list_view
+                    },
                     { name: "Date Published", key: "date_published", d: data => moment(data.date_published).format("YYYY-MM-DD HH:mm"), list_view },
                     { name: "Headline", key: "title", d: data => `<a href="/article/view/${data._id}">${data.title}</a>`, list_view },
                     { name: "Link", key: "url", d: data => `<a href="https://www.dailymaverick.co.za/article/${data.urlid}" target="_blank"><i class="fa fa-link"></i></a>` || "", list_view },
                     { name: "Author", key: "author", d: data => data.author || "", list_view },
+                    {
+                        name: "Hits",
+                        d: data => formatNumber(data.hits.reduce((acc, o) => acc + o.count, 0)),
+                        list_view
+                    },
                     { name: "Sentiment", d: data => nlp.sentiment(data.content).sentiment, list_view }
                     // { name: "Sections", key: "sections", d: data => data.sections || "", list_view },
                 ],

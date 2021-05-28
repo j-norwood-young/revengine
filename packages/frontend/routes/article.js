@@ -28,4 +28,15 @@ router.get("/view/:article_id", async(req, res) => {
     res.render("article/view", { article, homepage: config.wordpress.homepage, sentiment });
 })
 
+router.get("/hits/:article_id", async(req, res) => {
+    try {
+        const article = (await req.apihelper.getOne("article", req.params.article_id)).data;
+        console.log(article);
+        res.send(article.hits.filter(day => (day.count)));
+    } catch(err) {
+        console.error(err);
+        res.send(err);
+    }
+})
+
 module.exports = router;
