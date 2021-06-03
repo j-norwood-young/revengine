@@ -3,6 +3,7 @@
     "api_name": "dailymaverick-revengine",
     "debug": true,
     "timezone": "SAST",
+    "cors_origins": ["https://dev.dailymaverick.co.za", "https://dailymaverick.co.za", "https://www.dailymaverick.co.za", "http://local.dailymaverick.com"],
     "api": {
         "port": 3002,
         "server": "http://revengine.dailymaverick.co.za:3002",

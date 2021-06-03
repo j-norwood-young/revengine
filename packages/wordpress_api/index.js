@@ -1,4 +1,5 @@
 const restify = require("restify");
+const Cors = require("restify-cors-middleware");
 const config = require("config");
 const Reports = require("@revengine/reports");
 const JXPHelper = require("jxp-helper");
@@ -10,6 +11,11 @@ const server = restify.createServer();
 
 server.use(restify.plugins.queryParser());
 server.use(apicache.middleware("5 minutes"));
+const cors = Cors({
+    origins: config.cors_origins || ["*"],
+});
+server.pre(cors.preflight);
+server.use(cors.actual);
 
 server.get("/top_articles/:period", async (req, res) => {
     try {
@@ -33,7 +39,10 @@ server.get("/top_articles/:period", async (req, res) => {
                     sections: 1,
                     tags: 1,
                     date_published: 1,
-                    date_modified: 1
+                    date_modified: 1,
+                    img_thumbnail: 1,
+                    img_medium: 1,
+                    img_full: 1
                 }
             }
         ])).data;
