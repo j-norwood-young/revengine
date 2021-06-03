@@ -170,10 +170,10 @@ block content
                                     = voucher.vouchertype.name 
                                 p.card-text
                                     strong Valid From 
-                                    = moment(voucher.validfrom).format("YYYY-MM-DD")
+                                    = moment(voucher.valid_from).format("YYYY-MM-DD")
                                 p.card-text
                                     strong Valid To 
-                                    = moment(voucher.validto).format("YYYY-MM-DD")
+                                    = moment(voucher.valid_to).format("YYYY-MM-DD")
                                 p.card-text
                                     strong Code 
                                     = voucher.code
