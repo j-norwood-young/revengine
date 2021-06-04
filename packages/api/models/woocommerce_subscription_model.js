@@ -22,6 +22,13 @@ const Woocommerce_SubscriptionSchema = new JXPSchema({
     suspension_count: Number,
     total: Number,
     meta_data: [ Mixed ],
+    utm_source: String,
+    utm_medium: String,
+    utm_campaign: String,
+    utm_term: String,
+    referral: String,
+    device_type: String,
+    referral_url: String
 },
 {
     perms: {
