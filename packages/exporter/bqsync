@@ -19,3 +19,7 @@ mongoexport -d revengine-prod -c woocommerce_memberships -o ~/data/memberships.c
 mongoexport -d revengine-prod -c articles -o ~/data/articles.csv --type csv --fields id,urlid,author,date_published,date_modified,excerpt,title,type,tags.0,tags.1,tags.2,sections.0,sections.1,sections.2
 
 /usr/bin/bq load --replace --skip_leading_rows=1 --allow_quoted_newlines=1 --source_format=CSV revengine_prod.articles ~/data/articles.csv id:INT64,urlid:STRING,author:STRING,date_published:TIMESTAMP,date_modified:TIMESTAMP,excerpt:STRING,title:STRING,type:STRING,tag_1,tag_2,tag_3,section_1,section_2,section_3
+
+mongoexport -d revengine-prod -c wordpressusers -o ~/data/wordpressusers.csv --type csv --fields id,user_registered,wp_user_level,current_login,last_login,dm-status-user,gender,user_industry,wsl_current_provider,wc_last_active,dm-ad-free-interacted,dm-ad-free-toggle,last_update,paying_customer,cc_expiry_date
+
+/usr/bin/bq load --replace --skip_leading_rows=1 --allow_quoted_newlines=1 --source_format=CSV revengine_prod.wordpressusers ~/data/wordpressusers.csv id:INT64,user_registered:TIMESTAMP,wp_user_level:STRING,current_login:TIMESTAMP,last_login:TIMESTAMP,dm_status_user:INT64,gender:STRING,user_industry:STRING,wsl_current_provider:STRING,wc_last_active:TIMESTAMP,dm_ad_free_interacted:BOOL,dm_ad_free_toggle:BOOL,last_update:TIMESTAMP,paying_customer:BOOL,cc_expiry_date:TIMESTAMP
