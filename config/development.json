@@ -70,6 +70,10 @@
         "port": 3018,
         "server": "http://api.revengine.dailymaverick.co.za:3018"
     },
+    "rfv": {
+        "days": 30,
+        "regex_url": "dailymaverick.co.za"
+    },
     "touchbase": {
         "api": "https://emailapi.touchbasepro.com/api/v3.2",
         "transactional_ids": {

@@ -25,6 +25,9 @@ const TouchbaseEventSchema = new JXPSchema({
 });
 
 TouchbaseEventSchema.index({ email: 1, timestamp: -1 });
+TouchbaseEventSchema.index({ email: 1, campaign_id: 1 });
+TouchbaseEventSchema.index({ email: 1, campaign_id: 1, timestamp: 1 });
+TouchbaseEventSchema.index({ timestamp: -1, event: 1 });
 
 const TouchbaseEvent = JXPSchema.model('touchbaseevent', TouchbaseEventSchema);
 module.exports = TouchbaseEvent;

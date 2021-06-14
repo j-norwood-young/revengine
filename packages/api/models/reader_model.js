@@ -36,17 +36,6 @@ const ReaderSchema = new JXPSchema({
     
     member: Boolean,
     monthly_contribution: Number,
-
-    recency_score: { type: Number, index: true },
-    recency: Date,
-    frequency_score: { type: Number, index: true },
-    frequency: Number,
-    monetary_value_score: { type: Number, index: true },
-    monetary_value: Number, // per month
-    volume_score: { type: Number, index: true },
-    volume: Number,
-    total_lifetime_value_score: { type: Number, index: true },
-    total_lifetime_value: Number,
     
     authors: [{ type: String, index: true }],
     sections: [{ type: String, index: true }],
@@ -89,9 +78,19 @@ const ReaderSchema = new JXPSchema({
     cc_last4_digits: String,
 
     //RFV
-    frequency_quantile_rank: Number,
+    recency_score: { type: Number, index: true },
+    recency: Date,
     recency_quantile_rank: Number,
+    frequency_score: { type: Number, index: true },
+    frequency: Number,
+    frequency_quantile_rank: Number,
+    monetary_value_score: { type: Number, index: true },
+    monetary_value: Number, // per month
+    volume_score: { type: Number, index: true },
+    volume: Number,
     volume_quantile_rank: Number,
+    total_lifetime_value_score: { type: Number, index: true },
+    total_lifetime_value: Number,
     
     _owner_id: ObjectId
 },

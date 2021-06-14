@@ -78,6 +78,9 @@ class RFV {
         const d30_date = new Date();
         d30_date.setDate(d30_date.getDate() - 30);
         this.d30 = d30_date.toISOString();
+        const y1_date = new Date();
+        y1_date.setDate(y1_date.getDate() - 30);
+        this.y1 = y1_date.toISOString();
     }
 
     async calculate_frequencies() {
@@ -120,41 +123,97 @@ class RFV {
         }
         return frequency_result;
     }
-    // const rv_pipeline = [
-    //     {
-    //         $group: {
-    //             _id: { email: "$email" },
-    //             last: { $last: "$timestamp" },
-    //             count: { $sum: 1 }
-    //         }
-    //     }
-    // ]
-    // const rv_hits = (await jxphelper.aggregate("hit", rv_pipeline)).data;
-    // const onemonth = new Date();
-    // onemonth.setDate(onemonth.getDate() - 60);
-    // onemonth_str = onemonth.toISOString();
-    // // We should limit the timestamp to last x months
-    
-    // const f_hits = (await jxphelper.aggregate("hit", f_pipeline)).data;
-    // const readers = [];
-    // for (let hit of rv_hits) {
-    //     if (!hit._id.email) continue;
-    //     const reader = { email: hit._id.email };
-    //     if (hit.reader_id) reader._id = hit.reader_id;
-    //     reader.recency_score = calc_recency_score(hit.last);
-    //     reader.recency = hit.last;
-    //     reader.volume_score = calc_volume_score(hit.count);
-    //     reader.volume = hit.count;
-    //     reader.frequency_score = 0;
-    //     reader.frequency = 0;
-    //     const f_hit = f_hits.find(f_hit => f_hit._id === hit._id.email);
-    //     if (f_hit) {
-    //         reader.frequency_score = calc_frequency_score(f_hit.count);
-    //         reader.frequency = f_hit.count;
-    //     }
-    //     readers.push(reader);
-    // }
-    // return readers;
+
+    async calculate_recencies() {
+        const r_pipeline = [
+            { 
+                $match: {
+                    "timestamp": {
+                        $gte: `new Date(\"${this.y1}\")`
+                    },
+                    "event": "clicks",
+                }
+            },
+            {
+                $match: {
+                    "url": {
+                        "$regex": "dailymaverick.co.za"
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: { email: "$email" },
+                    last_timestamp: { $last: "$timestamp" }
+                }
+            },
+            // {
+            //     $sort: { last_timestamp: -1 }
+            // },
+            {
+                $project: {
+                    "email": "$_id.email",
+                    "last_timestamp": 1,
+                    "_id": false
+                }
+            }
+        ]
+        const recency_result = (await jxphelper.aggregate("touchbaseevent", r_pipeline, { allowDiskUse: true })).data.map(item => {
+            return {
+                email: item.email.toLowerCase(),
+                recency: Math.round((new Date() - new Date(item.last_timestamp)) / (-1000)),
+                last_timestamp: item.last_timestamp
+            }
+        });
+        recency_result.sort((a, b) => a.recency - b.recency)
+        const values = recency_result.map(a => a.recency);
+        console.log(values.length);
+        for (let recency of recency_result) {
+            recency.quantile_rank = ss.quantileRankSorted(values, recency.recency)
+        }
+        return recency_result;
+    }
+
+    async calculate_volumes() {
+        const v_pipeline = [
+            { 
+                $match: {
+                    "timestamp": {
+                        $gte: `new Date(\"${this.d30}\")`
+                    },
+                    "event": "clicks",
+                }
+            },
+            {
+                $match: {
+                    "url": {
+                        "$regex": "dailymaverick.co.za"
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: { email: "$email" },
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $project: {
+                    "email": "$_id.email",
+                    "count": 1,
+                    "_id": false
+                }
+            }
+        ]
+        const volume_result = (await jxphelper.aggregate("touchbaseevent", v_pipeline)).data;
+        volume_result.sort((a, b) => b.count - a.count);
+        const values = volume_result.map(a => a.count).sort((a, b) => a-b);
+        for (let volume of volume_result) {
+            volume.email = volume.email.toLowerCase();
+            volume.quantile_rank = ss.quantileRankSorted(values, volume.count)
+        }
+        return volume_result;
+    }
 }
 
 module.exports = RFV;
