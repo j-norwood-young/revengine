@@ -7,14 +7,15 @@ moment.tz.setDefault(config.timezone || "UTC");
 const ss = require("simple-statistics");
 
 class Recency {
-    constructor() {
-        const start_date = new moment();
-        start_date.subtract(config.rfv.days || 30, "days");
-        this.start_date = start_date.toISOString();
+    constructor(date) {
+        const moment_date = date ? new moment(date) : new moment();
+        this.end_date = moment_date.toISOString();
+        moment_date.subtract(config.rfv.days || 30, "days");
+        this.date = moment_date.toISOString();
     }
 
     calc_recency_score(last_hit) {
-        const now = moment();
+        const now = moment(this.end_date);
         const days = now.diff(last_hit, "days");
         let score = 0;
         if (days < 1) {
@@ -36,7 +37,8 @@ class Recency {
             { 
                 $match: {
                     "timestamp": {
-                        $gte: `new Date(\"${this.start_date}\")`
+                        $gte: `new Date(\"${this.date}\")`,
+                        $lt: `new Date(\"${this.end_date}\")`
                     },
                     "event": "clicks",
                 }
@@ -62,15 +64,19 @@ class Recency {
                 }
             }
         ]
-        console.log(JSON.stringify(r_pipeline, null, "   "))
-        const recency_result = (await jxphelper.aggregate("touchbaseevent", r_pipeline, { allowDiskUse: true })).data.map(item => {
+        // console.log(JSON.stringify(r_pipeline, null, "   "))
+        const recency_result_data = (await jxphelper.aggregate("touchbaseevent", r_pipeline, { allowDiskUse: true })).data;
+        // console.log(recency_result_data.slice(0, 10));
+        const recency_result = recency_result_data.map(item => {
             return {
                 email: item.email.toLowerCase(),
                 recency: item.last_timestamp,
                 recency_val: +new Date(item.last_timestamp),
-                recency_score: this.calc_recency_score(item.last_timestamp)
+                recency_score: this.calc_recency_score(item.last_timestamp),
+                date: this.end_date
             }
         });
+        // console.log(recency_result.slice(0, 10));
         recency_result.sort((a, b) => a.recency_val - b.recency_val);
         const values = recency_result.map(a => a.recency);
         for (let recency of recency_result) {

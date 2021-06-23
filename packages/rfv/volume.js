@@ -7,10 +7,11 @@ moment.tz.setDefault(config.timezone || "UTC");
 const ss = require("simple-statistics");
 
 class Volume {
-    constructor() {
-        const start_date = new moment();
-        start_date.subtract(config.rfv.days || 30, "days");
-        this.start_date = start_date.toISOString();
+    constructor(date) {
+        const moment_date = date ? new moment(date) : new moment();
+        this.end_date = moment_date.toISOString();
+        moment_date.subtract(config.rfv.days || 30, "days");
+        this.date = moment_date.toISOString();
     }
 
     calc_volume_score(vol) {
@@ -34,7 +35,8 @@ class Volume {
             { 
                 $match: {
                     "timestamp": {
-                        $gte: `new Date(\"${this.start_date}\")`
+                        $gte: `new Date(\"${this.date}\")`,
+                        $lt: `new Date(\"${this.end_date}\")`
                     },
                     "event": "opens",
                 }
@@ -58,12 +60,13 @@ class Volume {
                 }
             }
         ]
-        console.log(JSON.stringify(f_pipeline, null, "   "));
+        // console.log(JSON.stringify(f_pipeline, null, "   "));
         const volume_results = (await jxphelper.aggregate("touchbaseevent", f_pipeline, { allowDiskUse: true })).data.map(item => {
             return {
                 email: item.email.toLowerCase(),
                 volume: item.count,
-                volume_score: this.calc_volume_score(item.count)
+                volume_score: this.calc_volume_score(item.count),
+                date: this.end_date
             }
         });
         volume_results.sort((a, b) => a.volume - b.volume);

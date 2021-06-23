@@ -7,10 +7,11 @@ moment.tz.setDefault(config.timezone || "UTC");
 const ss = require("simple-statistics");
 
 class Frequency {
-    constructor() {
-        const start_date = new moment();
-        start_date.subtract(config.rfv.days || 30, "days");
-        this.start_date = start_date.toISOString();
+    constructor(date) {
+        const moment_date = date ? new moment(date) : new moment();
+        this.end_date = moment_date.toISOString();
+        moment_date.subtract(config.rfv.days || 30, "days");
+        this.date = moment_date.toISOString();
     }
 
     calc_frequency_score(freq) {
@@ -34,7 +35,8 @@ class Frequency {
             { 
                 $match: {
                     "timestamp": {
-                        $gte: `new Date(\"${this.start_date}\")`
+                        $gte: `new Date(\"${this.date}\")`,
+                        $lt: `new Date(\"${this.end_date}\")`
                     },
                     // "event": "opens",
                 }
@@ -66,7 +68,8 @@ class Frequency {
             return {
                 email: item.email.toLowerCase(),
                 frequency: item.count,
-                frequency_score: this.calc_frequency_score(item.count)
+                frequency_score: this.calc_frequency_score(item.count),
+                date: this.end_date
             }
         });
         frequency_results.sort((a, b) => a.frequency - b.frequency);
