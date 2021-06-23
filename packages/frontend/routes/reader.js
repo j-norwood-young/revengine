@@ -70,6 +70,7 @@ router.get("/view/:reader_id", async (req, res) => {
         if (reader.first_name || reader.last_name) display_name = `${reader.first_name || ""} ${reader.last_name || ""}`.trim();
         reader.display_name = display_name;
         reader.email_hash = crypto.createHash('md5').update(reader.email.trim().toLowerCase()).digest("hex")
+        reader.rfv = (await req.apihelper.get("rfv", { "filter[reader_id]": reader._id, "sort[date]": -1, "limit": 1 })).data.pop();
         res.render("readers/reader", { title: `Reader: ${display_name}`, reader });
     } catch (err) {
         console.error(err);
@@ -159,7 +160,7 @@ router.get("/data/:reader_id", async (req, res) => {
             }
         };
         const timespent_result = await esclient.search(q_pageviews_timespent);
-        console.log(timespent_result);
+        // console.log(timespent_result);
         data.timespent_avg = timespent_result.aggregations.timespent_avg;
         res.send(data)
     } catch(err) {
@@ -254,7 +255,7 @@ router.get("/facet", async (req, res) => {
         ]
         const tags = (await req.apihelper.aggregate("article", tag_query)).data.map(item => item._id.tags);
         tags.sort();
-        console.log(tags);
+        // console.log(tags);
         res.render("readers/facet", { title: "Facet users", authors, tags})
     } catch (err) {
         console.error(err);

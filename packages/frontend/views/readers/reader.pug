@@ -27,35 +27,44 @@ block content
                         if (reader.wordpress_id)
                             p.card-text 
                                 a.btn.btn-primary(href=`https://www.dailymaverick.co.za/wp-admin/user-edit.php?user_id=${reader.wordpress_id}`, target="_blank") Open in Wordpress
-            if (reader.frequency)
+            if (reader.rfv)
                 .col-sm-6.col-md-4
                     .card
                         .card-body
                             h3.card-title RFV
-                            if (reader.recency)
+                            if (reader.rfv.recency)
                                 h4.card-title Recency
                                 p.card-text
+                                    strong Rank 
+                                    | #{ Math.round(reader.rfv.recency_quantile_rank * 100) }% 
+                                p.card-text
                                     strong Last visit 
-                                    | #{ moment(reader.recency.timestamp).format("YYYY-MM-DD HH:mm:ss") } (#{ reader.recency.from_now } ago)
+                                    | #{ moment(reader.recency.timestamp).format("YYYY-MM-DD HH:mm:ss") } (#{ reader.rfv.recency.from_now } ago)
                                 p.card-text
                                     strong Score 
                                     | #{ reader.recency.score }
-                            if (reader.frequency)
+                            if (reader.rfv.frequency)
                                 h4.card-title Frequency
                                 p.card-text
+                                    strong Rank 
+                                    | #{ Math.round(reader.rfv.frequency_quantile_rank * 100) }% 
+                                p.card-text
                                     strong Count 
-                                    | #{ reader.frequency.count }
+                                    | #{ reader.rfv.frequency }
                                 p.card-text
                                     strong Score 
-                                    | #{ reader.frequency.score } 
-                            if (reader.value)
-                                h4.card-title Value
+                                    | #{ reader.rfv.frequency_score } 
+                            if (reader.rfv.volume)
+                                h4.card-title Volume
                                 p.card-text
-                                    strong Value 
-                                    | #{ reader.value.value }
+                                    strong Rank 
+                                    | #{ Math.round(reader.rfv.volume_quantile_rank * 100) }% 
+                                p.card-text
+                                    strong Volume 
+                                    | #{ reader.rfv.volume }
                                 p.card-text
                                     strong Score 
-                                    | #{ reader.value.score } 
+                                    | #{ reader.rfv.volume_score } 
             .col-sm-6.col-md-4
                 .card
                     .card-body
