@@ -1,7 +1,7 @@
 /* global JXPSchema ObjectId Mixed */
 
 const TouchbaseListSchema = new JXPSchema({
-    name: { type: String, unique: true },
+    name: { type: String },
     list_id: { type: String, unique: true },
 },
 {
