@@ -45,6 +45,10 @@
         "url": "https://admin.revengine.dailymaverick.co.za/",
         "port": 4014
     },
+    "google_cloud_language": {
+        "keyFilename": "/root/keys/dmbigquery-8deb86ecf874.json",
+        "projectId": "DMBigQuery"
+    },
     "kafka": {
         "server": "localhost:9092",
         "partitions": 1,

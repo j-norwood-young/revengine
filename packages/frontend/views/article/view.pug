@@ -2,17 +2,42 @@ extends ../layout
 
 block content
     .container
-        p Sentiment: #{sentiment.sentiment} (#{sentiment.sentiment_score})
+        p Vader Sentiment: #{sentiment.sentiment} (#{sentiment.sentiment_score})
+            if (article_ml.sentiment.documentSentiment)
+                |  | Google Sentiment: #{convert_sentiment(article_ml.sentiment.documentSentiment.score)} (#{article_ml.sentiment.documentSentiment.score})
         h1= article.title
         h5= article.author 
         p Published #{moment(article.date_published).format("YYYY-MM-DD HH:mm:ss")} | Last Modified #{moment(article.date_modified).format("YYYY-MM-DD HH:mm:ss")}
+        .form-group
+            .input-group
+                input.form-control(readonly,value=article.urlid)
+                .input-group-append
+                    a.btn.btn-primary(href=homepage + "/article/" + article.urlid target="_blank")
+                        .fa.fa-link
+        h5.mt-4 Tags
+        each category in article_ml.categories
+            .badge.badge-warning.mr-1= category.name
         each section in article.sections 
             .badge.badge-primary.mr-1= section
         each tag in article.tags 
             .badge.badge-secondary.mr-1= tag
-        a(href=homepage + "/article/" + article.urlid target="_blank")
-            .fa.fa-link
-        canvas#articleHits
+        if (article_ml.entities.filter(entity => entity.type === "ORGANIZATION" && entity.salience > 0.001).length)
+            h5.mt-4 Organisations 
+            each entity in article_ml.entities.filter(entity => entity.type === "ORGANIZATION" && entity.salience > 0.001)
+                if (entity.metadata && entity.metadata.wikipedia_url)
+                    a(href=entity.metadata.wikipedia_url)
+                        .badge.badge-primary.mr-1= entity.name
+                else
+                    .badge.badge-secondary.mr-1= entity.name
+        if (article_ml.entities.filter(entity => entity.type === "PERSON" && entity.salience > 0.01).length)
+            h5.mt-4 People 
+            each entity in article_ml.entities.filter(entity => entity.type === "PERSON" && entity.salience > 0.001)
+                if (entity.metadata && entity.metadata.wikipedia_url)
+                    a(href=entity.metadata.wikipedia_url)
+                        .badge.badge-primary.mr-1= entity.name
+                else
+                    .badge.badge-secondary.mr-1= entity.name
+        canvas#articleHits(style="height:100px")
         h5.mt-4 Total Hits: #{formatNumber(article.hits.reduce((acc, val) => acc + val.count ,0))}
         hr
         .flex-horiz.mb-4

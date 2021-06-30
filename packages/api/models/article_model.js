@@ -15,6 +15,42 @@ const ArticleSchema = new JXPSchema({
     img_thumbnail: String,
     img_medium: String,
     img_full: String,
+    google_categories: [
+        { 
+            name: String,
+            confidence: Number
+        }
+    ],
+    // google_entities: [
+    //     {
+    //         name: String,
+    //         type: String,
+    //         salience: Number,
+    //         metadata: Mixed,
+    //         mentions: [
+    //             {
+    //                 text: {
+    //                     content: String,
+    //                     beginOffset: Number
+    //                 },
+    //                 type: String,
+    //                 sentiment: {
+    //                     magnitude: Number,
+    //                     score: Number
+    //                  }
+    //             }
+    //         ]
+    //     }
+    // ],
+    google_entities: [Mixed],
+    google_sentiment: {
+        sentences: [Mixed],
+        documentSentiment: {
+            magnitude: Number,
+            score: Number
+        },
+        language: String
+    },
     hits: [ Mixed ],
 },
 {

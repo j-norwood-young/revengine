@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const config = require("config");
 const nlp = require("@revengine/frontend/libs/nlp");
+const Article_ml = require("@revengine/article_ml");
 
 router.use("/", (req, res, next) => {
     res.locals.pg = "article";
@@ -25,13 +26,15 @@ const convert_sentiment = sentiment_score => {
 router.get("/view/:article_id", async(req, res) => {
     const article = (await req.apihelper.getOne("article", req.params.article_id)).data;
     const sentiment = nlp.sentiment(article.content);
-    res.render("article/view", { article, homepage: config.wordpress.homepage, sentiment });
+    const article_ml = await Article_ml.analyseArticle(article._id);
+    // console.log(article_ml);
+    res.render("article/view", { article, homepage: config.wordpress.homepage, sentiment, article_ml, convert_sentiment });
 })
 
 router.get("/hits/:article_id", async(req, res) => {
     try {
         const article = (await req.apihelper.getOne("article", req.params.article_id)).data;
-        console.log(article);
+        // console.log(article);
         res.send(article.hits.filter(day => (day.count)));
     } catch(err) {
         console.error(err);
