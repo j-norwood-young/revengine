@@ -13,6 +13,7 @@ router.use(async (req, res, next) => {
 		const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
 		console.log({ server: config.api.server, apikey: process.env.APIKEY });
 		let login_data = await apihelper.login(req.body.email, req.body.password);
+		console.log({login_data});
 		if (login_data.status === "fail") {
 			res.render('login', { title: 'Login', "msg": "Incorrect username or password" });
 			return;
