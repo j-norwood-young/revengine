@@ -22,7 +22,7 @@
     "chart.js": "^2.9.3",
     "codemirror": "^5.50.0",
     "color": "^3.1.2",
-    "commander": "^3.0.2",
+    "commander": "^8.0.0",
     "config": "^3.2.3",
     "connect-redis": "^4.0.3",
     "cookie-parser": "~1.4.4",

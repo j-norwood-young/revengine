@@ -20,6 +20,6 @@
   "devDependencies": {
     "less":"^3.12.2",
     "less-watch-compiler": "1.14.6",
-    "commander": "6.0.0"
+    "commander": "8.0.0"
   }
 }
