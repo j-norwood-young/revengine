@@ -29,6 +29,7 @@ const RFVSchema = new JXPSchema({
 
 RFVSchema.index({ date: 1, reader_id: 1 });
 RFVSchema.index({ date: 1, email: 1 });
+RFVSchema.index({ email: 1, reader_id: 1 });
 
 const RFV = JXPSchema.model('rfv', RFVSchema);
 module.exports = RFV;
