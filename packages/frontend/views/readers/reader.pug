@@ -75,6 +75,8 @@ block content
                                 option(value="auto" selected=(reader.uber_code_override == "auto")) Auto
                                 option(value="send" selected=(reader.uber_code_override == "send")) Always Send
                                 option(value="withhold" selected=(reader.uber_code_override == "withhold")) Never Send
+                        .form-group 
+                            a.btn.btn-danger.confirm(href=`/reader/expunge/${reader._id}`) Expunge User from System
         hr
         if (reader.woocommerce_subscription && reader.woocommerce_subscription[0])
             .row
