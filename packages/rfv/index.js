@@ -10,6 +10,18 @@ const Recency = require("./recency");
 const Frequency = require("./frequency");
 const Volume = require("./volume");
 
+const { Command } = require('commander');
+
+const program = new Command();
+program
+    .option('-d, --daemon', 'run as a daemon on a cron schedule')
+    .option('-c, --cron <cron>', 'override default cron schedule')
+    .option('-h, --historical <date_start>', 'calculate historical values starting on date_start every week until now')
+    .option('-i, --reader_ids', 'assign reader ids')
+    ;
+
+program.parse(process.argv);
+const options = program.opts();
 
 /*
 How to export:
@@ -142,24 +154,25 @@ const main = async () => {
         await calc_recency(date);
         await calc_frequency(date);
         await calc_volume(date);
-        console.log("rfv done");
+        await assign_reader_ids();
+        console.log(`rfv ${date.format("YYYY-MM-DD")} done`);
     } catch(err) {
         console.error(err);
     }
 }
 
-const historical = async() => {
+const historical = async(start_date) => {
     try {
-        const start_date = new Date("2020-01-06");
-        let date = moment(start_date);
-        let x = 0;
+        let date = moment(new Date(start_date || "2021-01-01"));
         while (date < new Date()) {
-            date.add(1, "week"); //Add a week
             console.log(date);
             await calc_recency(date);
             await calc_frequency(date);
             await calc_volume(date);
+            date.add(1, "week"); //Add a week
         }
+        await assign_reader_ids();
+        console.log("historical rfv done");
     } catch(err) {
         console.error(err);
     }
@@ -168,28 +181,29 @@ const historical = async() => {
 const assign_reader_ids = async() => {
     try {
         const readers = (await jxphelper.get("reader", { "fields": "email" })).data.filter(reader => (reader.email));
+        console.log(`Sycing ${readers.length} emails...`)
         while(readers.length) {
-            console.log(readers.length);
             const query = readers.splice(0,1000).map(reader => {
                 return {
                     "updateMany": {
                         "update": { reader_id: reader._id },
-                        "filter": { email: reader.email }
+                        "filter": { email: reader.email, reader_id: { $exists: false } }
                     }
                 }
             })
-            // console.log(JSON.stringify(query, null, "   "));
             const result = await jxphelper.bulk("rfv", query);
-            // console.log(result);
         }
-        // console.log(result);
     } catch(err) {
         console.error(err);
     }
 }
 
-cron.schedule(schedule, main);
-
-// main();
-// historical();
-// assign_reader_ids()
+if (options.daemon) {
+    cron.schedule(schedule, main);
+} else if (options.historical) {
+    historical(options.historical);
+} else if (options.reader_ids) {
+    assign_reader_ids()
+} else {
+    main()
+}
