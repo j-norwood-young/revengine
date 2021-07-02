@@ -30,6 +30,17 @@ document.addEventListener("DOMContentLoaded", async e => {
     }
 });
 
+$(function() {
+    $(".confirm").on("click", e => {
+        if (confirm("Are you sure?")) {
+            return true;
+        } else {
+            e.preventDefault();
+            return false;
+        }
+    })
+})
+
 // require([
 //     "../../node_modules/codemirror/lib/codemirror", "../../node_modules/codemirror/mode/javascript/javascript"
 // ], function (CodeMirror) {
