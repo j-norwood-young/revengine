@@ -8,6 +8,7 @@ const actions = {
     get_paginate: require("../actions/get_paginate"),
     es: require("../actions/es"),
     aggregate: require("../actions/aggregate"),
+    cmd: require("../actions/cmd"),
     // merge: highland.merge,
     // link: require("../actions/link"),
     // mock: require("../actions/mock"),
