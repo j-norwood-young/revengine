@@ -51,7 +51,15 @@ module.exports = {
                         }
                     }
                 ]
-            }
+            },
+            {
+				test: /\.ttf$/,
+				use: ['file-loader']
+			},
+            {
+				test: /\.css$/,
+				use: ['style-loader', 'css-loader']
+			},
         ]
     },
     plugins: [
@@ -64,7 +72,7 @@ module.exports = {
         // }),
         // new MiniCssExtractPlugin({
         //     filename: 'style.css',
-        // })
+        // }),
     ],
     stats: {
         colors: true

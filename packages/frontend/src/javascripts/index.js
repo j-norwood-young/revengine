@@ -25,7 +25,9 @@ document.addEventListener("DOMContentLoaded", async e => {
     for (let code_el of code_els) {
         CodeMirror.fromTextArea(code_el, {
             lineNumbers: true,
-            mode: "javascript"
+            mode: "javascript",
+            indentUnit: 3,
+            smartIndent: true,
         });
     }
 });
