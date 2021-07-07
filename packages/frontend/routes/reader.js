@@ -385,4 +385,19 @@ router.post("/facet/tag", async (req, res) => {
     }
 })
 
+router.get("/expunge/:reader_id", async (req, res) => {
+    try {
+        // const reader = await req.apihelper.getOne("reader", req.params.reader_id);
+        // const wordpressuser = req.apihelper.get("wordpressuser", {"filter[email]": reader.email });
+        // await req.apihelper.del_perm_cascade("wordpressuser", wordpressuser._id);
+        // const wordpressuser = req.apihelper.get("woocommerce_membership", {"filter[customer_id]": wordpressuser.id });
+        // await req.apihelper.del_perm_cascade("woocommerce_membership", wordpressuser._id);
+        await req.apihelper.del_perm_cascade("reader", req.params.reader_id);
+        res.render("readers/expunged", { title: "Reader Expunged", reader });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({ error: err });
+    }
+})
+
 module.exports = router;
