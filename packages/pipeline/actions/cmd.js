@@ -14,7 +14,7 @@ class Cmd extends Action {
         this.data = await new Promise((resolve, reject) => {
             exec(cmd, (error, stdout, stderr) => {
                 if (error) {
-                    return reject(err);
+                    return reject(error);
                 }
                 if (stderr) {
                     return reject(stderr);
