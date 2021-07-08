@@ -2,12 +2,18 @@ extends ../layout
 
 block content
     .container
-        h1= `${reader.display_name}`
+        
         .row.mb-2 
             .col-sm-12 
-                p
+                div
+                    strong.mr-1 Segments
+                    each segmentation in reader.segmentations 
+                        .badge.badge-secondary.badge-pill.mr-1= segmentation
+                div
+                    strong.mr-1 Labels
                     each label in reader.labels 
-                            .badge.badge-primary.badge-pill.mr-1= label
+                        .badge.badge-primary.badge-pill.mr-1= label
+        h1= `${reader.display_name}`
         .row
             .col-sm-6.col-md-4
                 .card
