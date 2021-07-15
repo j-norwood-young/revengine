@@ -217,6 +217,7 @@ class Collections {
                     { name: "Email", key: "email", d: data => `<a href="/reader/view/${data._id}">${data.email}</a>`, list_view },
                     { name: "First Name", key: "first_name", d: data => data.first_name || "", list_view },
                     { name: "Last Name", key: "last_name", d: data => data.last_name || "", list_view },
+                    { name: "Paying?", key: "paying_customer", d: data => (data.paying_customer) ? "<i class='fa fa-check-circle'></i>" : "", list_view }
                 ],
                 filters: [
                     {
