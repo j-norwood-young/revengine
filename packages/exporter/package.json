@@ -18,6 +18,7 @@
     "dotenv": "8.2.0",
     "commander": "^8.0.0",
     "mysql": "2.18.1",
-    "cli-progress": "3.8.2"
+    "cli-progress": "3.8.2",
+    "mongoose-legacy-pluralize": "^1.0.2"
   }
 }

@@ -3,8 +3,6 @@ const config = require("config");
 const JXPHelper = require("jxp-helper");
 require("dotenv").config();
 const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
-const util = require('util');
-const crypto = require("crypto");
 const Stream = require("stream")
 const moment = require("moment");
 const cliProgress = require('cli-progress');
@@ -22,17 +20,11 @@ program
 
 program.parse(process.argv);
 
+const options = program.opts();
+
 // Define our relationships between JXP and MySql
 
-const mysql_date_format = 'YYYY-MM-DD HH:mm:ss';
-const format_date = d => d ? moment(d).format(mysql_date_format) : null;
-
 var articles = [];
-const getSource = d => {
-    if (!d.meta_data) return null;
-    let source = d.meta_data.find(md => (md.key === "ossc_tracking"));
-    if (!source) return null;
-}
 
 // Truncate table
 const truncate = async def => {
@@ -45,141 +37,7 @@ const truncate = async def => {
     }
 }
 
-const defs = [
-    {
-        collection: "article",
-        table: "articles",
-        relationships: {
-            uid: d => d._id,
-            post_id: d => d.post_id,
-            slug: d => d.urlid,
-            date_published: d => format_date(d.date_published),
-            date_modified: d => format_date(d.date_modified),
-            content: d => (d.content) ? d.content.replace(/[^\x20-\x7E]+/g, '') : "",
-            title: d => d.title,
-            excerpt: d => d.excerpt,
-            type: d => d.type,
-            tags: d => d.tags.join(","),
-            sections: d => d.sections.join(","),
-            date_updated: d => moment(d.updatedAt).format(mysql_date_format),
-        }
-    },
-    {
-        collection: "reader",
-        table: "readers",
-        relationships: {
-            uid: d => d._id,
-            wordpress_id: d => d.wordpress_id,
-            email_md5: d => (d.email) ? crypto.createHash("md5").update(d.email).digest("hex") : null,
-            paying_customer: d => d.paying_customer,
-            user_registered: d => d.user_registered ? moment(d.user_registered).format(mysql_date_format) : null,
-            date_updated: d => moment(d.updatedAt).format(mysql_date_format),
-        }
-    },
-    {
-        collection: "woocommerce_order",
-        table: "woocommerce_orders",
-        relationships: {
-            uid: d => d._id,
-            wordpress_id: d => d.customer_id,
-            ip_address: d => d.customer_ip_address,
-            user_agent: d => d.customer_user_agent,
-            date_completed: d => format_date(d.date_completed),
-            date_created: d => format_date(d.date_created),
-            date_paid: d => format_date(d.date_paid),
-            payment_method: d => d.payment_method,
-            product_name: d => d.products[0] ? d.products[0].name : null,
-            total: d => d.total,
-            date_updated: d => format_date(d.updatedAt),
-        }
-    },
-    {
-        collection: "device",
-        table: "devices",
-        relationships: {
-            uid: d => d._id,
-            wordpress_id: d => d.wordpress_id,
-            browser: d => d.browser,
-            browser_version: d => d.browser_version,
-            os: d => d.os,
-            os_version: d => d.os_version,
-            platform: d => d.platform,
-            count: d => d.count,
-            date_updated: d => format_date(d.updatedAt),
-        }
-    },
-    {
-        collection: "woocommerce_subscription",
-        table: "woocommerce_subscriptions",
-        relationships: {
-            uid: d => d._id,
-            wordpress_id: d => d.customer_id,
-            status: d => d.status,
-            product_total: d => d.total,
-            product_name: d => (d.products.length) ? d.products[0].name : 0,
-            billing_period: d => d.billing_period,
-            schedule_start: d => format_date(d.schedule_start),
-            suspension_count: d => d.suspension_count,
-            payment_method: d => d.payment_method,
-            source_source: d => {
-                const source = getSource(d);
-                if (source) return source.value.utmSource;
-                return null;
-            },
-            source_medium: d => {
-                const source = getSource(d);
-                if (source) return source.value.utmMedium;
-                return null;
-            },
-            source_campaign: d => {
-                const source = getSource(d);
-                if (source) return source.value.utmCampaign;
-                return null;
-            },
-            source_term: d => {
-                const source = getSource(d);
-                if (source) return source.value.utmTerm;
-                return null;
-            },
-            source_device: d => {
-                const source = getSource(d);
-                if (source) return source.value.utmDevice;
-                return null;
-            },
-            date_updated: d => format_date(d.updatedAt),
-        }
-    },
-    {
-        collection: "touchbaseevent",
-        table: "touchbase_events",
-        relationships: {
-            email_md5: d => (d.email) ? crypto.createHash("md5").update(d.email.toLowerCase()).digest("hex") : null,
-            timestamp: d => moment(d.timestamp).format(mysql_date_format),
-            event: d => d.event,
-            url: d => (d.url) ? d.url.substring(0, 255) : null,
-            ip_address: d => d.ip_address,
-            latitude: d => d.latitude,
-            longitude: d => d.longitude,
-            city: d => d.city,
-            region: d => d.region,
-            country_name: d => d.country_name,
-            country_code: d => d.country_code,
-            date_updated: d => moment(d.updatedAt).format(mysql_date_format),
-            article_uid: d => {
-                try {
-                    if (!d.url) return null;
-                    const article = articles.find(a => d.url.includes(a.urlid));
-                    if (article) {
-                        return article._id;
-                    }
-                    return null;
-                } catch(err) {
-                    return null;
-                }
-            }
-        }
-    }
-]
+const defs = require("./libs/conversions");
 
 // Find last insert into MySql
 const findLastUpdated = async def => {
@@ -313,19 +171,21 @@ const main = async() => {
         const timeStart = new Date();
         await mysqlConnect(connection);
         let limited_defs = defs;
-        if (program.collection) {
-            limited_defs = defs.filter(def => def.collection === program.collection);
+        if (options.collection) {
+            limited_defs = defs.filter(def => def.collection === options.collection);
         }
-        if (!limited_defs.length) throw `Collection ${program.collection} not found`;
+        console.log({ collection: options.collection });
+        if (!limited_defs.length) throw `Collection ${options.collection} not found`;
         // Truncate, then Find time this collection was last updated
         for (let def of limited_defs) {
-            if (program.truncate) {
+            if (options.truncate) {
                 await truncate(def);
                 def.last_updated = "1977-01-01";
             } else {
                 def.last_updated = await findLastUpdated(def);
             }
         }
+        // console.log(limited_defs);
         // Populate global articles
         articles = (await apihelper.get("article", { "fields": "_id,urlid" })).data;
         console.log("Found", articles.length, "articles");
