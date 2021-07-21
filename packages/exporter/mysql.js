@@ -149,7 +149,7 @@ const query = (connection, query) => {
     })
 }
 
-const connection = mysql.createConnection({
+const connection = mysql.createPool({
     host: config.mysql.host || "localhost",
     user: process.env.MYSQL_USER,
     password: process.env.MYSQL_PASSWORD,
@@ -169,7 +169,6 @@ const mysqlConnect = (connection) => {
 const main = async() => {
     try {
         const timeStart = new Date();
-        await mysqlConnect(connection);
         let limited_defs = defs;
         if (options.collection) {
             limited_defs = defs.filter(def => def.collection === options.collection);
