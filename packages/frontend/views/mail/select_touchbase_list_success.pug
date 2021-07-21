@@ -1,0 +1,14 @@
+extends ../layout
+
+block content
+    .container
+        h1 Touchbase List - Success 
+        p
+            strong Mails Submitted 
+            = data.TotalUniqueEmailsSubmitted
+        p
+            strong Existing Subscribers 
+            = data.TotalExistingSubscribers
+        p
+            strong New Subscribers 
+            = data.TotalNewSubscribers

@@ -156,6 +156,7 @@ class Collections {
                     { name: "Name", key: "name", d: data => data.name, link, list_view, note: "These labels could be visible to the reader. Refrain from insulting, demeaning, negative or avaricious names." },
                     { name: "Display on dashboard?", key: "display_on_dashboard", d: data => (data.display_on_dashboard), "view": "checkbox" },
                     { name: "Download", d: data => `<a href="/label/download/json/${data._id}">JSON</a> | <a href="/label/download/csv/${data._id}">CSV</a>`, view: "none", list_view},
+                    { name: "Touchbase", d: data => `<a href="/mails//mailinglist/subscribe_by_label/${data._id}">Subscribe</a>`, view: "none", list_view},
                     { name: "Code", key: "code", d: data => data.code, },
                     { name: "Prep Function", key: "fn", d: data => data.code, "view": "code", note: "Optional. Runs before applying rule. Eg: return async opts => { return [ {_id: <user_id>, name: \"val\" } ] } Available: opts.jxphelper, opts.moment. " },
                     { name: "Rules", key: "rules", d: data => data.rules, "view": "code_array", note: `Eg: { "label_data.email_clicks_in_last_5_days": { "$gte": 5 } }` },

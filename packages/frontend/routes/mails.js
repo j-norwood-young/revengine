@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const config = require("config");
 const moment = require("moment");
+const axios = require("axios");
 
 const mailer = require("@revengine/mailer");
 
@@ -124,6 +125,100 @@ router.get("/mailrun/progressbar_data/:mailrun_id", async (req, res) => {
     } catch(err) {
         console.error(err);
         res.status(500).send({ status: "error", message: err.toString()});
+    }
+})
+
+const get_touchbase_lists = async (req, res, next) => {
+    try {
+        const opts = {
+            auth: {
+                username: process.env.TOUCHBASE_APIKEY,
+                password: "x"
+            }
+        }
+        const client = (await axios.get(`${config.touchbase.api}/clients.json`, opts)).data.pop();
+        res.locals.touchbase_client = client;
+        const lists = (await axios.get(`${config.touchbase.api}/clients/${client.ClientID}/lists.json`, opts)).data;
+        // const segments = [];
+        // for (let list of lists) {
+        //     let segments = (await axios.get(`${config.touchbase.api}/lists/${list.ListID}/segments.json`, opts)).data;
+        //     list.segments = segments;
+        // }
+        res.locals.touchbase_lists = lists;
+        next();
+        // const lists = await axios.get(`${config.touchbase.api}`)
+    } catch(err) {
+        console.error(err);
+        res.send(err);
+    }
+}
+
+router.get("/mailinglist/create", async (req, res) => {
+    res.send("TODO");
+});
+
+router.get("/mailinglist/list", async (req, res) => {
+    res.send("TODO");
+});
+
+router.get("/mailinglist/subscribe_by_label/:label_id", get_touchbase_lists, async (req, res) => {
+    res.render("mail/select_touchbase_list", { title: "Touchbase Lists"});
+})
+
+router.post("/mailinglist/subscribe_by_label/:label_id", async(req, res) => {
+    try {
+        const opts = {
+            auth: {
+                username: process.env.TOUCHBASE_APIKEY,
+                password: "x"
+            }
+        }
+        let list_id = null;
+        if (req.body.new_list_name) { // Create list
+            const client = (await axios.get(`${config.touchbase.api}/clients.json`, opts)).data.pop();
+            const json = {
+                "Title": req.body.new_list_name,
+                // "UnsubscribePage": "http://www.example.com/unsubscribed.html",
+                "UnsubscribeSetting": "OnlyThisList",
+                "ConfirmedOptIn": false,
+                // "ConfirmationSuccessPage": "http://www.example.com/joined.html"
+            }
+            list_id = (await axios.post(`${config.touchbase.api}/lists/${client.ClientID}.json`, json, opts)).data;
+        } else {
+            list_id = req.body.touchbase_list;
+        }
+        const label = (await req.apihelper.getOne("label", req.params.label_id)).data;
+        const readers = (await req.apihelper.get("reader", { "filter[label_id]": req.params.label_id, "fields": "email,first_name,last_name" })).data;
+        const json = {
+            "Subscribers": readers.map(reader => {
+                return {
+                    EmailAddress: reader.email,
+                    Name: `${reader.first_name} ${reader.last_name}`,
+                    CustomFields: [
+                        {
+                            Key: "source",
+                            Value: `RfvEngine`
+                        },
+                        {
+                            Key: "label",
+                            Value: label.name
+                        },
+                        {
+                            Key: "imported_by",
+                            Value: req.session.user.data.name
+                        }
+                    ],
+                    ConsentToTrack: "Yes"
+                }
+            })
+        }
+        
+        const result = (await axios.post(`${config.touchbase.api}/subscribers/${list_id}/import.json`, json, opts)).data;
+        res.render("mail/select_touchbase_list_success", { title: "Subscription Success", data: result });
+    } catch(err) {
+        console.error(err);
+        if (err.response && err.response.data && err.response.data.Message) return res.render("error", {error: { status: err.response.data.Message } });
+        res.send(err);
     }
 })
 
