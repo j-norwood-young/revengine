@@ -55,6 +55,25 @@ module.exports = [
         }
     },
     {
+        collection: "rfv",
+        table: "rfvs",
+        relationships: {
+            id: d => d._id,
+            date: d => moment(d.date).format(mysql_date_format),
+            reader_uid: d => d.reader_id,
+            recency_score: d => d.recency_score,
+            recency: d => moment(d.recency).format(mysql_date_format),
+            recency_quantile_rank: d => d.recency_quantile_rank,
+            frequency_score: d => d.frequency_score,
+            frequency: d => d.frequency,
+            frequency_quantile_rank: d => d.frequency_quantile_rank,
+            volume_score: d => d.volume_score,
+            volume: d => d.volume,
+            volume_quantile_rank: d => d.volume_quantile_rank,
+            date_updated: d => moment(d.updatedAt).format(mysql_date_format),
+        }
+    },
+    {
         collection: "touchbaseevent",
         table: "touchbase_events",
         relationships: {
