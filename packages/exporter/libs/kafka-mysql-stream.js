@@ -7,12 +7,17 @@ require("dotenv").config();
 
 class KafkaMysqlStream {
     constructor() {
-        this.connection = null;
+        this.connection = mysql.createPool({
+            connectionLimit : 100,
+            host: config.mysql.host || "localhost",
+            user: process.env.MYSQL_USER,
+            password: process.env.MYSQL_PASSWORD,
+            database: config.mysql.database || "revengine"
+        });
     }
 
     async run() {
         console.log("running KafkaMysqlStream")
-        this.mysqlConnect = await this.connect();
         this.consumer = new Kafka.KafkaConsumer({ topic: "mongodb_stream", debug: false });
         this.consumer.on("message", async data => {
             try {
@@ -36,22 +41,6 @@ class KafkaMysqlStream {
             } catch(err) {
                 console.error(err);
             }
-        })
-    }
-
-    connect() {
-        this.connection = mysql.createConnection({
-            host: config.mysql.host || "localhost",
-            user: process.env.MYSQL_USER,
-            password: process.env.MYSQL_PASSWORD,
-            database: config.mysql.database || "revengine"
-        });
-        return new Promise((resolve, reject) => {
-            this.connection.connect(err => {
-                if (err) return reject(err);
-                console.log("Connected to MySql");
-                resolve();
-            });
         })
     }
 
