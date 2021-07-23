@@ -58,7 +58,7 @@ module.exports = [
         collection: "rfv",
         table: "rfvs",
         relationships: {
-            id: d => d._id,
+            uid: d => d._id,
             date: d => moment(d.date).format(mysql_date_format),
             reader_uid: d => d.reader_id,
             recency_score: d => d.recency_score,
