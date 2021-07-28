@@ -54,7 +54,7 @@ const findLastUpdated = async def => {
 // Fetch based on updatedAt - batches of per_chunk
 
 function fetchRecords(def) {
-    var page = 0;
+    let page = 0;
     const stream = new Stream.Readable({
         objectMode: true,
         highWaterMark: 5000,
@@ -125,7 +125,7 @@ const saveRecords = new Stream.Writable({
             const sql = chunk.toString();
             // console.log({ sql });
             try {
-                const result = await query(connection, sql);
+                await query(connection, sql);
             } catch(err) {
                 console.error(err);
             }
@@ -142,10 +142,15 @@ const saveRecords = new Stream.Writable({
 
 const query = (connection, query) => {
     return new Promise((resolve, reject) => {
-        connection.query(query, (err, result) => {
-            if (err) return reject(err);
-            return resolve(result);
-        })
+        try {
+            connection.query(query, (err, result) => {
+                if (err) return reject(err);
+                return resolve(result);
+            })
+        } catch(err) {
+            console.error(err);
+            return reject(err);
+        }
     })
 }
 
@@ -155,16 +160,6 @@ const connection = mysql.createPool({
     password: process.env.MYSQL_PASSWORD,
     database: config.mysql.database || "revengine"
 });
-
-const mysqlConnect = (connection) => {
-    return new Promise((resolve, reject) => {
-        connection.connect(err => {
-            if (err) return reject(err);
-            console.log("Connected to MySql");
-            resolve();
-        });
-    })
-}
 
 const main = async() => {
     try {
@@ -186,8 +181,8 @@ const main = async() => {
         }
         // console.log(limited_defs);
         // Populate global articles
-        articles = (await apihelper.get("article", { "fields": "_id,urlid" })).data;
-        console.log("Found", articles.length, "articles");
+        // articles = (await apihelper.get("article", { "fields": "_id,urlid" })).data;
+        // console.log("Found", articles.length, "articles");
         // Calculate total size
         for (let def of limited_defs) {
             def.count = await apihelper.count(def.collection, { "filter[updatedAt]": `$gte:${ new Date(def.last_updated) }`});
@@ -199,12 +194,14 @@ const main = async() => {
                 connection.end();
                 console.log();
                 console.log(moment.duration(new Date() - timeStart).asSeconds(), "seconds");
+                process.exit(0);
             });
         }
         // const result = await query(connection, 'SELECT 1 + 1 AS solution');
         // console.log(result);
     } catch(err) {
         console.error(err);
+        process.exit(1);
     }
 }
 
