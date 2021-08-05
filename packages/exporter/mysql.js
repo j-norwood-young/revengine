@@ -22,10 +22,6 @@ program.parse(process.argv);
 
 const options = program.opts();
 
-// Define our relationships between JXP and MySql
-
-var articles = [];
-
 // Truncate table
 const truncate = async def => {
     try {
@@ -190,7 +186,7 @@ const main = async() => {
         }
         bar1.start(max, 0);
         for (let def of limited_defs) {
-            await fetchRecords(def).pipe(convertRecords).pipe(saveRecords).on("finish", () => {
+            fetchRecords(def).pipe(convertRecords).pipe(saveRecords).on("finish", () => {
                 connection.end();
                 console.log();
                 console.log(moment.duration(new Date() - timeStart).asSeconds(), "seconds");
