@@ -1,0 +1,24 @@
+{
+    "name": "@revengine/jxpdiag",
+    "version": "0.0.2",
+    "description": "RevEngine Database Diagrammer - builds DB schematic",
+    "main": "index.js",
+    "scripts": {
+      "start": "node index.js",
+      "test": "echo \"Error: no test specified\" && exit 1",
+      "dev": "env NODE_ENV=development nodemon index.js"
+    },
+    "author": "Jason Norwood-Young <jason@10layer.com>",
+    "license": "MIT",
+    "dependencies": {
+      "@revengine/common": "^0.0.1",
+      "axios": "0.21.1",
+      "config": "^3.3.1",
+      "commander": "^8.1.0",
+      "node-fetch": "2.6.1",
+      "restify":"^8.5.1",
+      "restify-cors-middleware":"^1.1.1",
+      "restify-plugins":"^1.6.0"
+    }
+  }
+  
