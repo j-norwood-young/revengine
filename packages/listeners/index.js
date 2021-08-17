@@ -7,11 +7,14 @@ const public_server = restify.createServer({
 public_server.use(restify.plugins.bodyParser()); 
 public_server.use(restify.plugins.queryParser()); 
 const touchbase = require("@revengine/mailer/touchbase");
+const ml = require("@revengine/ml");
 
 // const woocommerce = require("./woocommerce");
 
 public_server.post("/woocommerce/subscriptions/callback", touchbase.woocommerce_subscriptions_callback);
 public_server.post("/woocommerce/subscriptions/zapier/callback", touchbase.woocommerce_subscriptions_zapier_callback);
+
+public_server.post("/ml/prediction_dump", ml.prediction_dump);
 
 public_server.listen(config.listeners.public_port || 3020, function () {
     console.log('%s listening at %s', public_server.name, public_server.url);
