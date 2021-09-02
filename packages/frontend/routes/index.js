@@ -8,6 +8,7 @@ router.use("/login", require("./login"));
 
 /* Login */
 router.use(async (req, res, next) => {
+	res.locals.sitename = config.name 
 	if (!req.body.login) return next();
 	try {
 		const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });

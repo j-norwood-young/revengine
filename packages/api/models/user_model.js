@@ -1,5 +1,6 @@
 /* global JXPSchema */
 var friendly = require("mongoose-friendly");
+const send_welcome = require("@revengine/api/libs/send_welcome");
 
 var UserSchema = new JXPSchema({
 	name: { type: String },
@@ -33,6 +34,16 @@ function toLower (v) {
 		return v.toLowerCase();
 	return null;
 }
+
+UserSchema.pre('save', function (next) {
+    this.wasNew = this.isNew;
+    next();
+})
+
+UserSchema.post("save", async function(doc) {
+	if (!this.wasNew) return;
+	await send_welcome(doc.email);
+})
 
 const UserModel = JXPSchema.model('User', UserSchema);
 module.exports = UserModel;

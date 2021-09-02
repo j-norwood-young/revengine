@@ -1,8 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const config = require("config");
-const jwt = require("jsonwebtoken")
-const Mail = require("../libs/mail")
 
 const logged_in_only = (req, res, next) => {
     if (!req.session.apikey) {

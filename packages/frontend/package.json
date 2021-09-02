@@ -40,7 +40,6 @@
     "morgan": "~1.9.1",
     "mysql": "^2.17.1",
     "node-sass-middleware": "0.11.0",
-    "nodemailer": "^6.4.2",
     "phpunserialize": "^1.0.1",
     "promised-mongo": "^1.2.0",
     "redis": "^2.8.0",

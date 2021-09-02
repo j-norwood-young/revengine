@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const config = require("config");
 const jwt = require("jsonwebtoken")
-const Mail = require("../libs/mail")
+const Mail = require("@revengine/common/mail")
 const JXPHelper = require("jxp-helper");
 const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
 
