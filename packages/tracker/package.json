@@ -17,6 +17,7 @@
     "kafka-node": "^5.0.0",
     "utm-extractor": "^1.0.5",
     "qs": "^6.9.4",
-    "referer-parser": "^0.0.3"
+    "referer-parser": "^0.0.3",
+    "cookie": "^0.4.1"
   }
 }

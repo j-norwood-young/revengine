@@ -5,7 +5,9 @@ const Bowser = require("bowser");
 const utmExtractor = require("utm-extractor").Utm;
 const qs = require("qs");
 const Referer = require("referer-parser");
+const cookie = require("cookie");
 const JXPHelper = require("jxp-helper");
+const crypto = require("crypto");
 require("dotenv").config();
 const jxphelper = new JXPHelper({
     server: config.api.server,
@@ -16,6 +18,7 @@ const name = config.name || "revengine";
 const port = config.tracker.port || 3012;
 const host = config.tracker.host || "127.0.0.1";
 const topic = config.tracker.kafka_topic || `${name}_events`;
+const cookie_name = config.tracker.cookie_name || "revengine_browser_id"
 const headers = {
     "Content-Type": "text/html",
     "Content-Disposition": "inline",
@@ -199,9 +202,17 @@ const parse_url = (url) => {
 const get_hit = async (req, res) => {
     let user_labels = [];
     let user_segments = [];
+    let browser_id = null;
     try {
         const url = req.url;
         const data = parse_url(url);
+        const cookies = cookie.parse(req.headers.cookie || "");
+        if (cookies[cookie_name]) {
+            browser_id = cookies[cookie_name]
+        } else {
+            browser_id = data.browser_id || crypto.randomBytes(20).toString('hex');
+            headers["Set-Cookie"] = `${cookie_name}=${browser_id}`;
+        }
         if (data.user_id) {
             const user_data = (
                 await jxphelper.aggregate("reader", [
@@ -260,16 +271,13 @@ const get_hit = async (req, res) => {
         const data = parse_url(url);
         if (!data) throw `No data ${url}`;
         if (!data.action) throw `No action ${url}`;
-        let index = null;
-        if (data.action === "pageview") {
-            index = "pageviews";
-        }
-        if (!index) throw `No index found for action ${data.action}`;
+        let index = "pageviews";
         const referer = req.headers.referer || data.referer;
         if (!referer) return; // This is common with bots or noreferrer policy, we can't track it anyway, so don't worry about throwing an error
         data.url = referer;
         data.user_agent = req.headers["user-agent"];
         if (req.headers["x-real-ip"]) data.user_ip = req.headers["x-real-ip"];
+        data.browser_id = browser_id;
         const esdata = set_esdata(index, data);
         if (data.post_id) {
             const article_data = await get_article_data(data.post_id);
