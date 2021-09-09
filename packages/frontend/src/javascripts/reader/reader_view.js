@@ -5,10 +5,8 @@ class ReaderView {
     constructor() {
         const self = this;
         document.addEventListener("DOMContentLoaded", () => {
-            console.log("ReaderView");
             self.el_send_uber_code = document.querySelector("#send_uber_code");
-            console.log(self.el_send_uber_code);
-            self.el_send_uber_code.addEventListener("change", self.changeSendUberCode.bind(self))
+            if (self.el_send_uber_code) self.el_send_uber_code.addEventListener("change", self.changeSendUberCode.bind(self))
         });
     }
 
