@@ -144,4 +144,8 @@ router.post("/top_newsletter_subscribers", async (req, res) => {
     }
 })
 
+router.get("/editorial_dashboard", (req, res) => {
+    res.render("reports/editorial_dashboard")
+})
+
 module.exports = router;
