@@ -51,7 +51,14 @@ const ArticleSchema = new JXPSchema({
         },
         language: String
     },
-    hits: [ Mixed ],
+    hits: [ {
+        date: Date,
+        count: Number
+    } ],
+    logged_in_hits: [ {
+        date: Date,
+        count: Number
+    } ],
 },
 {
     perms: {
