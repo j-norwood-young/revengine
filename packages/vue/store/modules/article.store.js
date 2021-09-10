@@ -151,6 +151,7 @@ const actions = {
                     urlid: 1,
                     author: 1,
                     date_published: 1,
+                    logged_in_hits: 1,
                 }
             },
             {
@@ -186,12 +187,14 @@ const actions = {
                     urlid: "$doc.urlid",
                     author: "$doc.author",
                     date_published: "$doc.date_published",
+                    logged_in_hits: "$doc.logged_in_hits",
                     hits: 1
                 }
             }
         ]))
         .data.map(article => {
             article.date_published_formatted = moment(article.date_published).format("YYYY-MM-DD HH:mm");
+            article.logged_in_hits_total = article.logged_in_hits.filter(hit => moment().range(state.date_range).contains(moment(hit.date))).reduce((prev, curr) => prev + curr.count, 0);
             return article;
         });
         commit("SET_KEYVAL", { key: "articles", value: articles })

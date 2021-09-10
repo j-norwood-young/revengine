@@ -40,7 +40,7 @@ table.table.table-striped.table-bordered
                 //- p Percentile 100%
             td
                 .badge.badge-danger Coming Soon
-                //- h4 20,123
+                //- h4 {{Number(article.logged_in_hits_total).toLocaleString()}}
                 //- p Rank #1
                 //- p Percentile 100%
             td
