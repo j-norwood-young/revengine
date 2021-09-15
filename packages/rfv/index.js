@@ -16,7 +16,8 @@ const program = new Command();
 program
     .option('-d, --daemon', 'run as a daemon on a cron schedule')
     .option('-c, --cron <cron>', 'override default cron schedule')
-    .option('-h, --historical <date_start>', 'calculate historical values starting on date_start every week until now')
+    .option('-h, --historical <date_start>', 'calculate historical values starting on date_start every week until now or to date')
+    .option('-t, --to <date_end>', 'end on this date for calculated values')
     .option('-i, --reader_ids', 'assign reader ids')
     ;
 
@@ -116,6 +117,7 @@ const calc_recency = async (date) => {
         // console.log(recencies);
         // 6. Save to users
         while (recencies.length) {
+            // console.log(recencies.slice(0, 1));
             console.log(recencies.length);
             const result = await save_rfv(recencies.splice(0, 1000));
             // const result = await jxphelper.bulk_postput("reader", "email", recencies.splice(0, 1000))
@@ -161,10 +163,11 @@ const main = async () => {
     }
 }
 
-const historical = async(start_date) => {
+const historical = async(start_date, end_date) => {
     try {
         let date = moment(new Date(start_date || "2021-01-01"));
-        while (date < new Date()) {
+        const to_date = end_date ? moment(new Date(end_date)) : moment();
+        while (date.isBefore(to_date)) {
             console.log(date);
             await calc_recency(date);
             await calc_frequency(date);
