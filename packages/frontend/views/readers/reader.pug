@@ -33,6 +33,9 @@ block content
                         if (reader.wordpress_id)
                             p.card-text 
                                 a.btn.btn-primary(href=`https://www.dailymaverick.co.za/wp-admin/user-edit.php?user_id=${reader.wordpress_id}`, target="_blank") Open in Wordpress
+                            p.card-text 
+                                strong Wordpress ID: 
+                                | #{reader.wordpress_id}
             if (reader.rfv)
                 .col-sm-6.col-md-4
                     .card
