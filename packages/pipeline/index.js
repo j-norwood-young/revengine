@@ -21,7 +21,7 @@ const run_pipeline = async pipeline_id => {
         await apihelper.put("pipeline", pipeline._id, { running: true, run_start: d_start });
         const result = await streamrunner(eval(pipeline.pipeline));
         const d_end = new Date();
-        await apihelper.put("pipeline", pipeline._id, { running: false, last_run_start: d_start, last_run_end: d_end, last_run_result: result.slice(0, 3) });
+        await apihelper.put("pipeline", pipeline._id, { running: false, last_run_start: d_start, last_run_end: d_end, last_run_result: JSON.stringify(result.slice(0, 3)) });
         console.log(`Completed ${pipeline.name}, took ${d_end - d_start}`);
         return {
             result: "success",
@@ -29,11 +29,11 @@ const run_pipeline = async pipeline_id => {
             pipeline,
             last_run_start: d_start,
             last_run_end: d_end,
-            last_run_result: result.slice(0, 3)
+            last_run_result: JSON.stringify(result.slice(0, 3))
         }
     } catch (err) {
         const d_end = new Date();
-        await apihelper.put("pipeline", pipeline_id, { running: false, last_run_start: d_start, last_run_end: d_end, last_run_result: err });
+        await apihelper.put("pipeline", pipeline_id, { running: false, last_run_start: d_start, last_run_end: d_end, last_run_result: JSON.stringify(err) });
         throw (err);
     }
 }

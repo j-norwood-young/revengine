@@ -9,6 +9,7 @@ const actions = {
     es: require("../actions/es"),
     aggregate: require("../actions/aggregate"),
     cmd: require("../actions/cmd"),
+    mongo: require("../actions/mongo"),
     // merge: highland.merge,
     // link: require("../actions/link"),
     // mock: require("../actions/mock"),
