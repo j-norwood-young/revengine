@@ -1,5 +1,7 @@
 import Moment from 'moment';
 import { extendMoment } from 'moment-range';
+import router from "../../router";
+
 const moment = extendMoment(Moment);
 const JXPHelper = require("jxp-helper");
 const apihelper = new JXPHelper({
@@ -91,6 +93,15 @@ const actions = {
         ])).data.map(journalist => journalist._id);
         journalist_options.sort()
         commit("SET_KEYVAL", { key: "journalist_options", value: journalist_options });
+        const query = Object.assign({}, router.history.current.query);
+        if (query.sections) {
+            if (!Array.isArray(query.sections)) query.sections = [query.sections];
+            commit("SET_KEYVAL", { key: "sections", value: query.sections })
+        }
+        if (query.journalists) {
+            if (!Array.isArray(query.journalists)) query.journalists = [query.journalists];
+            commit("SET_KEYVAL", { key: "journalists", value: query.journalists })
+        }
         // Get initial articles
         await dispatch("getArticles");
         // Set as loaded
@@ -107,10 +118,16 @@ const actions = {
     },
     updateSections ({ commit, dispatch }, value) {
         commit('SET_KEYVAL', { key: "sections",  value })
+        const query = Object.assign({}, router.history.current.query);
+        query.sections = value;
+        router.push({ query })
         dispatch("getArticles")
     },
     updateJournalists ({ commit, dispatch }, value) {
         commit('SET_KEYVAL', { key: "journalists",  value })
+        const query = Object.assign({}, router.history.current.query);
+        query.journalists = value;
+        router.push({ query })
         dispatch("getArticles")
     },
     async getArticles({ state, commit }) {
