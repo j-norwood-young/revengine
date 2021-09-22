@@ -3,7 +3,7 @@ div
     .row.mb-4
         .col-sm-6
             h1 Editorial Dashboard
-            h4 12,345 articles
+            //- h4 12,345 articles
             Sections.mt-4
             Journalists.mt-4
         .col-sm-6
