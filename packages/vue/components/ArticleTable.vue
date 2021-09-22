@@ -44,8 +44,8 @@ table.table.table-striped.table-bordered
                 //- p Rank #1
                 //- p Percentile 100%
             td
-                .badge.badge-danger Coming Soon
-                //- h4 20,123
+                //- .badge.badge-danger Coming Soon
+                h4 {{Number(article.led_to_subscription_count).toLocaleString()}}
                 //- p Rank #1
                 //- p Percentile 100%
             td
