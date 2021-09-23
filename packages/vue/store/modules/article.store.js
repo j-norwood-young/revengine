@@ -133,6 +133,14 @@ const actions = {
         router.push({ query })
         dispatch("getArticles")
     },
+    addJournalist({ state, dispatch }, value) {
+        const journalists = [ ...state.journalists, value ];
+        dispatch("updateJournalists", journalists)
+    },
+    addSection({ state, dispatch }, value) {
+        const sections = [ ...state.sections, value ];
+        dispatch("updateSections", sections)
+    },
     updateSortField({ state, commit, dispatch}, field) {
         if (field === state.sort_field) {
             commit('SET_KEYVAL', { key: "sort_dir",  value: (state.sort_dir === 1) ? -1 : 1 });

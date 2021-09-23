@@ -38,12 +38,13 @@ table.table.table-striped.table-bordered
                 h4 
                     a(v-bind:href="`/article/view/${article._id}`") {{article.title}}
                 p 
-                    a(href="#") {{ article.author }}
+                    a(href="#" @click="addJournalist(article.author)") {{ article.author }}
                 p {{ article.date_published_formatted }}
                 p 
                     .badge.badge-success.mr-1(
                         v-for="(section, i) in article.sections"
                         :key="article._id + 'section' + i"
+                        @click="addSection(section)"
                     ) {{section}}
                 p
                     .badge.badge-primary.mr-1(
@@ -54,7 +55,7 @@ table.table.table-striped.table-bordered
                 h4.text-center {{Number(article.hits).toLocaleString()}}
                 //- - p Rank #1
                 p.text-center.mt-4.text-danger Quantile<br> {{Math.round(article.hits_rank * 10000)/100}}%
-                p.text-center.mt-4 Total Hits<br> {{Number(article.total_hits).toLocaleString()}}
+                p.text-center.mt-4 All Time<br> {{Number(article.total_hits).toLocaleString()}}
             td
                 .badge.badge-danger Coming Soon
                 //- h4 20,123
@@ -81,7 +82,7 @@ table.table.table-striped.table-bordered
 </template>
 
 <script>
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapState, mapActions } from 'vuex'
 
 
 export default {
@@ -95,6 +96,8 @@ export default {
     methods: {
         ...mapActions("Article", [
             'updateSortField',
+            'addJournalist',
+            'addSection'
         ])
     },
 }
