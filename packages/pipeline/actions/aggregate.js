@@ -18,7 +18,7 @@ class Aggregate extends Action {
             const tmp = _.cloneDeep(this.data);
             if (!this.instructions.aggregate) throw "Missing aggregate pipeline";
             if (!Array.isArray(this.instructions.aggregate)) throw "Aggregate pipeline must be an array";
-            this.data = (await jxphelper.aggregate(this.instructions.collection, this.instructions.aggregate)).data;
+            this.data = (await jxphelper.aggregate(this.instructions.collection, this.instructions.aggregate, this.instructions.options || {})).data;
             if (this.instructions.parse) {
                 this.log("Parsing", this.index);
                 this.data = await this.instructions.parse(this);
