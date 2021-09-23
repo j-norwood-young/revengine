@@ -52,6 +52,7 @@ const ArticleSchema = new JXPSchema({
         language: String
     },
     hits: [ Mixed ],
+    newsletter_hits: [ Mixed ],
     logged_in_hits: [ Mixed ],
     subscriber_hits: [ Mixed ],
     readers_led_to_subscription: [ Mixed ],
