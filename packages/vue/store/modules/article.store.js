@@ -1,6 +1,7 @@
 import Moment from 'moment';
 import { extendMoment } from 'moment-range';
 import router from "../../router";
+const ss = require("simple-statistics");
 
 const moment = extendMoment(Moment);
 const JXPHelper = require("jxp-helper");
@@ -55,6 +56,8 @@ const state = {
     per_page: 20,
     journalist_options: [],
     journalists: [],
+    sort_field: "hits",
+    sort_dir: -1
 }
 const getters = {
     
@@ -130,6 +133,14 @@ const actions = {
         router.push({ query })
         dispatch("getArticles")
     },
+    updateSortField({ state, commit, dispatch}, field) {
+        if (field === state.sort_field) {
+            commit('SET_KEYVAL', { key: "sort_dir",  value: (state.sort_dir === 1) ? -1 : 1 });
+        } else {
+            commit('SET_KEYVAL', { key: "sort_field",  value: field });
+        }
+        dispatch("getArticles")
+    },
     async getArticles({ state, commit }) {
         commit("SET_LOADING_STATE", "loading")
         const match = {
@@ -148,7 +159,9 @@ const actions = {
                 "$in": state.journalists
             }
         }
-        const articles = (await apihelper.aggregate("article", [
+        const sort = {};
+        sort[state.sort_field] = state.sort_dir;
+        let articles = (await apihelper.aggregate("article", [
             {
                 $match: match
             },
@@ -169,7 +182,24 @@ const actions = {
                     author: 1,
                     date_published: 1,
                     logged_in_hits: 1,
-                    readers_led_to_subscription: 1
+                    readers_led_to_subscription: 1,
+                    img_thumbnail: 1,
+                }
+            },
+            {
+                $group: {
+                    _id: "$_id",
+                    total_hits: { $sum: "$hits_count" },
+                    "doc":{"$first":"$$ROOT"},
+                }
+            },
+            {
+                $replaceRoot: { 
+                    newRoot: { 
+                        $mergeObjects: [ 
+                            { total_hits: "$total_hits" }, "$doc" 
+                        ] 
+                    } 
                 }
             },
             {
@@ -194,7 +224,7 @@ const actions = {
                 }
             },
             {
-                $limit: 100
+                $limit: 1000
             },
             {
                 $project: {
@@ -208,8 +238,10 @@ const actions = {
                     logged_in_hits: "$doc.logged_in_hits",
                     readers_led_to_subscription: "$doc.readers_led_to_subscription",
                     hits: 1,
+                    img_thumbnail: "$doc.img_thumbnail",
+                    total_hits: "$doc.total_hits",
                 }
-            }
+            },
         ]))
         .data.map(article => {
             article.date_published_formatted = moment(article.date_published).format("YYYY-MM-DD HH:mm");
@@ -217,6 +249,27 @@ const actions = {
             article.led_to_subscription_count = article.readers_led_to_subscription ? article.readers_led_to_subscription.length : 0;
             return article;
         });
+        // Work out quantiles
+        const hits_spread = articles.map(article => article.hits).sort((a, b) => a - b);
+        const logged_in_hits_spread = articles.map(article => article.logged_in_hits_total).sort((a, b) => a - b);
+        const led_to_subscription_spread = articles.map(article => article.led_to_subscription_count).sort((a, b) => a - b);
+        
+        // Assign quantiles
+        articles = articles.map(article => {
+            article.hits_rank = ss.quantileRankSorted(hits_spread, article.hits);
+            article.logged_in_hits_rank = ss.quantileRankSorted(logged_in_hits_spread, article.logged_in_hits_total);
+            article.led_to_subscription_rank = ss.quantileRankSorted(led_to_subscription_spread, article.led_to_subscription_count);
+            return article;
+        })
+        // Calculate score
+        articles = articles.map(article => {
+            article.score = (article.hits_rank + (article.logged_in_hits_rank * 2) + (article.led_to_subscription_rank * 3)) / 6;
+            return article;
+        })
+        // Sort
+        articles.sort((a, b) => a[state.sort_field] > b[state.sort_field] ? 1 * state.sort_dir : -1 * state.sort_dir)
+        // Just get top 100
+        articles = articles.slice(0, 100)
         commit("SET_KEYVAL", { key: "articles", value: articles })
         commit("SET_LOADING_STATE", "loaded")
     }
