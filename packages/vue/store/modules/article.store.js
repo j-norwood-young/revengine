@@ -53,6 +53,8 @@ const state = {
     section_options: [],
     sections: [],
     articles: [],
+    tag_options: [],
+    tags: [],
     per_page: 20,
     journalist_options: [],
     journalists: [],
@@ -105,6 +107,10 @@ const actions = {
             if (!Array.isArray(query.journalists)) query.journalists = [query.journalists];
             commit("SET_KEYVAL", { key: "journalists", value: query.journalists })
         }
+        if (query.tags) {
+            if (!Array.isArray(query.tags)) query.tags = [query.tags];
+            commit("SET_KEYVAL", { key: "tags", value: query.tags })
+        }
         // Get initial articles
         await dispatch("getArticles");
         // Set as loaded
@@ -133,6 +139,48 @@ const actions = {
         router.push({ query })
         dispatch("getArticles")
     },
+    updateTags ({ commit, dispatch }, value) {
+        commit('SET_KEYVAL', { key: "tags",  value })
+        const query = Object.assign({}, router.history.current.query);
+        query.tags = value;
+        router.push({ query })
+        dispatch("getArticles")
+    },
+    async findTags({ commit, dispatch }, value) {
+        if (value.length <= 2) return;
+        this.isLoading = true;
+        const result = await apihelper.aggregate("article", [
+            {
+                $unwind: "$tags"
+            },
+            {
+                $group: {
+                    _id: "$tags"
+                }
+            },
+            {
+                $sort: {
+                    "_id": 1
+                }
+            },
+            {
+                $match: {
+                    "$expr": {
+                        "$regexMatch": {
+                           "input": "$_id",
+                           "regex": value,
+                           "options": "i"
+                        }
+                    }
+                }
+            }
+        ])
+        console.log(result);
+        const tags = result.data.map(item => item._id);
+        console.log(tags);
+        commit('SET_KEYVAL', { key: "tag_options",  value: tags });
+        this.isLoading = false
+    },
     addJournalist({ state, dispatch }, value) {
         const journalists = [ ...state.journalists, value ];
         dispatch("updateJournalists", journalists)
@@ -140,6 +188,10 @@ const actions = {
     addSection({ state, dispatch }, value) {
         const sections = [ ...state.sections, value ];
         dispatch("updateSections", sections)
+    },
+    addTag({ state, dispatch }, value) {
+        const tags = [ ...state.tags, value ];
+        dispatch("updateTags", tags)
     },
     updateSortField({ state, commit, dispatch}, field) {
         if (field === state.sort_field) {
@@ -167,6 +219,11 @@ const actions = {
                 "$in": state.journalists
             }
         }
+        if (state.tags.length) {
+            match.tags = {
+                "$in": state.tags
+            }
+        }
         const sort = {};
         sort[state.sort_field] = state.sort_dir;
         let articles = (await apihelper.aggregate("article", [
@@ -191,25 +248,26 @@ const actions = {
                     date_published: 1,
                     logged_in_hits: 1,
                     readers_led_to_subscription: 1,
+                    newsletter_hits: 1,
                     img_thumbnail: 1,
                 }
             },
-            {
-                $group: {
-                    _id: "$_id",
-                    total_hits: { $sum: "$hits_count" },
-                    "doc":{"$first":"$$ROOT"},
-                }
-            },
-            {
-                $replaceRoot: { 
-                    newRoot: { 
-                        $mergeObjects: [ 
-                            { total_hits: "$total_hits" }, "$doc" 
-                        ] 
-                    } 
-                }
-            },
+            // {
+            //     $group: {
+            //         _id: "$_id",
+            //         total_hits: { $sum: "$hits_count" },
+            //         "doc":{"$first":"$$ROOT"},
+            //     }
+            // },
+            // {
+            //     $replaceRoot: { 
+            //         newRoot: { 
+            //             $mergeObjects: [ 
+            //                 { total_hits: "$total_hits" }, "$doc" 
+            //             ] 
+            //         } 
+            //     }
+            // },
             {
                 $match: {
                     hits_date: {
@@ -235,26 +293,20 @@ const actions = {
                 $limit: 1000
             },
             {
-                $project: {
-                    title: "$doc.title",
-                    tags: "$doc.tags",
-                    sections: "$doc.sections",
-                    post_id: "$doc.post_id",
-                    urlid: "$doc.urlid",
-                    author: "$doc.author",
-                    date_published: "$doc.date_published",
-                    logged_in_hits: "$doc.logged_in_hits",
-                    readers_led_to_subscription: "$doc.readers_led_to_subscription",
-                    hits: 1,
-                    img_thumbnail: "$doc.img_thumbnail",
-                    total_hits: "$doc.total_hits",
+                $replaceRoot: { 
+                    newRoot: { 
+                        $mergeObjects: [ 
+                            { hits: "$hits" }, "$doc" 
+                        ] 
+                    } 
                 }
             },
         ]))
         .data.map(article => {
-            article.date_published_formatted = moment(article.date_published).format("YYYY-MM-DD HH:mm");
+            article.date_published_formatted = moment(article.date_published).format("ddd D MMMM YYYY, h:mma");
             article.logged_in_hits_total = article.logged_in_hits.filter(hit => moment().range(state.date_range).contains(moment(hit.date))).reduce((prev, curr) => prev + curr.count, 0);
             article.led_to_subscription_count = article.readers_led_to_subscription ? article.readers_led_to_subscription.length : 0;
+            article.newsletter_hits_total = article.newsletter_hits ? article.newsletter_hits.reduce((prev, curr) => prev + curr.count, 0) : 0;
             return article;
         });
         // Work out quantiles
@@ -278,6 +330,46 @@ const actions = {
         articles.sort((a, b) => a[state.sort_field] > b[state.sort_field] ? 1 * state.sort_dir : -1 * state.sort_dir)
         // Just get top 100
         articles = articles.slice(0, 100)
+        // Get total hits
+        let total_hits = (await apihelper.aggregate("article", [
+            {
+                $match: {
+                    urlid: {
+                        $in: articles.map(article => article.urlid)
+                    }
+                },
+            },
+            {
+                $unwind: {
+                    path: "$hits",
+                }
+            },
+            {
+                $project: {
+                    hits_count: "$hits.count",
+                    hits_date: "$hits.date",
+                }
+            },
+            {
+                $group: {
+                    _id: "$_id",
+                    total_hits: { $sum: "$hits_count" },
+                    "doc":{"$first":"$$ROOT"},
+                }
+            },
+            {
+                $replaceRoot: { 
+                    newRoot: { 
+                        $mergeObjects: [ 
+                            { total_hits: "$total_hits" }, "$doc" 
+                        ] 
+                    } 
+                }
+            },
+        ])).data;
+        for (let article of articles) {
+            article.total_hits = total_hits.find(hit => hit._id === article._id).total_hits
+        }
         commit("SET_KEYVAL", { key: "articles", value: articles })
         commit("SET_LOADING_STATE", "loaded")
     }

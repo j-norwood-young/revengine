@@ -6,6 +6,7 @@ div
             //- h4 12,345 articles
             Sections.mt-4
             Journalists.mt-4
+            Tags.mt-4
         .col-sm-6
             DateRange
     .row(
@@ -26,6 +27,7 @@ import Sections from "./Sections.vue"
 import DateRange from "./DateRange.vue"
 import ArticleTable from "./ArticleTable.vue"
 import Journalists from "./Journalists.vue"
+import Tags from "./Tags.vue"
 
 export default {
     components: {
@@ -33,6 +35,7 @@ export default {
         DateRange,
         ArticleTable,
         Journalists,
+        Tags,
     },
     computed: {
         ...mapState("Article", [ 
@@ -44,14 +47,7 @@ export default {
         ])
     },
     data() {
-        return {
-            journalists_options: [
-                "Jason Norwood-Young",
-                "Rowan",
-                "Styli"
-            ],
-            journalists: [],
-        }
+        return {}
     },
     async mounted() {
         await this.$store.dispatch("Article/init");
