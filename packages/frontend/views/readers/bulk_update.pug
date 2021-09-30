@@ -1,0 +1,24 @@
+extends ../layout
+
+block content
+    .container
+        h2 Bulk Update
+        form(method="POST")
+            .row 
+                .col-sm-6 
+                    .form-group
+                        label Email addresses
+                        p One email address per line
+                        textarea#emails.form-control(name="emails" rows=20)
+                .col-sm-6 
+                    .form-group
+                        label Send Uber code?
+                        select.form-control(name="uber_code_override")
+                            option(value="") No Change
+                            option(value="auto") Auto
+                            option(value="send") Always Send
+                            option(value="withhold") Never Send
+            .form-group
+                input.btn.btn-primary(type="submit", value="Submit")
+        
+        

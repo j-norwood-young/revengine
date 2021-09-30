@@ -402,4 +402,26 @@ router.get("/expunge/:reader_id", async (req, res) => {
     }
 })
 
+router.get("/bulk_update", async (req, res) => {
+    res.render("readers/bulk_update");
+})
+
+router.post("/bulk_update", async (req, res) => {
+    try {
+        const emails = req.body.emails.split("\n").map(email => email.trim().toLowerCase());
+        const uber_code_override = req.body.uber_code_override;
+        const data = emails.map(email => {
+            const result = { email };
+            if (uber_code_override) result.uber_code_override = uber_code_override;
+            return result;
+        })
+        console.log(data);
+        const result = await req.apihelper.bulk_put("reader", "email", data);
+        res.render("readers/bulk_update_result", result);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({ error: err });
+    }
+})
+
 module.exports = router;
