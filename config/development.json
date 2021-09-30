@@ -46,6 +46,10 @@
         "keyFilename": "/root/keys/dmbigquery-8deb86ecf874.json",
         "projectId": "DMBigQuery"
     },
+    "google_analytics": {
+        "keyFilename": "/root/dmanalytics.json",
+        "propertyId": "249894695"
+    },
     "kafka": {
         "server": "localhost:9092",
         "partitions": 1,

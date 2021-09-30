@@ -51,6 +51,9 @@ const ArticleSchema = new JXPSchema({
         },
         language: String
     },
+    avg_secs_engaged: Number,
+    engagement_rate: Number,
+    returning_readers: Number,
     hits: [ Mixed ],
     newsletter_hits: [ Mixed ],
     logged_in_hits: [ Mixed ],
