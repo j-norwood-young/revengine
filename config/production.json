@@ -27,8 +27,7 @@
         "test_interval": 1000,
         "indexes": {
             "pageviews": [
-                "pageviews",
-                "concurrents_by_browser"
+                "pageviews"
             ]
         }
     },
