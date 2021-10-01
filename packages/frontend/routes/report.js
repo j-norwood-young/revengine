@@ -145,7 +145,11 @@ router.post("/top_newsletter_subscribers", async (req, res) => {
 })
 
 router.get("/editorial_dashboard", (req, res) => {
-    res.render("reports/editorial_dashboard")
+    res.render("reports/editorial_dashboard", { title: "Editoral Dashboard - Articles"})
+})
+
+router.get("/editorial_dashboard/journalists", (req, res) => {
+    res.render("reports/editorial_dashboard", { title: "Editoral Dashboard - Journalists"})
 })
 
 module.exports = router;

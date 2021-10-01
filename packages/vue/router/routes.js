@@ -1,13 +1,13 @@
-// import OrganisationEdit from "../components/OrganisationEdit.vue";
-// import OrganisationEditAbout from "../components/OrganisationEditAbout.vue";
-// import OrganisationEditMembers from "../components/OrganisationEditMembers.vue";
-// import MemberEdit from "../components/MemberEdit.vue";
-// import MemberEditProperties from "../components/MemberEditProperties.vue";
-// import Noticeboard from "../components/Noticeboard.vue";
 import EditorialDashboard from "../components/EditorialDashboard.vue";
+import EditorialDashboardJournalist from "../components/EditorialDashboardJournalist.vue";
 
 const routes = [
-    { path: "/report/editorial_dashboard", name: "EditorialDashboard", component: EditorialDashboard },
+    { 
+        path: "/report/editorial_dashboard", 
+        name: "EditorialDashboard", 
+        component: EditorialDashboard,
+    },
+    { path: "/report/editorial_dashboard/journalists", name: "EditorialDashboardJournalist", component: EditorialDashboardJournalist },
     // { 
     //     path: "/admin/vedit/organisation/:organisation_id", 
     //     name: "OrganisationEdit", 
