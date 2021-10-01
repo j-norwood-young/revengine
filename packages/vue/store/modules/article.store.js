@@ -2,6 +2,7 @@ import Moment from 'moment';
 import { extendMoment } from 'moment-range';
 import router from "../../router";
 const ss = require("simple-statistics");
+import createCache from 'vuex-cache';
 
 const moment = extendMoment(Moment);
 const JXPHelper = require("jxp-helper");
@@ -9,6 +10,8 @@ const apihelper = new JXPHelper({
     apikey,
     server: apiserver
 })
+
+const plugins = [createCache()]
 
 const state = {
     loading_state: "pre", // pre, loading, loaded
@@ -53,6 +56,7 @@ const state = {
     section_options: [],
     sections: [],
     articles: [],
+    journalist_stats: [],
     tag_options: [],
     tags: [],
     per_page: 20,
@@ -175,9 +179,7 @@ const actions = {
                 }
             }
         ])
-        console.log(result);
         const tags = result.data.map(item => item._id);
-        console.log(tags);
         commit('SET_KEYVAL', { key: "tag_options",  value: tags });
         this.isLoading = false
     },
@@ -252,22 +254,6 @@ const actions = {
                     img_thumbnail: 1,
                 }
             },
-            // {
-            //     $group: {
-            //         _id: "$_id",
-            //         total_hits: { $sum: "$hits_count" },
-            //         "doc":{"$first":"$$ROOT"},
-            //     }
-            // },
-            // {
-            //     $replaceRoot: { 
-            //         newRoot: { 
-            //             $mergeObjects: [ 
-            //                 { total_hits: "$total_hits" }, "$doc" 
-            //             ] 
-            //         } 
-            //     }
-            // },
             {
                 $match: {
                     hits_date: {
@@ -372,7 +358,7 @@ const actions = {
         }
         commit("SET_KEYVAL", { key: "articles", value: articles })
         commit("SET_LOADING_STATE", "loaded")
-    }
+    },
 }
 const mutations = {
     SET_KEYVAL (state, keyval) {
@@ -388,5 +374,6 @@ export default {
     state,
     getters,
     actions,
-    mutations
+    mutations,
+    plugins
 }
