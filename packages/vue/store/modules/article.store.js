@@ -3,6 +3,7 @@ import { extendMoment } from 'moment-range';
 import router from "../../router";
 const ss = require("simple-statistics");
 import createCache from 'vuex-cache';
+import isNumber from 'lodash.isnumber';
 
 const moment = extendMoment(Moment);
 const JXPHelper = require("jxp-helper");
@@ -12,6 +13,45 @@ const apihelper = new JXPHelper({
 })
 
 const plugins = [createCache()]
+
+const article_fields = [
+    {
+        title: "Hits",
+        field: "hits",
+        fn: i => Number(i).toLocaleString(),
+        weight: 1
+    },
+    {
+        title: "Newsletter Clicks",
+        field: "newsletter_hits_total",
+        fn: i => Number(i).toLocaleString(),
+        weight: 1
+    },
+    {
+        title: "Logged In Hits",
+        field: "logged_in_hits_total",
+        fn: i => Number(i).toLocaleString(),
+        weight: 2
+    },
+    {
+        title: "Led to Subscription",
+        field: "led_to_subscription_count",
+        fn: i => Number(i).toLocaleString(),
+        weight: 3
+    },
+    {
+        title: "Avg Secs Engaged",
+        field: "avg_secs_engaged",
+        fn: i => Number(i).toLocaleString() + "s",
+        weight: 2
+    },
+    {
+        title: "Score",
+        field: "score",
+        fn: i => Number(Math.round(i * 10000) / 100).toLocaleString(),
+        isScore: true
+    }
+];
 
 const state = {
     loading_state: "pre", // pre, loading, loaded
@@ -62,8 +102,11 @@ const state = {
     per_page: 20,
     journalist_options: [],
     journalists: [],
-    sort_field: "hits",
-    sort_dir: -1
+    sort_field: "score",
+    sort_dir: -1,
+    article_fields,
+    show_dashboard_settings: false,
+    visible_fields: ["Hits", "Score"]
 }
 const getters = {
     
@@ -252,6 +295,9 @@ const actions = {
                     readers_led_to_subscription: 1,
                     newsletter_hits: 1,
                     img_thumbnail: 1,
+                    avg_secs_engaged: 1,
+                    engagement_rate: 1,
+                    returning_readers: 1,
                 }
             },
             {
@@ -296,20 +342,43 @@ const actions = {
             return article;
         });
         // Work out quantiles
-        const hits_spread = articles.map(article => article.hits).sort((a, b) => a - b);
-        const logged_in_hits_spread = articles.map(article => article.logged_in_hits_total).sort((a, b) => a - b);
-        const led_to_subscription_spread = articles.map(article => article.led_to_subscription_count).sort((a, b) => a - b);
-        
+        // const hits_spread = articles.map(article => article.hits).sort((a, b) => a - b);
+        // const logged_in_hits_spread = articles.map(article => article.logged_in_hits_total).sort((a, b) => a - b);
+        // const led_to_subscription_spread = articles.map(article => article.led_to_subscription_count).sort((a, b) => a - b);
+        // const returning_readers_spread = articles.map(article => article.returning_readers).sort((a, b) => a - b);
+        // const avg_secs_engaged_spread = articles.map(article => article.avg_secs_engaged).sort((a, b) => a - b);
+        // const engagement_rate_spread = articles.map(article => article.engagement_rate).sort((a, b) => a - b);
+        const spreads = {};
+        for (let field of article_fields) {
+            spreads[field.field] = articles.map(article => article[field.field]).sort((a, b) => a - b);
+        }
         // Assign quantiles
         articles = articles.map(article => {
-            article.hits_rank = ss.quantileRankSorted(hits_spread, article.hits);
-            article.logged_in_hits_rank = ss.quantileRankSorted(logged_in_hits_spread, article.logged_in_hits_total);
-            article.led_to_subscription_rank = ss.quantileRankSorted(led_to_subscription_spread, article.led_to_subscription_count);
+            for (let field of article_fields) {
+                if (article[field.field]) {
+                    article[field.field + "_rank"] = ss.quantileRankSorted(spreads[field.field], article[field.field])
+                }
+            }
+            // article.hits_rank = ss.quantileRankSorted(hits_spread, article.hits);
+            // article.logged_in_hits_total_rank = ss.quantileRankSorted(logged_in_hits_spread, article.logged_in_hits_total);
+            // article.led_to_subscription_count_rank = ss.quantileRankSorted(led_to_subscription_spread, article.led_to_subscription_count);
+            // article.returning_readers_rank = ss.quantileRankSorted(returning_readers_spread, article.returning_readers);
+            // article.avg_secs_engaged_rank = ss.quantileRankSorted(avg_secs_engaged_spread, article.avg_secs_engaged);
+            // article.engagement_rate_rank = ss.quantileRankSorted(engagement_rate_spread, article.engagement_rate);
             return article;
         })
         // Calculate score
+        const score_weights_sum = state.article_fields.map(field => field.weight).filter(weight => (weight)).reduce((prev, curr) => prev + curr, 0);
+        console.log({ score_weights_sum });
         articles = articles.map(article => {
-            article.score = (article.hits_rank + (article.logged_in_hits_rank * 2) + (article.led_to_subscription_rank * 3)) / 6;
+            let tot = 0;
+            for (let field of article_fields) {
+                if (field.weight) {
+                    if (article[field.field + "_rank"])
+                        tot += article[field.field + "_rank"] * field.weight
+                }
+            }
+            article.score = tot / score_weights_sum;
             return article;
         })
         // Sort
@@ -359,6 +428,25 @@ const actions = {
         commit("SET_KEYVAL", { key: "articles", value: articles })
         commit("SET_LOADING_STATE", "loaded")
     },
+    showDashboardSettings({ state, commit }) {
+        commit("SET_KEYVAL", { key: "show_dashboard_settings", value: true })
+    },
+    hideDashboardSettings({ dispatch, commit }) {
+        commit("SET_KEYVAL", { key: "show_dashboard_settings", value: false })
+    },
+    applyDashboardSettings({ dispatch, commit }) {
+        commit("SET_KEYVAL", { key: "show_dashboard_settings", value: false })
+        dispatch("getArticles");
+    },
+    updateVisibleFields({ state, commit }, value) {
+        commit('SET_KEYVAL', { key: "visible_fields",  value })
+    },
+    updateFieldWeight({ state, commit }, data) {
+        const fields = state.article_fields;
+        const i = fields.findIndex(field => field.field === data.field)
+        fields[i].weight = Number(data.value);
+        commit('SET_KEYVAL', { key: "article_fields",  value: fields })
+    }
 }
 const mutations = {
     SET_KEYVAL (state, keyval) {

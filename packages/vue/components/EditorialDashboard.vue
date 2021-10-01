@@ -1,5 +1,6 @@
 <template lang="pug">
 div
+    EditorialDashboardSettings
     .row.mb-4
         .col-sm-6
             h1 Editorial Dashboard
@@ -7,8 +8,10 @@ div
             Sections.mt-4
             Journalists.mt-4
             Tags.mt-4
-        .col-sm-6
+        .col-sm-5
             DateRange
+        .col.text-right
+            i.fa.fa-cog(@click="showDashboardSettings")
     .row(
         v-if="loading_state==='loading'"
     )
@@ -28,6 +31,7 @@ import DateRange from "./DateRange.vue"
 import ArticleTable from "./ArticleTable.vue"
 import Journalists from "./Journalists.vue"
 import Tags from "./Tags.vue"
+import EditorialDashboardSettings from "./EditorialDashboardSettings.vue"
 
 export default {
     components: {
@@ -36,6 +40,7 @@ export default {
         ArticleTable,
         Journalists,
         Tags,
+        EditorialDashboardSettings,
     },
     computed: {
         ...mapState("Article", [ 
@@ -44,7 +49,8 @@ export default {
     },
     methods: {
         ...mapActions("Article", [
-        ])
+            "showDashboardSettings"
+        ]),
     },
     data() {
         return {}

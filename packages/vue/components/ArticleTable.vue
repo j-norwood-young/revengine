@@ -3,31 +3,16 @@ table.table.table-striped.table-bordered
     thead
         tr
             th Article
-            th(@click="updateSortField('hits')") 
-                | Hits
-                i.fa.fa-sort-down.ml-1.text-dark(v-if="sort_field==='hits' && sort_dir===-1")
-                i.fa.fa-sort-up.ml-1.text-dark(v-if="sort_field==='hits' && sort_dir===1")
-                i.fa.fa-sort.ml-1.text-muted(v-if="sort_field!=='hits'")
-            th(@click="updateSortField('newsletter_hits_total')")  
-                | Newsletter Clicks
-                i.fa.fa-sort-down.ml-1.text-dark(v-if="sort_field==='newsletter_hits_total' && sort_dir===-1")
-                i.fa.fa-sort-up.ml-1.text-dark(v-if="sort_field==='newsletter_hits_total' && sort_dir===1")
-                i.fa.fa-sort.ml-1.text-muted(v-if="sort_field!=='newsletter_hits_total'")
-            th(@click="updateSortField('logged_in_hits_total')") 
-                | Logged In Hits
-                i.fa.fa-sort-down.ml-1.text-dark(v-if="sort_field==='logged_in_hits_total' && sort_dir===-1")
-                i.fa.fa-sort-up.ml-1.text-dark(v-if="sort_field==='logged_in_hits_total' && sort_dir===1")
-                i.fa.fa-sort.ml-1.text-muted(v-if="sort_field!=='logged_in_hits_total'")
-            th(@click="updateSortField('led_to_subscription_count')") 
-                | Led to Subscription
-                i.fa.fa-sort-down.ml-1.text-dark(v-if="sort_field==='led_to_subscription_count' && sort_dir===-1")
-                i.fa.fa-sort-up.ml-1.text-dark(v-if="sort_field==='led_to_subscription_count' && sort_dir===1")
-                i.fa.fa-sort.ml-1.text-muted(v-if="sort_field!=='led_to_subscription_count'")
-            th(@click="updateSortField('score')") 
-                | Score
-                i.fa.fa-sort-down.ml-1.text-dark(v-if="sort_field==='score' && sort_dir===-1")
-                i.fa.fa-sort-up.ml-1.text-dark(v-if="sort_field==='score' && sort_dir===1")
-                i.fa.fa-sort.ml-1.text-muted(v-if="sort_field!=='score'")
+            th(
+                v-for="(field, i) in article_fields"
+                :key="field.field"
+                @click="updateSortField(field.field)"
+                v-if="visible_fields.includes(field.title)"
+            ) 
+                | {{field.title}}
+                i.fa.fa-sort-down.ml-1.text-dark(v-if="sort_field===field.field && sort_dir===-1")
+                i.fa.fa-sort-up.ml-1.text-dark(v-if="sort_field===field.field && sort_dir===1")
+                i.fa.fa-sort.ml-1.text-muted(v-if="sort_field!==field.field")
     tbody
         tr(
             v-for="(article, index) in articles"
@@ -54,35 +39,14 @@ table.table.table-striped.table-bordered
                         :key="article._id + 'tag' + i"
                     ) {{tag}} 
                         a.ml-2.text-white.fa.fa-plus(@click="addTag(tag)")
-            td
-                h4.text-center {{Number(article.hits).toLocaleString()}}
+            td(v-for="field in article_fields"
+                :key="field.field"
+                v-if="visible_fields.includes(field.title)"
+            )
+                h4.text-center {{field.fn(article[field.field])}}
                 //- - p Rank #1
-                p.text-center.mt-4.text-danger Quantile<br> {{Math.round(article.hits_rank * 10000)/100}}%
-                p.text-center.mt-4 All Time<br> {{Number(article.total_hits).toLocaleString()}}
-            td
-                //- .badge.badge-danger Coming Soon
-                h4.text-center {{Number(article.newsletter_hits_total).toLocaleString()}}
-                //- h4 20,123
-                //- p Rank #1
-                //- p Percentile 100%
-            td
-                //- .badge.badge-danger Coming Soon
-                h4.text-center {{Number(article.logged_in_hits_total).toLocaleString()}}
-                p.text-center.mt-4.text-danger Quantile<br> {{Math.round(article.logged_in_hits_rank * 10000)/100}}%
-                //- p Rank #1
-                //- p Percentile 100%
-            td
-                //- .badge.badge-danger Coming Soon
-                h4.text-center {{Number(article.led_to_subscription_count).toLocaleString()}}
-                p.text-center.mt-4.text-danger Quantile<br> {{Math.round(article.led_to_subscription_rank * 10000)/100}}%
-                //- p Rank #1
-                //- p Percentile 100%
-            td
-                //- .badge.badge-danger Coming Soon
-                h4.text-center {{Math.round(article.score * 100)}}
-                //- h4 20,123
-                //- p Rank #1
-                //- p Percentile 100%
+                p(v-if="article[field.field + '_rank']").text-center.mt-4.text-danger Quantile<br> {{Math.round(article[field.field + "_rank"] * 10000)/100}}%
+                //- p.text-center.mt-4 All Time<br> {{Number(article.total_hits).toLocaleString()}}
 </template>
 
 <script>
@@ -94,7 +58,9 @@ export default {
         ...mapState("Article", [ 
             "articles",
             "sort_field",
-            "sort_dir"
+            "sort_dir",
+            "article_fields",
+            "visible_fields"
         ]),
     },
     methods: {
