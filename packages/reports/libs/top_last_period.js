@@ -35,6 +35,7 @@ class TopLastPeriod {
                     "size": 0,
                     "query": {
                         "bool": {
+                            "must_not": [],
                             "filter": [
                                 {
                                     "range": {
@@ -89,8 +90,18 @@ class TopLastPeriod {
             if (opts.section) {
                 query.body.query.bool.filter.push({
                     "match": {
-                        sections: {
+                        "sections": {
                             "query": opts.section,
+                            "operator": "and"
+                        }
+                    }
+                })
+            }
+            if (opts.exclude_section) {
+                query.body.query.bool.must_not.push({
+                    "match": {
+                        "sections": {
+                            "query": opts.exclude_section,
                             "operator": "and"
                         }
                     }
