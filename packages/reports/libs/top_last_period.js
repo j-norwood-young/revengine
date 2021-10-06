@@ -77,6 +77,13 @@ class TopLastPeriod {
                     }
                 })
             }
+            if (opts.content_type) {
+                query.body.query.bool.filter.push({
+                    "term": {
+                        "content_type": opts.content_type
+                    }
+                })
+            }
             if (opts.tag) {
                 query.body.query.bool.filter.push({
                     "match": {
@@ -107,10 +114,10 @@ class TopLastPeriod {
                     }
                 })
             }
-            // console.log(JSON.stringify(query, null, "\  "));
+            // console.log(JSON.stringify(query, null, "  "));
             const esresult = await esclient.search(query)
             const result = esresult.aggregations.result.buckets.sort((a, b) => b.doc_count - a.doc_count).slice(0, size - 1);
-            // console.log(result);
+            // console.log(JSON.stringify(esresult, null, "  "));
             return result;
         } catch(err) {
             return Promise.reject(err);
