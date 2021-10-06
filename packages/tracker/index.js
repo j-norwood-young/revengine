@@ -103,6 +103,7 @@ const set_esdata = (index, data) => {
         utm_source: utm.utm_source,
         utm_term: utm.utm_term,
         browser_id: data.browser_id,
+        content_type: data.post_type,
     };
     if (data.user_ip) esdata.user_ip = data.user_ip;
     return esdata;
