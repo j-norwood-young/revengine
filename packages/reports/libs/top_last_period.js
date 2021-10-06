@@ -35,24 +35,20 @@ class TopLastPeriod {
                     "size": 0,
                     "query": {
                         "bool": {
-                            "must": [
-                                {
-                                    "exists": {
-                                        "field": "article_id"
-                                    }
-                                },
-                                
-                            ],
                             "filter": [
                                 {
                                     "range": {
                                         "time": {
                                             "lt": "now",
                                             "gte": periods[opts.period],
-                                            // "time_zone": "+02:00"
                                         }
                                     }
-                                }
+                                },
+                                {
+                                    "exists": {
+                                        "field": "article_id"
+                                    }
+                                },
                             ]
                         }
                     },
@@ -67,37 +63,42 @@ class TopLastPeriod {
                 }
             }
             if (opts.article_id) {
-                query.body.query.bool.must.push({
+                query.body.query.bool.filter.push({
                     "match": {
                         article_id: opts.article_id
                     }
                 })
             }
             if (opts.author) {
-                query.body.query.bool.must.push({
-                    // "match": { 
-                        "term": {
-                            "author": opts.author
-                        }
-                    // }
+                query.body.query.bool.filter.push({
+                    "term": {
+                        "author_id": opts.author
+                    }
                 })
             }
             if (opts.tag) {
-                query.body.query.bool.must.push({
+                query.body.query.bool.filter.push({
                     "match": {
-                        tags: opts.tag
+                        tags: {
+                            "query": opts.tag,
+                            "operator": "and"
+                        }
                     }
                 })
             }
             if (opts.section) {
-                query.body.query.bool.must.push({
+                query.body.query.bool.filter.push({
                     "match": {
-                        sections: opts.section
+                        sections: {
+                            "query": opts.section,
+                            "operator": "and"
+                        }
                     }
                 })
             }
-            // console.log(JSON.stringify(query, null, "\t"));
-            const result = (await esclient.search(query)).aggregations.result.buckets.sort((a, b) => b.doc_count - a.doc_count).slice(0, size - 1);
+            // console.log(JSON.stringify(query, null, "\  "));
+            const esresult = await esclient.search(query)
+            const result = esresult.aggregations.result.buckets.sort((a, b) => b.doc_count - a.doc_count).slice(0, size - 1);
             // console.log(result);
             return result;
         } catch(err) {
