@@ -12,6 +12,7 @@ const ArticleSchema = new JXPSchema({
     type: String,
     tags: [ String ],
     sections: [ String ],
+    custom_section_label: String,
     img_thumbnail: String,
     img_medium: String,
     img_full: String,
@@ -59,6 +60,7 @@ const ArticleSchema = new JXPSchema({
     logged_in_hits: [ Mixed ],
     subscriber_hits: [ Mixed ],
     readers_led_to_subscription: [ Mixed ],
+    
 },
 {
     perms: {
