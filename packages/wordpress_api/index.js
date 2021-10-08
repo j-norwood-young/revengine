@@ -38,6 +38,7 @@ server.get("/top_articles/:period", async (req, res) => {
                     exceprt: 1,
                     sections: 1,
                     tags: 1,
+                    custom_section_label: 1,
                     date_published: 1,
                     date_modified: 1,
                     img_thumbnail: 1,
