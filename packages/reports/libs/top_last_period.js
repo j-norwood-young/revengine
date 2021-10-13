@@ -13,8 +13,8 @@ class TopLastPeriod {
             const periods = {
                 hour: "now-1h/h",
                 day: "now-1d/d",
-                week: "now-1w/w",
-                month: "now-1M/M",
+                week: "now-7d/d",
+                month: "now-30d/d",
                 // sixmonth: "now-6M/M",
                 // year: "now-1y/y",
             }
