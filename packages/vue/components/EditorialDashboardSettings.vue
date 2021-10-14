@@ -20,10 +20,12 @@
                     )
                 .form-group
                     h5 Score Weighting
-                    .row
-                        .col(v-for="field in article_fields" v-if="!field.isScore")
-                            label {{ field.title }}
-                            input.form-control(type="number" :value="field.weight" min="0" @input="updateFieldWeight({ value: $event.target.value, field: field.field })")
+                    table
+                        tbody
+                            tr
+                                td.align-bottom(v-for="field in article_fields" v-if="!field.isScore")
+                                        label {{ field.title }}
+                                        input.form-control(type="number" :value="field.weight" min="0" @input="updateFieldWeight({ value: $event.target.value, field: field.field })")
                 .model-footer
                     button.btn.btn-secondary.mr-2(@click="applyDashboardSettings") Done
 </template>
