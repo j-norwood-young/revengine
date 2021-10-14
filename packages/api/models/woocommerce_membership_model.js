@@ -19,7 +19,7 @@ const Woocommerce_MembershipSchema = new JXPSchema({
             admin: "crud", // CRUD = Create, Retrieve, Update and Delete
             owner: "crud",
             user: "r",
-            all: "" // Unauthenticated users will be able to read from Woocommerce_Membership, but that is all
+            all: ""
         }
     });
 
