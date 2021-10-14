@@ -13,8 +13,6 @@ const apihelper = new JXPHelper({
     server: apiserver
 })
 
-const plugins = [createCache()]
-
 const cached_keys = {
     "visible_fields": val => val,
     "sort_field": val => val,
@@ -66,6 +64,35 @@ const article_fields = [
         isScore: true
     }
 ];
+
+const report_name_builder = (sections, journalists, tags, period) => {
+    if ((!sections.length) && (!journalists.length) && (!tags.length)) {
+        return `All articles for ${period.label}`
+    }
+    let s = `Articles for ${period.label}`
+    if (sections.length) {
+        if (sections.length === 1) {
+            s += ` in section ${sections[0]}`
+        } else {
+            s += ` in sections ${sections.slice(0, sections.length - 1).join(", ")} or ${sections.slice(-1)[0]}`
+        }
+    }
+    if (journalists.length) {
+        if (journalists.length === 1) {
+            s += ` by ${journalists[0]}`
+        } else {
+            s += ` by ${journalists.slice(0, journalists.length - 1).join(", ")} or ${journalists.slice(-1)[0]}`
+        }
+    }
+    if (tags.length) {
+        if (tags.length === 1) {
+            s += ` with tag ${tags[0]}`
+        } else {
+            s += ` with tags ${tags.slice(0, tags.length - 1).join(", ")} or ${tags.slice(-1)[0]}`
+        }
+    }
+    return s
+}
 
 const state = {
     loading_state: "pre", // pre, loading, loaded
@@ -119,8 +146,8 @@ const state = {
     sort_field: "score",
     sort_dir: -1,
     article_fields,
-    show_dashboard_settings: false,
-    visible_fields: ["Hits", "Score"]
+    visible_fields: ["Hits", "Score"],
+    report_name: "All Articles"
 }
 const getters = {
     
@@ -188,6 +215,9 @@ const actions = {
             commit("SET_KEYVAL", { key: "tags", value: query.tags })
         }
 
+        // Set report name
+        commit('UPDATE_REPORT_NAME');
+
         // Get initial articles
         await dispatch("getArticles");
 
@@ -201,10 +231,12 @@ const actions = {
     },
     updateDateRange ({ commit, dispatch }, value) {
         commit('SET_KEYVAL', { key: "date_range",  value })
+        commit('UPDATE_REPORT_NAME');
         dispatch("getArticles");
     },
     updateSections ({ commit, dispatch }, value) {
         commit('SET_KEYVAL', { key: "sections",  value })
+        commit('UPDATE_REPORT_NAME');
         const query = Object.assign({}, router.history.current.query);
         query.sections = value;
         router.push({ query })
@@ -212,6 +244,7 @@ const actions = {
     },
     updateJournalists ({ commit, dispatch }, value) {
         commit('SET_KEYVAL', { key: "journalists",  value })
+        commit('UPDATE_REPORT_NAME');
         const query = Object.assign({}, router.history.current.query);
         query.journalists = value;
         router.push({ query })
@@ -219,6 +252,7 @@ const actions = {
     },
     updateTags ({ commit, dispatch }, value) {
         commit('SET_KEYVAL', { key: "tags",  value })
+        commit('UPDATE_REPORT_NAME');
         const query = Object.assign({}, router.history.current.query);
         query.tags = value;
         router.push({ query })
@@ -474,7 +508,12 @@ const mutations = {
     SET_LOADING_STATE(state, loading_state) {
         state.loading_state = loading_state;
     },
+    UPDATE_REPORT_NAME(state) {
+        state.report_name = report_name_builder(state.sections, state.journalists, state.tags, state.quick_date_range_value)
+    }
 }
+
+const plugins = [createCache()]
 
 export default {
     namespaced: true,
