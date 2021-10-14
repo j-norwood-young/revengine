@@ -1,33 +1,28 @@
 <template lang="pug">
-.modal#editorial_dashboard_settings(v-bind:class="{ visible: show_dashboard_settings }")
-    .modal-dialog
-        .modal-content
-            .modal-header
-                h2 Editorial Dashboard Settings
-                button(type="button" class="close" data-dismiss="modal" aria-label="Close" @click="hideDashboardSettings")
-                    span(aria-hidden="true") &times;
-            .modal-body
-                .form-group
-                    h5(for="visible_fields") Fields
-                    MultiSelect(
-                        placeholder="Visible Fields..."
-                        :value="visible_fields"
-                        @input="updateVisibleFields"
-                        :options="article_fields.map(field => field.title)"
-                        :searchable="true"
-                        :close-on-select="true"
-                        :multiple="true"
-                    )
-                .form-group
-                    h5 Score Weighting
-                    table
-                        tbody
-                            tr
-                                td.align-bottom(v-for="field in article_fields" v-if="!field.isScore")
-                                        label {{ field.title }}
-                                        input.form-control(type="number" :value="field.weight" min="0" @input="updateFieldWeight({ value: $event.target.value, field: field.field })")
-                .model-footer
-                    button.btn.btn-secondary.mr-2(@click="applyDashboardSettings") Done
+b-modal#editorial_dashboard_settings(
+    title="Editorial Dashboard Settings"
+    v-bind:class="{ visible: show_dashboard_settings }"
+    @ok="applyDashboardSettings"
+)
+    .form-group
+        h5(for="visible_fields") Fields
+        MultiSelect(
+            placeholder="Visible Fields..."
+            :value="visible_fields"
+            @input="updateVisibleFields"
+            :options="article_fields.map(field => field.title)"
+            :searchable="true"
+            :close-on-select="true"
+            :multiple="true"
+        )
+    .form-group
+        h5 Score Weighting
+        table
+            tbody
+                tr
+                    td.align-bottom(v-for="field in article_fields" v-if="!field.isScore")
+                            label {{ field.title }}
+                            input.form-control(type="number" :value="field.weight" min="0" @input="updateFieldWeight({ value: $event.target.value, field: field.field })")
 </template>
 
 <script>
