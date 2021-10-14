@@ -8,6 +8,7 @@ html
 		script(src="https://kit.fontawesome.com/71ea3a5816.js" crossorigin="anonymous")
 		if apikey && apiserver
 			script.
+				var user_id = "#{user.data._id}";
 				var apikey = "#{apikey}";
 				var apiserver = "#{apiserver}";
 				var daemonserver = "#{daemonserver}";
