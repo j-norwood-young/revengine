@@ -5,6 +5,7 @@ const ss = require("simple-statistics");
 import createCache from 'vuex-cache';
 import isNumber from 'lodash.isnumber';
 
+const localstorage_prepend = "RevEngine-ContentReport-"
 const moment = extendMoment(Moment);
 const JXPHelper = require("jxp-helper");
 const apihelper = new JXPHelper({
@@ -13,6 +14,19 @@ const apihelper = new JXPHelper({
 })
 
 const plugins = [createCache()]
+
+const cached_keys = {
+    "visible_fields": val => val,
+    "sort_field": val => val,
+    "article_fields": vals => {
+        const result = [];
+        for (let val of vals) {
+            val.fn = article_fields.find(article_field => article_field.field === val.field).fn;
+            result.push(val)
+        }
+        return result;
+    }
+}
 
 const article_fields = [
     {
@@ -146,6 +160,21 @@ const actions = {
         journalist_options.sort()
         commit("SET_KEYVAL", { key: "journalist_options", value: journalist_options });
         const query = Object.assign({}, router.history.current.query);
+
+        // Load localStorage values
+        const cached_keys_keys = Object.keys(cached_keys);
+        for (let key of cached_keys_keys) {
+            const json = localStorage.getItem(`${localstorage_prepend}${key}`)
+            if (!json) continue;
+            try {
+                const value = cached_keys[key](JSON.parse(json));
+                commit("SET_KEYVAL", { key, value });
+            } catch(err) {
+                console.error(err);
+            }
+        }
+
+        // If any options are set in the querystring, use those
         if (query.sections) {
             if (!Array.isArray(query.sections)) query.sections = [query.sections];
             commit("SET_KEYVAL", { key: "sections", value: query.sections })
@@ -158,8 +187,10 @@ const actions = {
             if (!Array.isArray(query.tags)) query.tags = [query.tags];
             commit("SET_KEYVAL", { key: "tags", value: query.tags })
         }
+
         // Get initial articles
         await dispatch("getArticles");
+
         // Set as loaded
         commit("SET_LOADING_STATE", "loaded")
     },
@@ -341,13 +372,6 @@ const actions = {
             article.newsletter_hits_total = article.newsletter_hits ? article.newsletter_hits.reduce((prev, curr) => prev + curr.count, 0) : 0;
             return article;
         });
-        // Work out quantiles
-        // const hits_spread = articles.map(article => article.hits).sort((a, b) => a - b);
-        // const logged_in_hits_spread = articles.map(article => article.logged_in_hits_total).sort((a, b) => a - b);
-        // const led_to_subscription_spread = articles.map(article => article.led_to_subscription_count).sort((a, b) => a - b);
-        // const returning_readers_spread = articles.map(article => article.returning_readers).sort((a, b) => a - b);
-        // const avg_secs_engaged_spread = articles.map(article => article.avg_secs_engaged).sort((a, b) => a - b);
-        // const engagement_rate_spread = articles.map(article => article.engagement_rate).sort((a, b) => a - b);
         const spreads = {};
         for (let field of article_fields) {
             spreads[field.field] = articles.map(article => article[field.field]).sort((a, b) => a - b);
@@ -359,17 +383,10 @@ const actions = {
                     article[field.field + "_rank"] = ss.quantileRankSorted(spreads[field.field], article[field.field])
                 }
             }
-            // article.hits_rank = ss.quantileRankSorted(hits_spread, article.hits);
-            // article.logged_in_hits_total_rank = ss.quantileRankSorted(logged_in_hits_spread, article.logged_in_hits_total);
-            // article.led_to_subscription_count_rank = ss.quantileRankSorted(led_to_subscription_spread, article.led_to_subscription_count);
-            // article.returning_readers_rank = ss.quantileRankSorted(returning_readers_spread, article.returning_readers);
-            // article.avg_secs_engaged_rank = ss.quantileRankSorted(avg_secs_engaged_spread, article.avg_secs_engaged);
-            // article.engagement_rate_rank = ss.quantileRankSorted(engagement_rate_spread, article.engagement_rate);
             return article;
         })
         // Calculate score
         const score_weights_sum = state.article_fields.map(field => field.weight).filter(weight => (weight)).reduce((prev, curr) => prev + curr, 0);
-        console.log({ score_weights_sum });
         articles = articles.map(article => {
             let tot = 0;
             for (let field of article_fields) {
@@ -450,7 +467,9 @@ const actions = {
 }
 const mutations = {
     SET_KEYVAL (state, keyval) {
-        state[keyval.key] = keyval.value
+        state[keyval.key] = keyval.value;
+        const cached_keys_keys = Object.keys(cached_keys);
+        if (cached_keys_keys.includes(keyval.key)) localStorage.setItem(`${localstorage_prepend}${keyval.key}`, JSON.stringify(keyval.value))
     },
     SET_LOADING_STATE(state, loading_state) {
         state.loading_state = loading_state;
