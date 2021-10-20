@@ -116,6 +116,14 @@ const actions = {
     },
     async saveReport({ commit, dispatch, state, rootState}) {
         commit("SET_LOADING_STATE", "saving")
+        let cron = "";
+        if (state.current_report_period === "daily") {
+            cron = `0 ${state.current_report_time.map(t => Number(t.split(":")[0])).join(",")} * * *`
+        } else if (state.current_report_period === "weekly") {
+            cron = `0 6 * * ${ state.current_report_day.map(day => cron_day(day)).join(",") }`
+        } else if (state.current_report_period === "monthly") {
+            cron = `30 6 ${ state.current_report_date.map(date => cron_date(date)).join(",")} * *`
+        }
         const mailer_result = await apihelper.post("mailer", {
             cron,
             name: state.current_report_name,
@@ -149,14 +157,7 @@ const actions = {
                 visible_fields: rootState.Article.visible_fields
             }
         })
-        let cron = "";
-        if (state.current_report_period === "daily") {
-            cron = `0 ${state.current_report_time.map(t => Number(t.split(":")[0])).join(",")} * * *`
-        } else if (state.current_report_period === "weekly") {
-            cron = `0 6 * * ${ state.current_report_day.map(day => cron_day(day)).join(",") }`
-        } else if (state.current_report_period === "monthly") {
-            cron = `30 6 ${ state.current_report_date.map(date => cron_date(date)).join(",")} * *`
-        }
+        
         
         const reports = [...state.reports, result.data];
         commit("SET_KEYVAL", { key: "reports", value: reports });
