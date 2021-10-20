@@ -15,6 +15,7 @@ const mailer_names = [
     "newsletter_content_report",
     "newsletter_management_report",
     "website_content_report",
+    "content_report",
 ]
 
 const mailers = {};
