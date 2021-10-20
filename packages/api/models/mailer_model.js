@@ -7,6 +7,7 @@ const MailerSchema = new JXPSchema(
         subject: String,
         report: String,
         cron: String,
+        params: Mixed,
         last_run_start: Date,
         last_run_end: Date,
         last_run_result: Mixed,

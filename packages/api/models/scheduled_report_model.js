@@ -2,6 +2,7 @@
 
 const Scheduled_ReportSchema = new JXPSchema({
     "user_id": { type: ObjectId, link: "user" },
+    "mailer_id": { type: ObjectId, link: "mailer" },
     "name": String,
     "start_date": Date,
     "end_date": Date,

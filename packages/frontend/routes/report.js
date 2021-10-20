@@ -116,8 +116,9 @@ router.post("/facet/tag", async (req, res) => {
 })
 
 router.get("/mail_report/:report", async (req, res) => {
+    const query = Object.fromEntries(new URLSearchParams(req.query()))
     const report = require(`@revengine/reports/reports/${ req.params.report }`);
-    const content = await report.content();
+    const content = await report.content(query);
     res.render("reports/mail_report", { content });
 })
 

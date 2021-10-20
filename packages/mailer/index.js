@@ -27,7 +27,7 @@ const render = async report => {
     return content;
 }
 
-const mail = async (report, subject, to, from) => {
+const mail = async (report, subject, to, from, params = {}) => {
     try {
         const auth = {};
         if (process.env.SMTP_USER) {
@@ -43,11 +43,11 @@ const mail = async (report, subject, to, from) => {
             auth
         }, config.mailer ? config.mailer.smtp : {});
         let transporter = nodemailer.createTransport(smtp);
-        let html = await mailers[report].content();
+        let html = await mailers[report].content(params);
         if (!html) throw "Missing contents";
         let info = await transporter.sendMail({
             from: from || config.mailer ? config.mailer.from : "revengine@revengine.dailymaverick.co.za",
-            to: to,
+            to,
             subject: `${subject || "RevEngine"} - ${moment().format("dddd Do MMMM")}`,
             text: "A RevEngine Report",
             html
@@ -74,7 +74,7 @@ const load_schedule = async () => {
         for (let mailer of scheduled_mailers) {
             let schedule = cron.schedule(mailer.cron, async () => {
                 try {
-                    await mail(mailer.report, mailer.subject, mailer.emails)
+                    await mail(mailer.report, mailer.subject, mailer.emails, null, mailer.params)
                 } catch (err) {
                     console.error(err);
                 }
@@ -93,7 +93,8 @@ const scheduler = async () => {
 
 server.get("/report/:report", async (req, res) => {
     if (!mailer_names.includes(req.params.report)) return res.send(500, { state: "error", msg: "Report doesn't exist"});
-    let html = await mailers[req.params.report].content();
+    const query = Object.fromEntries(new URLSearchParams(req.query()))
+    let html = await mailers[req.params.report].content(query);
     res.writeHead(200, {
         'Content-Length': Buffer.byteLength(html),
         'Content-Type': 'text/html'

@@ -67,6 +67,42 @@ const report_name_builder = (sections, journalists, tags, period) => {
     return s
 }
 
+const cron_day = day => {
+    let d;
+    switch (day) {
+        case "Monday":
+            d = 1;
+            break;
+        case "Tuesday":
+            d = 2;
+            break;
+        case "Wednesday":
+            d = 3;
+            break;
+        case "Thursday":
+            d = 4;
+            break;
+        case "Friday":
+            d = 5;
+            break;
+        case "Saturday":
+            d = 6;
+            break;
+        case "Sunday":
+            d = 0;
+            break;
+        default:
+            d = 1;
+            break;
+    }
+    return d;
+}
+
+const cron_date = date => {
+    if (date === "Last") return "L";
+    return parseInt(date.match(/\d+/gi).join(""))
+}
+
 const getters = {}
 
 const actions = {
@@ -80,9 +116,25 @@ const actions = {
     },
     async saveReport({ commit, dispatch, state, rootState}) {
         commit("SET_LOADING_STATE", "saving")
+        const mailer_result = await apihelper.post("mailer", {
+            cron,
+            name: state.current_report_name,
+            emails: state.current_report_emails,
+            subject: state.current_report_name,
+            report: "content_report",
+            params: {
+                journalists: rootState.Article.journalists,
+                sections: rootState.Article.sections,
+                tags: rootState.Article.tags,
+                quick_date_range_value: rootState.Article.quick_date_range_value,
+                sort_dir: rootState.Article.sort_dir,
+                visible_fields: rootState.Article.visible_fields
+            },
+        })
         const result = await apihelper.post("scheduled_report", {
             name: state.current_report_name,
             user_id,
+            mailer_id: mailer_result.data._id,
             emails: state.current_report_emails,
             "period": state.current_report_period,
             "time": state.current_report_time,
@@ -97,6 +149,15 @@ const actions = {
                 visible_fields: rootState.Article.visible_fields
             }
         })
+        let cron = "";
+        if (state.current_report_period === "daily") {
+            cron = `0 ${state.current_report_time.map(t => Number(t.split(":")[0])).join(",")} * * *`
+        } else if (state.current_report_period === "weekly") {
+            cron = `0 6 * * ${ state.current_report_day.map(day => cron_day(day)).join(",") }`
+        } else if (state.current_report_period === "monthly") {
+            cron = `30 6 ${ state.current_report_date.map(date => cron_date(date)).join(",")} * *`
+        }
+        
         const reports = [...state.reports, result.data];
         commit("SET_KEYVAL", { key: "reports", value: reports });
         commit("SET_LOADING_STATE", "loaded")
@@ -106,6 +167,8 @@ const actions = {
         commit("SET_KEYVAL", { key: "reports", value: reports });
     },
     async delReport({ commit, state }, report_id) {
+        const report = (await apihelper.getOne("scheduled_report", report_id, { fields: "mailer_id" })).data;
+        await apihelper.del("mailer", report.mailer_id);
         await apihelper.del("scheduled_report", report_id);
         const reports = state.reports.filter(report => report._id !== report_id);
         commit("SET_KEYVAL", { key: "reports", value: reports });
