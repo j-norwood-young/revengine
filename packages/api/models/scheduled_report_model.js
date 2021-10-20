@@ -5,7 +5,7 @@ const Scheduled_ReportSchema = new JXPSchema({
     "name": String,
     "start_date": Date,
     "end_date": Date,
-    "settings": Mixed,
+    "state": Mixed,
     "emails": [ String ],
     "period": String,
     "time": [ String ],

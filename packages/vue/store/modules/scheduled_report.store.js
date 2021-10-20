@@ -88,6 +88,14 @@ const actions = {
             "time": state.current_report_time,
             "day": state.current_report_day,
             "date": state.current_report_date,
+            "state": {
+                journalists: rootState.Article.journalists,
+                sections: rootState.Article.sections,
+                tags: rootState.Article.tags,
+                quick_date_range_value: rootState.Article.quick_date_range_value,
+                sort_dir: rootState.Article.sort_dir,
+                visible_fields: rootState.Article.visible_fields
+            }
         })
         const reports = [...state.reports, result.data];
         commit("SET_KEYVAL", { key: "reports", value: reports });
