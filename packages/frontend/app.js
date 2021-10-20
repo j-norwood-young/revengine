@@ -4,7 +4,6 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const sassMiddleware = require('node-sass-middleware');
-const bodyParser = require('body-parser')
 const redis = require("redis");
 const client = redis.createClient();
 const config = require("config");
@@ -24,12 +23,11 @@ app.use(session({
 	saveUninitialized: true,
 }));
 
-// Body parser
 // parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({limit: '50mb', extended: false }))
+app.use(express.urlencoded({limit: '50mb', extended: true }))
 
 // parse application/json
-app.use(bodyParser.json({limit: '50mb'}))
+app.use(express.json({limit: '50mb'}))
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
