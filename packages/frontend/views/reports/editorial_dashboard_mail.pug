@@ -1,0 +1,14 @@
+extends ../email_layout
+
+block content
+    .container
+        #App
+block scripts
+    if apikey && apiserver
+        script.
+            var user_id = "#{user.data._id}";
+            var apikey = "#{apikey}";
+            var apiserver = "#{apiserver}";
+    script(src="/assets/vue.bundle.js") 
+    script.
+        const app = new App();

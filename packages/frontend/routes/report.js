@@ -116,9 +116,8 @@ router.post("/facet/tag", async (req, res) => {
 })
 
 router.get("/mail_report/:report", async (req, res) => {
-    const query = Object.fromEntries(new URLSearchParams(req.query()))
     const report = require(`@revengine/reports/reports/${ req.params.report }`);
-    const content = await report.content(query);
+    const content = await report.content(res.locals.query);
     res.render("reports/mail_report", { content });
 })
 
@@ -147,6 +146,10 @@ router.post("/top_newsletter_subscribers", async (req, res) => {
 
 router.get("/editorial_dashboard", (req, res) => {
     res.render("reports/editorial_dashboard", { title: "Editoral Dashboard - Articles"})
+})
+
+router.get("/editorial_dashboard_mail", (req, res) => {
+    res.render("reports/editorial_dashboard_mail", { title: "Editoral Dashboard - Articles"})
 })
 
 router.get("/editorial_dashboard/journalists", (req, res) => {

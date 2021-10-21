@@ -28,7 +28,7 @@ const cached_keys = {
 
 const article_fields = [
     {
-        title: "Hits",
+        title: "Page Views",
         field: "hits",
         fn: i => Number(i).toLocaleString(),
         weight: 1
@@ -40,7 +40,7 @@ const article_fields = [
         weight: 1
     },
     {
-        title: "Logged In Hits",
+        title: "Logged In PVs",
         field: "logged_in_hits_total",
         fn: i => Number(i).toLocaleString(),
         weight: 2
@@ -118,6 +118,7 @@ const state = {
     sort_dir: -1,
     article_fields,
     visible_fields: ["Hits", "Score"],
+    mail_view: false,
 }
 const getters = {
     
@@ -183,6 +184,11 @@ const actions = {
         if (query.tags) {
             if (!Array.isArray(query.tags)) query.tags = [query.tags];
             commit("SET_KEYVAL", { key: "tags", value: query.tags })
+        }
+
+        // Mail view?
+        if (query.mail_view) {
+            commit("SET_KEYVAL", { key: "mail_view", value: true })
         }
 
         // Set report name

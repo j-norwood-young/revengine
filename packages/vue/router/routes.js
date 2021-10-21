@@ -7,6 +7,11 @@ const routes = [
         name: "EditorialDashboard", 
         component: EditorialDashboard,
     },
+    { 
+        path: "/report/editorial_dashboard_mail", 
+        name: "EditorialDashboard", 
+        component: EditorialDashboard,
+    },
     { path: "/report/editorial_dashboard/journalists", name: "EditorialDashboardJournalist", component: EditorialDashboardJournalist },
     // { 
     //     path: "/admin/vedit/organisation/:organisation_id", 

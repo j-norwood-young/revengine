@@ -6,13 +6,13 @@ div
             h1 Editorial Dashboard
             h4 {{report_name}}
             //- h4 12,345 articles
-            Sections.mt-4
-            Journalists.mt-4
-            Tags.mt-4
-        .col-sm-5
+            Sections.mt-4(v-if="!mail_view")
+            Journalists.mt-4(v-if="!mail_view")
+            Tags.mt-4(v-if="!mail_view")
+        .col-sm-5(v-if="!mail_view")
             DateRange
             EmailReports.mt-4
-        .col.text-right
+        .col.text-right(v-if="!mail_view")
             b-button(v-b-modal.editorial_dashboard_settings)
                 i.fa.fa-cog(@click="showDashboardSettings")
     .row(
@@ -50,6 +50,7 @@ export default {
     computed: {
         ...mapState("Article", [ 
             "loading_state", 
+            "mail_view"
         ]),
         ...mapState("Scheduled_report", [
             "report_name"

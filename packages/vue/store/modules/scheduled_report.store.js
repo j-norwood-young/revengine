@@ -1,3 +1,5 @@
+import router from "../../router";
+
 const cached_keys = {}
 const moment = require("moment");
 const state = {
@@ -112,6 +114,12 @@ const actions = {
         await dispatch("getReports");
         commit("SET_KEYVAL", { key: "current_report_emails", value: [email]})
         commit("SET_KEYVAL", { key: "reports", value: reports });
+
+        // See if we have a report id set in the header
+        const query = Object.assign({}, router.history.current.query);
+        if (query.scheduled_report_id) {
+            await dispatch("loadReport", query.scheduled_report_id)
+        }
         commit("SET_LOADING_STATE", "loaded")
     },
     async saveReport({ commit, dispatch, state, rootState}) {
@@ -159,24 +167,29 @@ const actions = {
                 fields: rootState.Article.article_fields.filter(field => (field.weight))
             }
         })
+        await apihelper.put("mailer", mailer_result.data._id, {
+            state: {
+                scheduled_report_id: result.data._id
+            }
+        })
         const reports = [...state.reports, result.data];
         commit("SET_KEYVAL", { key: "reports", value: reports });
         commit("SET_LOADING_STATE", "loaded")
     },
-    async loadReport({ commit, dispatch }, _id) {
+    async loadReport({ commit, dispatch, state }, _id) {
         const report = (await apihelper.getOne("scheduled_report", _id)).data;
-        const state = report.state;
-        commit('Article/SET_KEYVAL', { key: "tags", value: state.tags }, { root: true });
-        commit('Article/SET_KEYVAL', { key: "sections", value: state.sections }, { root: true });
-        commit('Article/SET_KEYVAL', { key: "journalists", value: state.journalists }, { root: true });
-        commit('Article/SET_KEYVAL', { key: "sort_dir", value: state.sort_dir }, { root: true });
-        commit('Article/SET_KEYVAL', { key: "sort_field", value: state.sort_field }, { root: true });
-        commit('Article/SET_KEYVAL', { key: "visible_fields", value: state.visible_fields }, { root: true });
-        for (let field of state.fields) {
+        const report_state = report.state;
+        commit('Article/SET_KEYVAL', { key: "tags", value: report_state.tags }, { root: true });
+        commit('Article/SET_KEYVAL', { key: "sections", value: report_state.sections }, { root: true });
+        commit('Article/SET_KEYVAL', { key: "journalists", value: report_state.journalists }, { root: true });
+        commit('Article/SET_KEYVAL', { key: "sort_dir", value: report_state.sort_dir }, { root: true });
+        commit('Article/SET_KEYVAL', { key: "sort_field", value: report_state.sort_field }, { root: true });
+        commit('Article/SET_KEYVAL', { key: "visible_fields", value: report_state.visible_fields }, { root: true });
+        for (let field of report_state.fields) {
             await dispatch('Article/updateFieldWeight', { field: field.field, value: field.weight }, { root: true })
         }
         commit('SET_KEYVAL', { key: "report_name", value: report.name })
-        await dispatch('Article/getArticles', null, { root: true })
+        if (!state.lading_state === "loaded") await dispatch('Article/getArticles', null, { root: true })
     },
     async getReports({ commit, dispatch, state }) {
         const reports = (await apihelper.get("scheduled_report", { "filter[user_id]": user_id })).data;
