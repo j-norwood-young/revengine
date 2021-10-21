@@ -12,7 +12,7 @@ router.use(async (req, res, next) => {
 	if (!req.body.login) return next();
 	try {
 		const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
-		console.log({ server: config.api.server, apikey: process.env.APIKEY });
+		// console.log({ server: config.api.server, apikey: process.env.APIKEY });
 		let login_data = await apihelper.login(req.body.email, req.body.password);
 		if (login_data.status === "fail") {
 			res.render('login', { title: 'Login', "msg": "Incorrect username or password" });
@@ -33,15 +33,20 @@ router.use(async (req, res, next) => {
 	// next();
 });
 
+router.use((req, res, next) => {
+	res.locals.query = Object.fromEntries(new URLSearchParams(req.query()))
+	next();
+})
+
 /* Log in from Wordpress */
 router.use(async(req, res, next) => {
-	if (req.query.apikey) {
-		req.session.apikey = req.query.apikey;
+	if (res.locals.query.apikey) {
+		req.session.apikey = res.locals.query.apikey;
 		try {
-			if (!req.query.user_id) {
+			if (!res.locals.query.user_id) {
 				throw("Missing user_id");
 			}
-			const user_id = req.query.user_id;
+			const user_id = res.locals.query.user_id;
 			const user_apihelper = new JXPHelper({ server: config.api.server, apikey: req.session.apikey });
 			req.session.user = await user_apihelper.getOne("user", user_id);
 			next();
