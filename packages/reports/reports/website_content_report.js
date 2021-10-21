@@ -4,7 +4,7 @@ const pug = require("pug");
 const path = require("path");
 const moment = require("moment-timezone");
 const Reports = require("@revengine/reports");
-const numberFormat = new Intl.NumberFormat(config.locale || "en-GB");
+const numberFormat = new Intl.NumberFormat(config.locale || "en-GB", { maximumFractionDigits: 1 });
 
 const authors_to_exclude = [
     "Reuters",

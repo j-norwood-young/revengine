@@ -6,7 +6,7 @@ const JXPHelper = require("jxp-helper");
 const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
 const moment = require("moment-timezone");
 const Reports = require("@revengine/reports");
-const numberFormat = new Intl.NumberFormat(config.locale || "en-GB");
+const numberFormat = new Intl.NumberFormat(config.locale || "en-GB", { maximumFractionDigits: 1 });
 
 moment.tz.setDefault(config.timezone || "UTC");
 
