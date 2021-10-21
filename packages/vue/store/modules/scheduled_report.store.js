@@ -138,14 +138,6 @@ const actions = {
             emails: state.current_report_emails,
             subject: state.current_report_name,
             report: "content_report",
-            params: {
-                journalists: rootState.Article.journalists,
-                sections: rootState.Article.sections,
-                tags: rootState.Article.tags,
-                quick_date_range_value: rootState.Article.quick_date_range_value,
-                sort_dir: rootState.Article.sort_dir,
-                visible_fields: rootState.Article.visible_fields
-            },
         })
         const result = await apihelper.post("scheduled_report", {
             name: state.current_report_name,
@@ -168,7 +160,7 @@ const actions = {
             }
         })
         await apihelper.put("mailer", mailer_result.data._id, {
-            state: {
+            params: {
                 scheduled_report_id: result.data._id
             }
         })
