@@ -154,14 +154,29 @@ const actions = {
                 tags: rootState.Article.tags,
                 quick_date_range_value: rootState.Article.quick_date_range_value,
                 sort_dir: rootState.Article.sort_dir,
-                visible_fields: rootState.Article.visible_fields
+                sort_field: rootState.Article.sort_field,
+                visible_fields: rootState.Article.visible_fields,
+                fields: rootState.Article.article_fields.filter(field => (field.weight))
             }
         })
-        
-        
         const reports = [...state.reports, result.data];
         commit("SET_KEYVAL", { key: "reports", value: reports });
         commit("SET_LOADING_STATE", "loaded")
+    },
+    async loadReport({ commit, dispatch }, _id) {
+        const report = (await apihelper.getOne("scheduled_report", _id)).data;
+        const state = report.state;
+        commit('Article/SET_KEYVAL', { key: "tags", value: state.tags }, { root: true });
+        commit('Article/SET_KEYVAL', { key: "sections", value: state.sections }, { root: true });
+        commit('Article/SET_KEYVAL', { key: "journalists", value: state.journalists }, { root: true });
+        commit('Article/SET_KEYVAL', { key: "sort_dir", value: state.sort_dir }, { root: true });
+        commit('Article/SET_KEYVAL', { key: "sort_field", value: state.sort_field }, { root: true });
+        commit('Article/SET_KEYVAL', { key: "visible_fields", value: state.visible_fields }, { root: true });
+        for (let field of state.fields) {
+            await dispatch('Article/updateFieldWeight', { field: field.field, value: field.weight }, { root: true })
+        }
+        commit('SET_KEYVAL', { key: "report_name", value: report.name })
+        await dispatch('Article/getArticles', null, { root: true })
     },
     async getReports({ commit, dispatch, state }) {
         const reports = (await apihelper.get("scheduled_report", { "filter[user_id]": user_id })).data;

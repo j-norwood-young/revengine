@@ -12,19 +12,21 @@ div
     div.mt-4(v-if="show_reports")
         b-card(
         ).mt-2(v-for="report in reports") 
-            strong {{report.name}} 
-            br
-            div(v-if="report.period==`daily`")
-                | Daily at {{report.time.join(", ")}}
-            div(v-if="report.period==`weekly`")
-                | Weekly on the {{report.day.join(", ")}}
-            div(v-if="report.period==`monthly`")
-                | Monthly on {{report.date.join(", ")}}
-            div
-                span(v-for="email in report.emails") {{email}}
-            b-link.mt-4(@click="confirmDel(report._id)")
-                | Delete 
-                i.fa.fa-times 
+            b-card-title
+                b-link(@click="loadReport(report._id)") {{report.name}} 
+            b-card-text
+                div(v-if="report.period==`daily`")
+                    | Daily at {{report.time.join(", ")}}
+                div(v-if="report.period==`weekly`")
+                    | Weekly on the {{report.day.join(", ")}}
+                div(v-if="report.period==`monthly`")
+                    | Monthly on {{report.date.join(", ")}}
+                div
+                    span(v-for="email in report.emails") {{email}}
+            b-card-text
+                b-link.mt-4(@click="confirmDel(report._id)")
+                    | Delete 
+                    i.fa.fa-times 
             
             
     b-modal#modal-new_email_report(
@@ -136,6 +138,7 @@ export default {
             "selectDate",
             "toggleReports",
             "updateName",
+            "loadReport"
         ]),
         async handleOk(ev) {
             ev.preventDefault();
