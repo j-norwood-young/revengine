@@ -28,7 +28,7 @@ class Collections {
                     { name: "Link", key: "url", d: data => `<a href="https://www.dailymaverick.co.za/article/${data.urlid}" target="_blank"><i class="fa fa-link"></i></a>` || "", list_view },
                     { name: "Author", key: "author", d: data => data.author || "", list_view },
                     {
-                        name: "Hits",
+                        name: "Page Views",
                         d: data => formatNumber(data.hits.reduce((acc, o) => acc + o.count, 0)),
                         list_view
                     },

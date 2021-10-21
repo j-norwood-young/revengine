@@ -4,7 +4,7 @@ table.table.table-striped.table-bordered
         tr
             th Journalist
             th(@click="updateSortField('hits')") 
-                | Hits
+                | Page Views
                 i.fa.fa-sort-down.ml-1.text-dark(v-if="sort_field==='hits' && sort_dir===-1")
                 i.fa.fa-sort-up.ml-1.text-dark(v-if="sort_field==='hits' && sort_dir===1")
                 i.fa.fa-sort.ml-1.text-muted(v-if="sort_field!=='hits'")

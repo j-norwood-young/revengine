@@ -40,7 +40,7 @@ block content
                 else
                     .badge.badge-secondary.mr-1= entity.name
         canvas#articleHits(style="height:100px")
-        h5.mt-4 Total Hits: #{formatNumber(article.hits.reduce((acc, val) => acc + val.count ,0))}
+        h5.mt-4 Total Page Views: #{formatNumber(article.hits.reduce((acc, val) => acc + val.count ,0))}
         hr
         .flex-horiz.mb-4
             h3.mt-4= article.excerpt
@@ -56,7 +56,7 @@ block scripts
             charts.drawHistogram({
                 element: "#articleHits", 
                 data: article_data, 
-                label: "Hits",
+                label: "PVs",
                 key_label: "date",
                 value_label: "count",
                 unit: "day",
