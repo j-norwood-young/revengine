@@ -11,6 +11,7 @@ class Search {
         self.searchRequest = null;
         document.addEventListener("DOMContentLoaded", () => {
             self.primarySearch = document.querySelector("#primarySearch");
+            if (!self.primarySearch) return;
             self.primarySearchResults = document.querySelector("#primarySearchResults");
             self.primarySearch.addEventListener("keyup", (self.handleKeyup).bind(self));
             self.primarySearch.addEventListener("blur", self.hidePrimarySearch.bind(self));
