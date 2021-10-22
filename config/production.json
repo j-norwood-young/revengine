@@ -9,7 +9,7 @@
         "port": 4001,
         "server": "https://api.revengine.dailymaverick.co.za",
         "mongo": {
-            "connection_string": "mongodb://localhost/revengine-prod?retryWrites=true&w=majority",
+            "connection_string": "mongodb://rfvengine1,rfvengine2,rfvengine3/revengine-prod?retryWrites=true&w=majority",
             "options": {}
         },
         "token_expiry": 86400,

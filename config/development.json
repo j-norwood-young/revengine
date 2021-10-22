@@ -8,7 +8,7 @@
         "port": 3002,
         "server": "http://revengine.dailymaverick.co.za:3002",
         "mongo": {
-            "connection_string": "mongodb://localhost/revengine-prod?retryWrites=true&w=majority",
+            "connection_string": "mongodb://rfvengine1,rfvengine2,rfvengine3/revengine-prod?retryWrites=true&w=majority",
             "options": {}
         },
         "token_expiry": 86400,
