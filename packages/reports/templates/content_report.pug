@@ -2,6 +2,14 @@ extends layout.pug
 block content
     div !{content}
 block scripts
+    if apikey && apiserver
+        script.
+            var user_id = "#{user.data._id}";
+            var apikey = "#{apikey}";
+            var apiserver = "#{apiserver}";
+            var daemonserver = "#{daemonserver}";
+            var pipelineserver = "#{pipelineserver}";
+    script(src="/javascripts/main.bundle.js")
     script(src="/assets/vue.bundle.js") 
     script.
         const app = new App();
