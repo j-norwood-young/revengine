@@ -25,6 +25,7 @@ div
     )
         .col
             ArticleTable
+    div#loaded(v-if="loading_state==='loaded'")
 </template>
 
 <script>

@@ -15,7 +15,7 @@ const content = async (params = {}) => {
         const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
         const page = await browser.newPage();
         await page.goto(url)
-        await page.waitForNetworkIdle();
+        await page.waitForSelector("#loaded");
         const content = await page.$eval("#container", el => el.outerHTML);
         await page.close();
         await browser.close();
