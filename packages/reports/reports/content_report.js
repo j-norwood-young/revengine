@@ -1,6 +1,10 @@
 const config = require("config");
 const puppeteer = require('puppeteer');
 require("dotenv").config();
+const pug = require("pug");
+const path = require("path")
+const moment = require("moment")
+const numberFormat = new Intl.NumberFormat(config.locale || "en-GB", { maximumFractionDigits: 1 });
 
 const content = async (params = {}) => {
     try {
@@ -12,8 +16,11 @@ const content = async (params = {}) => {
         const page = await browser.newPage();
         await page.goto(url)
         await page.waitForNetworkIdle();
-        await page.pdf({ path: fname });
-        return "PDF generated";
+        const content = await page.$eval("#container", el => el.outerHTML);
+        await page.close();
+        await browser.close();
+        const template = pug.compileFile(path.join(__dirname, "../templates/content_report.pug"));
+        return template({ content, moment, numberFormat })
     } catch(err) {
         console.error(err);
         return JSON.stringify(err)

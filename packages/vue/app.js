@@ -15,7 +15,7 @@ import 'vue2-datepicker/index.css';
 // import BigNumber from "./components/BigNumber.vue"
 
 class App {
-    constructor() {
+    constructor(context) {
         Vue.use(VueRouter);
         Vue.use(BootstrapVue)
         Vue.use(VueConfirmDialog)
@@ -25,7 +25,7 @@ class App {
         // Vue.component("big-number", BigNumber)
         // Vue.directive('linkified', linkify)
         
-        new Vue({
+        return new Vue({
             el: "#App",
             store,
             router,
