@@ -1,3 +1,7 @@
 extends layout.pug
 block content
     div !{content}
+block scripts
+    script(src="/assets/vue.bundle.js") 
+    script.
+        const app = new App();
