@@ -49,7 +49,7 @@ class Collections {
                 populate: {
                 },
                 search_fields: [
-                    "headline", "author"
+                    "title", "author", "tags", "sections"
                 ]
             },
             goal: {
@@ -155,6 +155,14 @@ class Collections {
                 fields: [
                     { name: "Name", key: "name", d: data => data.name, link, list_view, note: "These labels could be visible to the reader. Refrain from insulting, demeaning, negative or avaricious names." },
                     { name: "Display on dashboard?", key: "display_on_dashboard", d: data => (data.display_on_dashboard), "view": "checkbox" },
+                    {
+                        name: "Count", 
+                        list_view,
+                        d: async data => {
+                            const count = (await $.get(`${apiserver}/count/reader?filter[label_id]=${data._id}&limit=0&apikey=${apikey}`)).count;
+                            return formatNumber(count);
+                        }
+                    },
                     { name: "Download", d: data => `<a href="/label/download/json/${data._id}">JSON</a> | <a href="/label/download/csv/${data._id}">CSV</a>`, view: "none", list_view},
                     { name: "Touchbase", d: data => `<a href="/mails//mailinglist/subscribe_by_label/${data._id}">Add to list</a>`, view: "none", list_view},
                     { name: "Code", key: "code", d: data => data.code, },
@@ -346,7 +354,7 @@ class Collections {
                     "reader"
                 ],
                 search_fields: [
-                    "code"
+                    "code",
                 ],
                 filters: [
                     {
@@ -372,6 +380,12 @@ class Collections {
                         field: "vouchertype_id",
                         options: async () => (await $.get(`/list/json/raw/vouchertype`)).data
                     },
+                    // {
+                    //     name: "Readers",
+                    //     field: "reader_id",
+                    //     typeahead: true,
+                    //     options: async () => (await $.get(`/list/json/raw/reader?fields=email,first_name,last_name&sort[first_name]=1&sort[last_name]=1&sort[email]=1`)).data.map(reader => { return { _id: reader._id, name: `${reader.first_name || ""} ${reader.last_name || ""} ${reader.email || ""}`  }})
+                    // },
                 ]
             },
             vouchertype: {
