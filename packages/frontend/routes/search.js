@@ -4,7 +4,7 @@ const config = require("config");
 
 router.post("/q/", async (req, res) => {
     const search = req.body.search;
-    const fields_to_search = ["name", "email"]
+    const fields_to_search = ["first_name", "last_name", "email"]
     let search_fields = [];
     for (let search_field of fields_to_search) {
         let d = {};
