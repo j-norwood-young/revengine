@@ -3,7 +3,6 @@
 
 const Collections = require("../../libs/collections");
 const formatNumber = require("../../libs/utils").formatNumber;
-const parser = require("../../libs/utils").parser;
 const $ = require("jquery");
 
 class List {
@@ -74,21 +73,21 @@ class List {
             this.count = result.count;
             $("#count").html(formatNumber(this.count));
             this.page_count = result.page_count;
-            result.data.forEach(row => {
+            for (let row of result.data) {
                 let s = "";
                 if (this.has_actions) {
                     s += `<td><input type="checkbox" data-_id="${row._id}" class="chk-line enable-on-check" data-enable_on_check_target=".group-actions" /></td>`
                 }
-                this.datadef.fields.filter(field => field.list_view).forEach(col => {
+                for (let col of this.datadef.fields.filter(field => field.list_view)) {
                     if (col.link) {
-                        s += `<td><a href="/item/edit/${this.type}/${row._id}">${col.d(row)}</a></td>`;
+                        s += `<td><a href="/item/edit/${this.type}/${row._id}">${await Promise.resolve(col.d(row))}</a></td>`;
                     } else {
-                        s += `<td>${col.d(row)}</td>`;
+                        s += `<td>${await Promise.resolve(col.d(row))}</td>`;
                     }
-                });
+                }
                 s = `<tr id="row-${row._id}" data-_id="${row._id}">${s}</tr>\n`;
                 this.tblBody.append(s);
-            });
+            }
             this.isLoading = false;
             this.loadingSpinners()
         } catch (err) {
