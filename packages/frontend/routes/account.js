@@ -11,12 +11,12 @@ const logged_in_only = (req, res, next) => {
 
 router.get("/settings", logged_in_only, async (req, res) => {
     try {
-        const user = req.session.user.data;
+        const current_user = req.session.user.data;
         let message = null;
         if (req.query.updated) {
             message = { message: { type: "info", msg: "Account updated" }}
         }
-        res.render("account/settings", { title: `My Account`, apikey: req.session.apikey, user, message });
+        res.render("account/settings", { title: `My Account`, apikey: req.session.apikey, current_user, message });
     } catch(err) {
         console.error(err);
         res.render("error", err);

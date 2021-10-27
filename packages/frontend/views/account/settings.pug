@@ -8,13 +8,13 @@ block content
                 .card-body
                     .form-group
                         label Name
-                        input.form-control(name="name" value=user.name)
+                        input.form-control(name="name" value=current_user.name)
                     .form-group
                         label Email
-                        input.form-control(name="email" value=user.email)
-                    if (user.admin)
+                        input.form-control(name="email" value=current_user.email)
+                    if (current_user.admin)
                         .form-check
-                            input.form-check-input(type="checkbox" checked=user.admin)
+                            input.form-check-input(type="checkbox" checked=current_user.admin)
                             label.form-check-label Admin
                 .card-footer
                     button.btn.btn-primary Save
@@ -37,7 +37,7 @@ block content
             .card-body
                 .form-group
                     label User ID
-                    input.form-control(readonly="readonly" value=user._id)
+                    input.form-control(readonly="readonly" value=current_user._id)
                 .form-group
                     label API Key
                     input.form-control(readonly="readonly" value=apikey)
