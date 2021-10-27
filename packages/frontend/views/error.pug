@@ -3,7 +3,7 @@ extends layout
 block content
 	.container
 		h2 An error occured
-		h1= message
+		h1= (message.error || message)
 		if (error)
 			if (error.status)
 				h2= error.status
