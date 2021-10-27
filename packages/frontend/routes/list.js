@@ -20,7 +20,10 @@ const populate = ((req, res, next) => {
 
 router.get("/json/raw/:type", async (req, res) => {
     try {
-        const data = (await req.apihelper.get(req.params.type, req.query.fields));
+        const q = Object.assign({
+            limit: 1000
+        }, res.locals.query)
+        const data = (await req.apihelper.get(req.params.type, q));
         res.send(data);
     } catch(err) {
         console.error(err);
@@ -68,7 +71,7 @@ router.post("/paginate/:type", async (req, res) => {
         }
         let orsearches = [];
         if (req.body.search) {
-            let search_fields = req.body["search_fields[]"];
+            let search_fields = req.body["search_fields"];
             if (!Array.isArray(search_fields)) search_fields = [search_fields];
             for (let search_field of search_fields) {
                 let d = {};
