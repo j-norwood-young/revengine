@@ -2,6 +2,7 @@
     "name": "RevEngine Dev",
     "api_name": "dailymaverick-revengine",
     "debug": true,
+    "locale": "en-GB",
     "timezone": "SAST",
     "cors_origins": ["https://dev.dailymaverick.co.za", "https://dailymaverick.co.za", "https://www.dailymaverick.co.za", "http://local.dailymaverick.com"],
     "api": {
