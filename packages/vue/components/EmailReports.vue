@@ -11,7 +11,7 @@ div
             i.fa.fa-chevron-down
     div.mt-4(v-if="show_reports")
         b-card(
-        ).mt-2(v-for="report in reports") 
+        ).mt-2(v-for="report, index in reports" :key="index") 
             b-card-title
                 b-link(@click="loadReport(report._id)") {{report.name}} 
             b-card-text
