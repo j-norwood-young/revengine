@@ -10,6 +10,7 @@ const crypto = require('crypto');
 const moment = require("moment-timezone");
 const touchbase = require("./touchbase");
 moment.tz.setDefault(config.timezone || "UTC");
+const {Command} = require("commander");
 
 const mailer_names = [
     "newsletter_content_report",
@@ -119,10 +120,30 @@ const mailrun_schedule = async () => {
     }
 }
 
-if (require.main === module) {
+const program = new Command();
+program
+  .option('-m, --mailer <mailer._id>', 'run for single mailer')
+
+program.parse(process.argv);
+const options = program.opts();
+
+if (require.main === module && !options.mailer) {
     console.log("Loading mailer...");
     scheduler();
     start_http_server();
+}
+
+const send_single_mailer = async(id) => {
+    const mailer = (await apihelper.getOne("mailer", id)).data;
+    try {
+        await mail(mailer.report, mailer.subject, mailer.emails, null, mailer.params)
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+if (options.mailer) {
+    send_single_mailer(options.mailer);
 }
 
 module.exports = { render, mail, mailer_names }
