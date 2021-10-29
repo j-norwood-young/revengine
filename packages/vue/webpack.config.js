@@ -79,7 +79,10 @@ module.exports = {
         new MiniCssExtractPlugin({
             filename: 'style.css',
         }),
-        new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+        new webpack.IgnorePlugin({
+            resourceRegExp: /^\.\/locale$/,
+            contextRegExp: /moment$/,
+        }),
         new VueLoaderPlugin(),
     ],
     stats: {
