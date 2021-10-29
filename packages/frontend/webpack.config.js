@@ -1,13 +1,13 @@
 const path = require("path")
 const webpack = require("webpack")
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-// const MiniCssExtractPlugin = require("mini-css-extract-plugin")
+const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 
 module.exports = {
     mode: "development",
     entry: ['@babel/polyfill', "./src/javascripts/index.js"],
     output: {
-        path: path.resolve(__dirname, 'public/javascripts'),
+        path: path.resolve(__dirname, 'public/assets'),
         filename: 'main.bundle.js'
     },
     module: {
@@ -23,24 +23,24 @@ module.exports = {
                 test: /\.pug$/,
                 loader: 'pug-loader'
             },
-            // {
-            //     test: /\.less$/,
-            //     use: [
-            //         'style-loader',
-            //         MiniCssExtractPlugin.loader,
-            //         'css-loader',
-            //         'less-loader'
-            //     ],
-            // },
-            // {
-            //     test: /\.scss$/,
-            //     use: [
-            //         "style-loader",
-            //         MiniCssExtractPlugin.loader,
-            //         "css-loader",
-            //         "sass-loader"
-            //     ]
-            // },
+            {
+                test: /\.less$/,
+                use: [ 
+                    'style-loader',
+                    MiniCssExtractPlugin.loader,
+                    'css-loader', 
+                    'less-loader'
+                ],
+            },
+            {
+                test: /\.scss$/,
+                use: [
+                  "style-loader",
+                  MiniCssExtractPlugin.loader,
+                  "css-loader",
+                  "sass-loader"
+                ]
+            },
             {
                 test: /\.(png|jpg|gif)$/i,
                 use: [
@@ -70,13 +70,12 @@ module.exports = {
         //     jquery: 'jquery',
         //     "window.$": 'jquery'
         // }),
-        // new MiniCssExtractPlugin({
-        //     filename: 'style.css',
-        // }),
+        new MiniCssExtractPlugin({
+            filename: 'main.style.css',
+        }),
     ],
     stats: {
         colors: true
     },
-    devtool: "source-map",
-    watch: true
+    devtool: "source-map"
 }

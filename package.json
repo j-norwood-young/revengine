@@ -30,7 +30,13 @@
     "dev": "npm-run-all -p dev:*",
     "dev-track": "npm-run-all -p dev-track:*",
     "prod": "npm-run-all -p prod:*",
-    "publish-all": "lerna publish"
+    "build:frontend": "cd packages/frontend && webpack",
+    "build:vue": "cd packages/vue && webpack",
+    "build": "npm-run-all -p build:*",
+    "watch:frontend": "cd packages/frontend && webpack -w",
+    "watch:vue": "cd packages/vue && webpack -w",
+    "watch": "npm-run-all -p watch:*",
+    "prod:webpack-watch": "npm-run-all -p watch:*"
   },
   "repository": {
     "type": "git",
@@ -45,8 +51,5 @@
   "bugs": {
     "url": "https://github.com/j-norwood-young/revengine/issues"
   },
-  "homepage": "https://github.com/j-norwood-young/revengine#readme",
-  "devDependencies": {
-    "lerna": "^3.21.0"
-  }
+  "homepage": "https://github.com/j-norwood-young/revengine#readme"
 }

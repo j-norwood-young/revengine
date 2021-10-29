@@ -1,3 +1,4 @@
+import stylesheet from "../stylesheets/style.scss";
 require("bootstrap/dist/js/bootstrap.bundle.js")
 require("./libs/confirm_passwords");
 require("./libs/email_typeahead");

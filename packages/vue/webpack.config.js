@@ -77,7 +77,7 @@ module.exports = {
             "window.$": 'jquery'
         }),
         new MiniCssExtractPlugin({
-            filename: 'style.css',
+            filename: 'vue.style.css',
         }),
         new webpack.IgnorePlugin({
             resourceRegExp: /^\.\/locale$/,
