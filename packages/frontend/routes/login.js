@@ -13,7 +13,6 @@ router.use((req, res, next) => {
 
 router.get("/logout", async (req, res) => {
     try {
-        await axios.get(`${config.api_root}/login/logout?apikey=${req.session.apikey}`);
         req.session.destroy();
         res.redirect("/login");
     } catch (err) {
