@@ -43,6 +43,7 @@ class Fetch extends Action {
             return this.data;
         } catch(err) {
             console.error(err);
+            console.log(this.options || "No options found");
             return Promise.reject(err);
         }
     }
