@@ -8,6 +8,15 @@ const apihelper = new Apihelper({ server: config.api.server, apikey: process.env
 const schedule = "* * * * *";
 const crypto = require('crypto');
 const server = require("@revengine/http_server");
+const { Command } = require('commander');
+const program = new Command();
+
+program
+.option('-s, --standalone', `Don't run the scheduler or listener, just the server`)
+.option('-p, --pipeline <pipeline_id>', `Immediately run pipeline_id`)
+
+program.parse(process.argv);
+const options = program.opts();
 
 const run_pipeline = async pipeline_id => {
     const d_start = new Date();
@@ -39,7 +48,7 @@ const run_pipeline = async pipeline_id => {
         console.error(err);
         const d_end = new Date();
         await apihelper.put("pipeline", pipeline_id, { running: false, last_run_start: d_start, last_run_end: d_end, last_run_result: JSON.stringify(err) });
-        Promise.reject(err);
+        throw(err)
     }
 }
 
@@ -76,9 +85,9 @@ const scheduler = () => {
                 schedule.destroy();
             }
             for (let pipeline of pipelines) {
-                let schedule = cron.schedule(pipeline.cron, () => {
+                let schedule = cron.schedule(pipeline.cron, async () => {
                     try {
-                        run_pipeline(pipeline._id)
+                        await run_pipeline(pipeline._id)
                     } catch(err) {
                         console.error(err);
                     }
@@ -94,6 +103,7 @@ server.get("/run/:pipeline_id", async (req, res, next) => {
     try {
         const pipeline_id = req.params.pipeline_id;
         const result = await run_pipeline(pipeline_id);
+        if (!result) throw `No result for pipeline ${pipeline_id}`;
         res.send(result);
     } catch(err) {
         console.error(err);
@@ -101,8 +111,19 @@ server.get("/run/:pipeline_id", async (req, res, next) => {
     }
 });
 
-server.listen(config.pipeline.port || 3018, function () {
-    console.log('%s listening at %s', server.name, server.url);
-});
+if (!options.standalone) {
+    server.listen(config.pipeline.port || 3018, function () {
+        console.log('%s listening at %s', server.name, server.url);
+    });
+    scheduler();
+}
 
-scheduler();
+if (options.pipeline) {
+    (async () => {
+        try {
+            await run_pipeline(options.pipeline);
+        } catch(err) {
+            console.trace(err);
+        }
+    })()
+}
