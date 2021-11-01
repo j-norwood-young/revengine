@@ -39,7 +39,7 @@ const run_pipeline = async pipeline_id => {
         console.error(err);
         const d_end = new Date();
         await apihelper.put("pipeline", pipeline_id, { running: false, last_run_start: d_start, last_run_end: d_end, last_run_result: JSON.stringify(err) });
-        throw (err);
+        Promise.reject(err);
     }
 }
 
