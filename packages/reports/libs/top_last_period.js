@@ -116,7 +116,7 @@ class TopLastPeriod {
             }
             // console.log(JSON.stringify(query, null, "  "));
             const esresult = await esclient.search(query)
-            const result = esresult.aggregations.result.buckets.sort((a, b) => b.doc_count - a.doc_count).slice(0, size - 1);
+            const result = esresult.aggregations.result.buckets.sort((a, b) => b.doc_count - a.doc_count);
             // console.log(JSON.stringify(esresult, null, "  "));
             return result;
         } catch(err) {
