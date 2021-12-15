@@ -6,13 +6,16 @@ table.table.table-striped.table-bordered
             th(
                 v-for="(field, i) in article_fields"
                 :key="field.field"
-                @click="updateSortField(field.field)"
+                
                 v-if="visible_fields.includes(field.title)"
             ) 
-                | {{field.title}}
-                i.fa.fa-sort-down.ml-1.text-dark(v-if="sort_field===field.field && sort_dir===-1")
-                i.fa.fa-sort-up.ml-1.text-dark(v-if="sort_field===field.field && sort_dir===1")
-                i.fa.fa-sort.ml-1.text-muted(v-if="sort_field!==field.field")
+                i.cursor-pointer.fa.fa-sort-down.mr-1.text-dark(v-if="sort_field===field.field && sort_dir===-1" @click="updateSortField(field.field)")
+                i.cursor-pointer.fa.fa-sort-up.mr-1.text-dark(v-if="sort_field===field.field && sort_dir===1" @click="updateSortField(field.field)")
+                i.cursor-pointer.fa.fa-sort.mr-1.text-muted(v-if="sort_field!==field.field" @click="updateSortField(field.field)")
+                div(v-if="field.info" v-b-popover.hover="field.info" placement="top")
+                    | {{field.title}}
+                div(v-else)
+                    | {{field.title}}
     tbody
         tr(
             v-for="(article, index) in articles"
@@ -77,5 +80,8 @@ export default {
 <style lang="less" scoped>
 .revengine-width-700 {
     width: 700px;
+}
+.cursor-pointer {
+    cursor: pointer;
 }
 </style>

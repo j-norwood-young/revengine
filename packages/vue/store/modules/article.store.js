@@ -30,6 +30,7 @@ const article_fields = [
     {
         title: "Page Views",
         field: "hits",
+        info: "The number of times our hit counter was loaded for this article",
         fn: i => Number(i).toLocaleString(),
         weight: 1
     },
@@ -53,8 +54,16 @@ const article_fields = [
     },
     {
         title: "Avg Secs Engaged",
+        info: "The total amount of time your website or app was in the foreground of users' devices",
         field: "avg_secs_engaged",
         fn: i => Number(i).toLocaleString() + "s",
+        weight: 2
+    },
+    {
+        title: "Engagement Rate",
+        info: "The percentage of engaged sessions (Engaged sessions divided by Sessions)",
+        field: "engagement_rate",
+        fn: i => Math.round(Number(i).toLocaleString() * 100) + "%",
         weight: 2
     },
     {
