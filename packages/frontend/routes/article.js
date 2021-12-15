@@ -24,11 +24,16 @@ const convert_sentiment = sentiment_score => {
 }
 
 router.get("/view/:article_id", async(req, res) => {
-    const article = (await req.apihelper.getOne("article", req.params.article_id)).data;
-    const sentiment = nlp.sentiment(article.content);
-    const article_ml = await Article_ml.analyseArticle(article._id);
-    // console.log(article_ml);
-    res.render("article/view", { article, homepage: config.wordpress.homepage, sentiment, article_ml, convert_sentiment });
+    try {
+        const article = (await req.apihelper.getOne("article", req.params.article_id)).data;
+        const sentiment = nlp.sentiment(article.content);
+        const article_ml = await Article_ml.analyseArticle(article._id);
+        // console.log(article_ml);
+        res.render("article/view", { article, homepage: config.wordpress.homepage, sentiment, article_ml, convert_sentiment });
+    } catch(err) {
+        console.error(err);
+        res.send(err);
+    }
 })
 
 router.get("/hits/:article_id", async(req, res) => {
