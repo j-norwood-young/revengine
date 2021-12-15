@@ -379,7 +379,7 @@ const actions = {
             article.date_published_formatted = moment(article.date_published).format("ddd D MMMM YYYY, h:mma");
             article.logged_in_hits_total = article.logged_in_hits.filter(hit => moment().range(state.date_range).contains(moment(hit.date))).reduce((prev, curr) => prev + curr.count, 0);
             article.led_to_subscription_count = article.readers_led_to_subscription ? article.readers_led_to_subscription.length : 0;
-            article.newsletter_hits_total = article.newsletter_hits ? article.newsletter_hits.reduce((prev, curr) => prev + curr.count, 0) : 0;
+            article.newsletter_hits_total = article.newsletter_hits ? article.newsletter_hits.filter(hits => state.date_range[0].getTime() <= new Date(hits.date).getTime() && state.date_range[1].getTime() > new Date(hits.date).getTime()).reduce((prev, curr) => prev + curr.count, 0) : 0;
             return article;
         });
         const spreads = {};
