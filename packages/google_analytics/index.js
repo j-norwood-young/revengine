@@ -5,7 +5,7 @@ const moment = require("moment");
 const apihelper = require("@revengine/common/apihelper");
 
 async function runReport() {
-    const start_date = moment().subtract(1, "year");
+    const start_date = moment().subtract(1, "week");
     const [response] = await analyticsDataClient.runReport({
         property: `properties/${config.google_analytics.propertyId}`,
         dateRanges: [
@@ -38,9 +38,8 @@ async function runReport() {
         ],
     });
     // console.log('Report result:');
-    // console.log(response.rows);
+    // console.log(JSON.stringify(response.rows.slice(1, 10), null, 2));
     const result = response.rows
-    // .filter(row => /\/(article|opinionista)\//.test(row.dimensionValues[0].value.re) )
     .map(row => {
         const parts = row.dimensionValues[0].value.match(/\/(article|opinionista)\/(\d\d\d\d-\d\d-\d\d-)(.*)\//)
         const urlid = parts ? parts[3] : null
@@ -55,16 +54,13 @@ async function runReport() {
     })
     .filter(row => row.urlid)
     return result;
-    // response.rows.slice(0, 100).forEach(row => {
-    //     console.log(row.dimensionValues[0].value, " - ", Math.round(row.metricValues[0].value / row.metricValues[1].value), "secs - ", Math.round(row.metricValues[2].value * 100), "%", row.metricValues[3].value, row.metricValues[4].value);
-    // });
 }
 
 const main = async () => {
     const rows = await runReport();
     while (rows.length) {
-        const result = await apihelper.bulk_postput("article", "urlid", rows.splice(0, 1000));
-        console.log(result);
+        const result = await apihelper.bulk_put("article", "urlid", rows.splice(0, 1000));
+        // console.log(result);
     }
 }
 
