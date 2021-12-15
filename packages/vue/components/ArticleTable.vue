@@ -2,7 +2,7 @@
 table.table.table-striped.table-bordered
     thead
         tr
-            th Article
+            th.revengine-width-700 Article
             th(
                 v-for="(field, i) in article_fields"
                 :key="field.field"
@@ -73,3 +73,9 @@ export default {
     },
 }
 </script>
+
+<style lang="less" scoped>
+.revengine-width-700 {
+    width: 700px;
+}
+</style>
