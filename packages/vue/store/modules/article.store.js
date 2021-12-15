@@ -37,31 +37,34 @@ const article_fields = [
     {
         title: "Newsletter Clicks",
         field: "newsletter_hits_total",
+        info: "The number of clicks to this article from a newsletter. Source: Touchbase",
         fn: i => Number(i).toLocaleString(),
         weight: 1
     },
     {
         title: "Logged In PVs",
         field: "logged_in_hits_total",
+        info: "The number of hits for logged in readers. Note: not necessarily members.",
         fn: i => Number(i).toLocaleString(),
         weight: 2
     },
     {
         title: "Led to Subscription",
         field: "led_to_subscription_count",
+        info: "Did a member read this article in the week preceding them signing up?",
         fn: i => Number(i).toLocaleString(),
         weight: 3
     },
     {
         title: "Avg Secs Engaged",
-        info: "The total amount of time your website or app was in the foreground of users' devices",
+        info: "The total amount of time your website or app was in the foreground of users' devices. Source: Google",
         field: "avg_secs_engaged",
         fn: i => Number(i).toLocaleString() + "s",
         weight: 2
     },
     {
         title: "Engagement Rate",
-        info: "The percentage of engaged sessions (Engaged sessions divided by Sessions)",
+        info: "The percentage of engaged sessions (Engaged sessions divided by Sessions). Source: Google",
         field: "engagement_rate",
         fn: i => Math.round(Number(i).toLocaleString() * 100) + "%",
         weight: 2
@@ -69,6 +72,7 @@ const article_fields = [
     {
         title: "Score",
         field: "score",
+        info: "A calculated score out of 100. Customise your score weighting in Settings.",
         fn: i => Number(Math.round(i * 10000) / 100).toLocaleString(),
         isScore: true
     }
