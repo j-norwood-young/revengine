@@ -9,7 +9,7 @@ div
         :searchable="true"
         :close-on-select="true"
         :multiple="true"
-        :disabled="loading_state!=='loaded'"
+        :disabled="loading_state==='loading'"
         @search-change="findTags"
     )
 </template>

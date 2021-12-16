@@ -15,13 +15,16 @@ div
         .col.text-right(v-if="!mail_view")
             b-button(v-b-modal.editorial_dashboard_settings)
                 i.fa.fa-cog(@click="showDashboardSettings")
+    .row(v-if="loading_state==='pending'")
+        .col-sm-12
+            b-button.btn-primary.btn-lg.mt-2.mb-2(@click="getArticles") Load Report
     .row(
         v-if="loading_state==='loading'"
     )
         .col
             h4 Fetching articles...
     .row(
-         v-if="loading_state==='loaded'"
+         v-if="loading_state!=='loading'"
     )
         .col
             ArticleTable
@@ -51,7 +54,8 @@ export default {
     computed: {
         ...mapState("Article", [ 
             "loading_state", 
-            "mail_view"
+            "mail_view",
+            "articles"
         ]),
         ...mapState("Scheduled_report", [
             "report_name"
@@ -59,7 +63,8 @@ export default {
     },
     methods: {
         ...mapActions("Article", [
-            "showDashboardSettings"
+            "showDashboardSettings",
+            "getArticles",
         ]),
     },
     data() {

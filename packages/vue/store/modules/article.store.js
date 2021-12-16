@@ -79,7 +79,7 @@ const article_fields = [
 ];
 
 const state = {
-    loading_state: "pre", // pre, loading, loaded
+    loading_state: "pre", // pre, loading, loaded, pending
     quick_date_range_value: {
         label: "Last 7 Days",
     },
@@ -208,10 +208,10 @@ const actions = {
         dispatch('Scheduled_report/generateName', null, { root: true });
 
         // Get initial articles
-        await dispatch("getArticles");
+        // await dispatch("getArticles");
 
         // Set as loaded
-        commit("SET_LOADING_STATE", "loaded")
+        commit("SET_LOADING_STATE", "pending")
     },
     updateQuickDateRange ({ commit, dispatch }, value) {
         commit('SET_KEYVAL', { key: "quick_date_range_value",  value })
@@ -221,7 +221,8 @@ const actions = {
     updateDateRange ({ commit, dispatch }, value) {
         commit('SET_KEYVAL', { key: "date_range",  value })
         dispatch('Scheduled_report/generateName', null, { root: true });
-        dispatch("getArticles");
+        // dispatch("getArticles");
+        commit("SET_LOADING_STATE", "pending");
     },
     updateSections ({ commit, dispatch }, value) {
         commit('SET_KEYVAL', { key: "sections",  value })
@@ -229,7 +230,8 @@ const actions = {
         const query = Object.assign({}, router.history.current.query);
         query.sections = value;
         router.push({ query })
-        dispatch("getArticles")
+        // dispatch("getArticles")
+        commit("SET_LOADING_STATE", "pending");
     },
     updateJournalists ({ commit, dispatch }, value) {
         commit('SET_KEYVAL', { key: "journalists",  value })
@@ -237,7 +239,8 @@ const actions = {
         const query = Object.assign({}, router.history.current.query);
         query.journalists = value;
         router.push({ query })
-        dispatch("getArticles")
+        // dispatch("getArticles")
+        commit("SET_LOADING_STATE", "pending");
     },
     updateTags ({ commit, dispatch }, value) {
         commit('SET_KEYVAL', { key: "tags",  value })
@@ -245,7 +248,8 @@ const actions = {
         const query = Object.assign({}, router.history.current.query);
         query.tags = value;
         router.push({ query })
-        dispatch("getArticles")
+        // dispatch("getArticles")
+        commit("SET_LOADING_STATE", "pending");
     },
     async findTags({ commit, dispatch }, value) {
         if (value.length <= 2) return;
