@@ -3,8 +3,8 @@ import { extendMoment } from 'moment-range';
 import router from "../../router";
 const ss = require("simple-statistics");
 import createCache from 'vuex-cache';
-import isNumber from 'lodash.isnumber';
 
+const cache_period = 1000 * 60 * 60; // 1 hour
 const localstorage_prepend = "RevEngine-ContentReport-"
 const moment = extendMoment(Moment);
 const JXPHelper = require("jxp-helper");
@@ -23,7 +23,9 @@ const cached_keys = {
             result.push(val)
         }
         return result;
-    }
+    },
+    "section_options": val => val,
+    "journalist_options": val => val,
 }
 
 const article_fields = [
@@ -80,6 +82,7 @@ const article_fields = [
 
 const state = {
     loading_state: "pre", // pre, loading, loaded, pending
+    articles_loaded: false,
     quick_date_range_value: {
         label: "Last 7 Days",
     },
@@ -138,40 +141,13 @@ const getters = {
 }
 const actions = {
     async init({ commit, dispatch, state }) {
-        // Get sections
-        const section_options = (await apihelper.aggregate("article", [
-            {
-                $project: {
-                    a: "$sections"
-                }
-            },
-            {
-                $unwind: "$a",
-            },
-            { 
-                $group: { _id: "$a"}
-            }
-        ])).data.map(section => section._id).sort();
-        commit("SET_KEYVAL", { key: "section_options", value: section_options });
-
-        // Get journalists
-        const journalist_options = (await apihelper.aggregate("article", [
-            {
-                $project: {
-                    a: "$author"
-                }
-            },
-            {
-                $unwind: "$a",
-            },
-            { 
-                $group: { _id: "$a"}
-            }
-        ])).data.map(journalist => journalist._id);
-        journalist_options.sort()
-        commit("SET_KEYVAL", { key: "journalist_options", value: journalist_options });
-        const query = Object.assign({}, router.history.current.query);
-
+        // Clear cached data
+        const cache_expires = localStorage.getItem(localstorage_prepend + "cache_expires");
+        if (!cache_expires || cache_expires < new Date().getTime()) {
+            localStorage.removeItem(`${localstorage_prepend}journalist_options`);
+            localStorage.removeItem(`${localstorage_prepend}section_options`);
+            localStorage.setItem(`${localstorage_prepend}cache_expires`, new Date().getTime() + cache_period);
+        }
         // Load localStorage values
         const cached_keys_keys = Object.keys(cached_keys);
         for (let key of cached_keys_keys) {
@@ -184,6 +160,46 @@ const actions = {
                 console.error(err);
             }
         }
+
+        // Load sections
+        if (state.section_options.length === 0) {
+            // Get sections
+            const section_options = (await apihelper.aggregate("article", [
+                {
+                    $project: {
+                        a: "$sections"
+                    }
+                },
+                {
+                    $unwind: "$a",
+                },
+                { 
+                    $group: { _id: "$a"}
+                }
+            ])).data.map(section => section._id).sort();
+            commit("SET_KEYVAL", { key: "section_options", value: section_options });
+        }
+
+        // Get journalists
+        if (state.journalist_options.length === 0) {
+            const journalist_options = (await apihelper.aggregate("article", [
+                {
+                    $project: {
+                        a: "$author"
+                    }
+                },
+                {
+                    $unwind: "$a",
+                },
+                { 
+                    $group: { _id: "$a"}
+                }
+            ])).data.map(journalist => journalist._id);
+            journalist_options.sort()
+            commit("SET_KEYVAL", { key: "journalist_options", value: journalist_options });
+        }
+
+        const query = Object.assign({}, router.history.current.query);
 
         // If any options are set in the querystring, use those
         if (query.sections) {
@@ -470,6 +486,7 @@ const actions = {
             article.total_hits = total_hits.find(hit => hit._id === article._id).total_hits
         }
         commit("SET_KEYVAL", { key: "articles", value: articles })
+        commit("SET_KEYVAL", { key: "articles_loaded", value: true })
         commit("SET_LOADING_STATE", "loaded")
     },
     showDashboardSettings({ state, commit }) {
