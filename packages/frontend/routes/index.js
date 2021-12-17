@@ -38,6 +38,11 @@ router.use((req, res, next) => {
 	next();
 })
 
+router.use((req, res, next) => {
+	res.locals.dev = process.env.NODE_ENV === "development";
+	next();
+})
+
 /* Log in from Wordpress */
 router.use(async(req, res, next) => {
 	if (res.locals.query.apikey) {

@@ -4,8 +4,14 @@ block content
     .container
         #App
 block styles
-    link(rel='stylesheet', href='/assets/vue.style.css')
+    if(dev)
+        link(rel='stylesheet', href='/assets/vue.css')
+    else
+        link(rel='stylesheet', href='/assets/vue.min.css')
 block scripts
-    script(src="/assets/vue.bundle.js") 
+    if (dev)
+        script(src="/assets/vue.js") 
+    else
+        script(src="/assets/vue.min.js")
     script.
         const app = new App();
