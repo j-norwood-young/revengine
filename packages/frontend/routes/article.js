@@ -38,9 +38,18 @@ router.get("/view/:article_id", async(req, res) => {
 
 router.get("/hits/:article_id", async(req, res) => {
     try {
-        const article = (await req.apihelper.getOne("article", req.params.article_id)).data;
-        // console.log(article);
+        const article = (await req.apihelper.getOne("article", req.params.article_id, { fields: "hits" })).data;
         res.send(article.hits.filter(day => (day.count)));
+    } catch(err) {
+        console.error(err);
+        res.send(err);
+    }
+})
+
+router.get("/newsletter_hits/:article_id", async(req, res) => {
+    try {
+        const article = (await req.apihelper.getOne("article", req.params.article_id, { fields: "newsletter_hits" })).data;
+        res.send(article.newsletter_hits.filter(day => (day.count)));
     } catch(err) {
         console.error(err);
         res.send(err);
