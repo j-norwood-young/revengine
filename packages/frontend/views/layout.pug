@@ -2,7 +2,10 @@ doctype html
 html
 	head
 		title= title
-		link(rel='stylesheet', href='/assets/main.style.css')
+		if (dev)
+			link(rel='stylesheet', href='/assets/revengine.css')
+		else 
+			link(rel='stylesheet', href='/assets/revengine.min.css')
 		block styles
 		link(rel="icon" type="image/png" href="/images/favicon.png")
 		script(src="https://kit.fontawesome.com/71ea3a5816.js" crossorigin="anonymous")
@@ -13,7 +16,10 @@ html
 				var apiserver = "#{apiserver}";
 				var daemonserver = "#{daemonserver}";
 				var pipelineserver = "#{pipelineserver}";
-		script(src="/assets/main.bundle.js")
+		if (dev)
+			script(src="/assets/revengine.js")
+		else
+			script(src="/assets/revengine.min.js")
 	body
 		include navbar
 		.container-fluid
