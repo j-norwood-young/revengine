@@ -4,19 +4,19 @@ const { createCanvas } = require('canvas');
 const Color = require("color");
 
 class Charts {
-    constructor(width, length) {
+    constructor(width, height) {
         this.width = width || 800;
-        this.length = length || 400;
+        this.height = height || 400;
         this.node = (typeof process !== 'undefined' && process.versions && process.versions.node);
         if (this.node) {
-            this.canvas = createCanvas(this.width, this.length);
+            this.canvas = createCanvas(this.width, this.height);
             this.ctx = this.canvas.getContext('2d');
             this.ctx.canvas = {
                 width: this.width,
-                height: this.length,
+                height: this.height,
                 style: {
                     width: `${this.width}px`,
-                    height: `${this.length}px`,
+                    height: `${this.height}px`,
                 },
             };
         }
@@ -41,11 +41,10 @@ class Charts {
         if (!opts.element) throw ("element selector required");
         if (!opts.data) throw ("data required");
         opts = Object.assign({
-            unit: "month",
             type: "line",
             key_label: "key_as_string",
             value_label: "doc_count",
-            unit: "hour",
+            unit: "day",
             label: "hits",
             colour: "rgba(66, 245, 182)",
         }, opts);
@@ -74,14 +73,14 @@ class Charts {
                 scales: {
                     xAxes: [{
                         type: 'time',
-                        time: {
-                            unit: opts.unit
-                        }
+                        // time: {
+                        //     unit: opts.unit
+                        // }
                     }],
                     yAxes: [{
-                        ticks: {
-                            beginAtZero: true,
-                        }
+                        // ticks: {
+                        //     beginAtZero: true,
+                        // }
                     }]
                 }
             }

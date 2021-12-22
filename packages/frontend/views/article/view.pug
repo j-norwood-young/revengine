@@ -40,6 +40,7 @@ block content
                 else
                     .badge.badge-secondary.mr-1= entity.name
         canvas#articleHits(style="height:100px")
+        canvas#newsletterClicks(style="height:100px")
         h5.mt-4 Total Page Views: #{formatNumber(article.hits.reduce((acc, val) => acc + val.count ,0))}
         hr
         .flex-horiz.mb-4
@@ -51,12 +52,22 @@ block scripts
     script.
         document.addEventListener("DOMContentLoaded", async (event) => {
             const beam = new Beam();
+            const charts = new Charts(500, 100);
             let article_data = await beam.get("/article/hits/#{article._id}")
-            const charts = new Charts();
             charts.drawHistogram({
                 element: "#articleHits", 
                 data: article_data, 
                 label: "PVs",
+                key_label: "date",
+                value_label: "count",
+                unit: "day",
+                type: "bar"
+            });
+            let newsletter_hits = await beam.get("/article/newsletter_hits/#{article._id}")
+            charts.drawHistogram({
+                element: "#newsletterClicks", 
+                data: newsletter_hits, 
+                label: "Newsletter Clicks",
                 key_label: "date",
                 value_label: "count",
                 unit: "day",
