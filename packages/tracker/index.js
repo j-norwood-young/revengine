@@ -82,6 +82,7 @@ const set_esdata = (index, data) => {
         index,
         action: "hit",
         article_id: data.post_id,
+        date_published: data.date_published || null,
         author_id: data.post_author,
         derived_ua_browser: ua.browser.name,
         derived_ua_browser_version: ua.browser.version,
@@ -116,7 +117,7 @@ const get_article_data = async (post_id) => {
         const article = (
             await jxphelper.get("article", {
                 "filter[post_id]": post_id,
-                fields: "tags,sections",
+                fields: "tags,sections,date_published",
             })
         ).data.pop();
         if (article) {
@@ -168,6 +169,7 @@ const post_hit = async (req, res) => {
                     const article_data = await get_article_data(data.post_id);
                     esdata.tags = article_data.tags;
                     esdata.sections = article_data.sections;
+                    esdata.date_published = article_data.date_published;
                 }
                 if (config.debug) console.log(esdata);
                 await new Promise((resolve, reject) => {
@@ -284,6 +286,7 @@ const get_hit = async (req, res) => {
             const article_data = await get_article_data(data.post_id);
             esdata.tags = article_data.tags;
             esdata.sections = article_data.sections;
+            esdata.date_published = article_data.date_published;
         }
         if (config.debug) {
             console.log({ esdata });
