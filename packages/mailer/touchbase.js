@@ -90,6 +90,7 @@ const get_voucher = async (vouchertype, user_id) => {
             }
         ]
     })).data.sort(voucher => voucher.reader_id ? 1 : -1).pop();
+    if (!voucher) throw("No available vouchers found");
     if (!voucher.reader_id) {
         await apihelper.put("voucher", voucher._id, { "reader_id": user_id });
     }
