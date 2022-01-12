@@ -26,7 +26,7 @@
         "cache_size": 1,
         "test_interval": 1000,
         "indexes": {
-            "pageviews": [ "pageviews_copy" ]
+            "pageviews": [ "pageviews_test" ]
         }
     },
     "content": {
