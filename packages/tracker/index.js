@@ -123,9 +123,10 @@ const get_article_data = async (post_id) => {
         if (article) {
             tags = article.tags;
             sections = article.sections;
+            date_published = article.date_published;
         }
     }
-    return { sections, tags };
+    return { sections, tags, date_published };
 };
 
 const post_hit = async (req, res) => {
@@ -284,6 +285,7 @@ const get_hit = async (req, res) => {
         const esdata = set_esdata(index, data);
         if (data.post_id) {
             const article_data = await get_article_data(data.post_id);
+            if (config.debug) console.log({article_data});
             esdata.tags = article_data.tags;
             esdata.sections = article_data.sections;
             esdata.date_published = article_data.date_published;
