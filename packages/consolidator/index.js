@@ -72,7 +72,7 @@ consumer.on('message', async (message) => {
             try {
                 cache.push({
                     index: {
-                        _index: (index === "pageviews") ? "pageviews_copy" : index,
+                        _index: index,
                         _type: "_doc",
                     }
                 }, json);

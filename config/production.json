@@ -27,7 +27,7 @@
         "test_interval": 1000,
         "indexes": {
             "pageviews": [
-                "pageviews"
+                "pageviews_copy"
             ]
         }
     },
