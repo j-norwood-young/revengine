@@ -12,8 +12,6 @@ class Random {
     constructor(opts) {
         this.opts = Object.assign({
             size: 1,
-            // min_hits: 0,
-            // top_count: 0,
             published_start_date: null,
             published_end_date: null,
             ignore_post_ids: [],

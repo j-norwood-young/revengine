@@ -38,7 +38,7 @@ server.use(cors.actual);
         const jitter_factor = req.body.jitter_factor || 10;
         const report = new Reports.Random({size, published_start_date, published_end_date, ignore_post_ids, jitter_factor});
         const result = await report.random_articles();
-        res.send({ size, top_count, ignore_post_ids, published_start_date, published_end_date, jitter_factor, result });
+        res.send({ size, ignore_post_ids, published_start_date, published_end_date, jitter_factor, result });
     } catch (err) {
         console.error(err);
         res.send(500, { status: "error", error: err });
