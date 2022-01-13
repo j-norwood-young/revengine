@@ -237,4 +237,5 @@ module.exports = {
     NewsletterSubscribers: require("./libs/top_newsletter_subscribers"),
     Facets: require("./libs/facets"),
     RFV: require("./libs/rfv"),
+    Random: require("./libs/random"),
 };

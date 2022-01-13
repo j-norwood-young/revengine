@@ -10,12 +10,40 @@ const fetch = require("node-fetch");
 const server = restify.createServer();
 
 server.use(restify.plugins.queryParser());
-server.use(apicache.middleware("5 minutes"));
+server.use(restify.plugins.bodyParser()); 
 const cors = Cors({
     origins: config.cors_origins || ["*"],
 });
 server.pre(cors.preflight);
 server.use(cors.actual);
+
+/**
+ * @api {post} /random
+ * 
+ * Returns a semi-random article
+ * 
+ * @param {integer} size - The number of articles to return
+ * @param {date} published_start_date - article must be published after this date
+ * @param {date} published_end_date - article must be published before this date
+ * @param {array of strings} ignore_post_ids - article must not be in this list
+ * @param {integer} jitter_factor - multiply results by this factor before picking random article, default: 10
+ * 
+ **/
+ server.post("/random", async (req, res) => {
+    try {
+        const size = req.body.size || 1;
+        const ignore_post_ids = req.body.ignore_post_ids || [];
+        const published_start_date = req.body.published_start_date || null;
+        const published_end_date = req.body.published_end_date || null;
+        const jitter_factor = req.body.jitter_factor || 10;
+        const report = new Reports.Random({size, published_start_date, published_end_date, ignore_post_ids, jitter_factor});
+        const result = await report.random_articles();
+        res.send({ size, top_count, ignore_post_ids, published_start_date, published_end_date, jitter_factor, result });
+    } catch (err) {
+        console.error(err);
+        res.send(500, { status: "error", error: err });
+    }
+})
 
 /**
  * {post} /top_articles/:period?params
@@ -86,7 +114,7 @@ server.use(cors.actual);
     ...
     ]
  **/
-server.get("/top_articles/:period", async (req, res) => {
+server.get("/top_articles/:period", apicache.middleware("5 minutes"), async (req, res) => {
     try {
         const report = new Reports.TopLastPeriod();
         const size = req.query.size || req.params.size || 5;
@@ -135,7 +163,7 @@ server.get("/top_articles/:period", async (req, res) => {
     }
 })
 
-server.get("/top_articles", async (req, res) => {
+server.get("/top_articles", apicache.middleware("5 minutes"), async (req, res) => {
     try {
         const report = new Reports.TopLastHour();
         const size = +req.query.size || 5;
@@ -174,7 +202,7 @@ server.get("/top_articles", async (req, res) => {
     }
 })
 
-server.get("/front_page", async (req, res) => {
+server.get("/front_page", apicache.middleware("5 minutes"), async (req, res) => {
     try {
         const result = await fetch(`${config.wordpress.server}/wp-json/revengine/v1/featured`, {
             method: 'get',
@@ -197,7 +225,7 @@ server.get("/front_page", async (req, res) => {
     }
 })
 
-server.get("/top_articles_by_section/:section", async (req, res) => {
+server.get("/top_articles_by_section/:section", apicache.middleware("5 minutes"), async (req, res) => {
     try {
         const report = new Reports.TopLastHour();
         const size = req.query.size || 5;
@@ -233,7 +261,7 @@ server.get("/top_articles_by_section/:section", async (req, res) => {
     }
 })
 
-server.get("/reader/:wordpress_id", async (req, res) => {
+server.get("/reader/:wordpress_id", apicache.middleware("5 minutes"), async (req, res) => {
     try {
         const wordpress_id = req.params.wordpress_id;
         const reader = (await jxphelper.get("reader", { "filter[wordpress_id]": wordpress_id, "populate[segment]": "code", "fields": "segmentation_id" })).data.pop();
