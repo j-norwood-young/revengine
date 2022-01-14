@@ -429,11 +429,11 @@ const actions = {
             return article;
         })
         // Calculate score
-        const score_weights_sum = state.article_fields.map(field => field.weight).filter(weight => (weight)).reduce((prev, curr) => prev + curr, 0);
+        const score_weights_sum = state.article_fields.filter(field => state.visible_fields.includes(field.title)).map(field => field.weight).filter(weight => (weight)).reduce((prev, curr) => prev + curr, 0);
         articles = articles.map(article => {
             let tot = 0;
             for (let field of article_fields) {
-                if (field.weight) {
+                if ((state.visible_fields.includes(field.title)) && (field.weight)) {
                     if (article[field.field + "_rank"])
                         tot += article[field.field + "_rank"] * field.weight
                 }
