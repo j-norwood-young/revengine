@@ -189,8 +189,12 @@ const actions = {
     },
     async delReport({ commit, state }, report_id) {
         const report = (await apihelper.getOne("scheduled_report", report_id, { fields: "mailer_id" })).data;
-        await apihelper.del("mailer", report.mailer_id);
         await apihelper.del("scheduled_report", report_id);
+        try {
+            await apihelper.del("mailer", report.mailer_id);
+        } catch (e) {
+            console.log(e)
+        }
         const reports = state.reports.filter(report => report._id !== report_id);
         commit("SET_KEYVAL", { key: "reports", value: reports });
     },
