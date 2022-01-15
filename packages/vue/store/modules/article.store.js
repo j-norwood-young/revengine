@@ -416,12 +416,12 @@ const actions = {
             return article;
         });
         const spreads = {};
-        for (let field of article_fields) {
+        for (let field of state.article_fields) {
             spreads[field.field] = articles.map(article => article[field.field]).sort((a, b) => a - b);
         }
         // Assign quantiles
         articles = articles.map(article => {
-            for (let field of article_fields) {
+            for (let field of state.article_fields) {
                 if (article[field.field]) {
                     article[field.field + "_rank"] = ss.quantileRankSorted(spreads[field.field], article[field.field])
                 }
@@ -432,10 +432,11 @@ const actions = {
         const score_weights_sum = state.article_fields.filter(field => state.visible_fields.includes(field.title)).map(field => field.weight).filter(weight => (weight)).reduce((prev, curr) => prev + curr, 0);
         articles = articles.map(article => {
             let tot = 0;
-            for (let field of article_fields) {
+            for (let field of state.article_fields) {
                 if ((state.visible_fields.includes(field.title)) && (field.weight)) {
-                    if (article[field.field + "_rank"])
+                    if (article[field.field + "_rank"]) {
                         tot += article[field.field + "_rank"] * field.weight
+                    }
                 }
             }
             article.score = tot / score_weights_sum;

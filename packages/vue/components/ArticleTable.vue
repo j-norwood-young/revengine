@@ -49,7 +49,7 @@ table.table.table-striped.table-bordered
                 h4.text-center {{field.fn(article[field.field])}}
                 //- - p Rank #1
                 p(v-if="article[field.field + '_rank']").text-center.mt-4.text-danger Quantile<br> {{Math.round(article[field.field + "_rank"] * 10000)/100}}%
-                p(v-if="article[field.field + '_rank']").text-center.mt-4 Weighted Score<br> {{Math.round(article[field.field + "_rank"] * field.weight * 10000)/100}}
+                p(v-if="field.weight").text-center.mt-4 Weighted Score<br> {{article[field.field + "_rank"] ? Math.round(article[field.field + "_rank"] * field.weight * 100)/100 : 0}} / {{ field.weight }}
                 //- p.text-center.mt-4 All Time<br> {{Number(article.total_hits).toLocaleString()}}
 </template>
 
