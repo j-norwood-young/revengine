@@ -9,7 +9,9 @@ block scripts
             var user_id = "#{user.data._id}";
             var apikey = "#{apikey}";
             var apiserver = "#{apiserver}";
-    script(src="/assets/main.bundle.js")
-    script(src="/assets/vue.bundle.js") 
+    if (dev)
+        script(src="/assets/vue.js") 
+    else
+        script(src="/assets/vue.min.js")
     script.
         const app = new App();

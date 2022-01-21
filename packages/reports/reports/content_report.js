@@ -16,11 +16,14 @@ const content = async (params = {}) => {
         browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
         const page = await browser.newPage();
         await page.goto(url)
+        await page.waitForSelector("#load_report");
+        await page.click("#load_report");
         await page.waitForSelector("#loaded");
         const content = await page.$eval("#container", el => el.outerHTML);
         await page.close();
         await browser.close();
-        const template = pug.compileFile(path.join(__dirname, "../templates/content_report.pug"));
+        const template = pug.compileFile(path.join(__dirname, "../templates/simple_layout.pug"));
+        // return content;
         return template({ content, moment, numberFormat })
     } catch(err) {
         if (browser) browser.close();

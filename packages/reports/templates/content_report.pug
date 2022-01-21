@@ -1,6 +1,7 @@
 extends email_layout.pug
 block content
-    div !{content}
+    #email
+        div !{content}
 block scripts
     if apikey && apiserver
         script.

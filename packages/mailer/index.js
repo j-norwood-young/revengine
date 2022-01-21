@@ -105,6 +105,21 @@ server.get("/report/:report", async (req, res) => {
     res.end();
 })
 
+server.get("/mailer/:mailer_id", async (req, res) => {
+    const mailer = (await apihelper.getOne("mailer", req.params.mailer_id)).data;
+    try {
+        let html = await mailers[mailer.report].content(mailer.params);
+        res.writeHead(200, {
+            'Content-Length': Buffer.byteLength(html),
+            'Content-Type': 'text/html'
+        });
+        res.write(html);
+        res.end();
+    } catch (err) {
+        console.error(err);
+    }
+});
+
 const start_http_server = () => {
     server.listen(config.mailer.port || 3017, function () {
         console.log('%s listening at %s', server.name, server.url);
@@ -123,13 +138,16 @@ const mailrun_schedule = async () => {
 const program = new Command();
 program
   .option('-m, --mailer <mailer._id>', 'run for single mailer')
+  .option('-s, --server', 'start http server (disables scheduler)')
 
 program.parse(process.argv);
 const options = program.opts();
 
 if (require.main === module && !options.mailer) {
     console.log("Loading mailer...");
-    scheduler();
+    if (!options.server) {
+        scheduler();
+    }
     start_http_server();
 }
 

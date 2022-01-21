@@ -17,7 +17,7 @@ div
                 i.fa.fa-cog(@click="showDashboardSettings")
     .row(v-if="loading_state==='pending' && !articles_loaded")
         .col-sm-12
-            b-button.btn-primary.btn-lg.mt-2.mb-2(@click="getArticles") Load Report
+            b-button#load_report.btn-primary.btn-lg.mt-2.mb-2(@click="getArticles") Load Report
     .row(v-if="loading_state==='pending' && articles_loaded")
         .col-sm-12
             b-alert(show variant="warning") 
@@ -37,7 +37,7 @@ div
 </template>
 
 <script>
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapState, mapActions } from 'vuex'
 import Sections from "./Sections.vue"
 import DateRange from "./DateRange.vue"
 import ArticleTable from "./ArticleTable.vue"
