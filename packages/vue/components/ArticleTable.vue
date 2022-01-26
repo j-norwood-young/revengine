@@ -25,7 +25,7 @@ table.table.table-striped.table-bordered
                 p {{ article.date_published_formatted }}
                 img.float-left.ml-2.mr-2.img-fluid.img-thumbnail(v-bind:src="article.img_thumbnail" style="width: 60px; height: 60px;")
                 h4 
-                    a(v-bind:href="`/article/view/${article._id}`") {{article.title}}
+                    a(v-bind:href="fullUrl(`/article/view/${article._id}`)") {{article.title}}
                 hr
                 p 
                     .badge.badge-secondary {{ article.author }}
@@ -73,7 +73,10 @@ export default {
             'addJournalist',
             'addSection',
             'addTag',
-        ])
+        ]),
+        fullUrl(url){
+            return window.location.origin + url
+        }
     },
 }
 </script>
