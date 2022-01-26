@@ -313,9 +313,19 @@ class Collections {
                 ]
             },
             segmentation: {
-                name: "Segmentation",
+                name: "Segments",
                 fields: [
                     { name: "Name", key: "name", d: data => `<a href="/segmentation/edit/${data._id}">${data.name}</a>`, "view": "text", list_view },
+                    {
+                        name: "Count", 
+                        list_view,
+                        d: async data => {
+                            const count = (await $.get(`${apiserver}/count/reader?filter[segmentation_id]=${data._id}&limit=0&apikey=${apikey}`)).count;
+                            return formatNumber(count);
+                        }
+                    },
+                    { name: "Touchbase", d: data => `<a href="/mails//mailinglist/subscribe_by_segment/${data._id}">Add to list</a>`, view: "none", list_view},
+                    { name: "Code", key: "code", d: data => data.code, },
                     { name: "Code", key: "code", d: data => data.code, "view": "text", list_view },
                     { name: "Query", key: "query", d: data => data.query, view: "code" },
                 ]

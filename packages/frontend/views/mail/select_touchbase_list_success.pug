@@ -2,13 +2,13 @@ extends ../layout
 
 block content
     .container
-        h1 Touchbase List - Success 
-        p
-            strong Mails Submitted 
-            = data.TotalUniqueEmailsSubmitted
-        p
-            strong Existing Subscribers 
-            = data.TotalExistingSubscribers
-        p
-            strong New Subscribers 
-            = data.TotalNewSubscribers
+        .alert.alert-success
+            h4.alert-heading Success!
+            p.mb-0 You have successfully added #{data.TotalUniqueEmailsSubmitted} members to the Touchbase list "#{ list_name }"
+            ul
+                li
+                    strong Existing Subscribers 
+                    = data.TotalExistingSubscribers
+                li
+                    strong New Subscribers 
+                    = data.TotalNewSubscribers

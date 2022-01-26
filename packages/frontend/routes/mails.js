@@ -7,8 +7,16 @@ const axios = require("axios");
 const mailer = require("@revengine/mailer");
 
 const JXPHelper = require("jxp-helper");
-const { run_transactional, run_mailrun } = require('@revengine/mailer/touchbase');
+const { run_transactional, add_readers_to_list, create_list, get_touchbase_lists, get_touchbase_list } = require('@revengine/mailer/touchbase');
 const apihelper = new JXPHelper({ server: config.api.server });
+
+const tbp_auth = {
+    auth: {
+        username: process.env.TOUCHBASE_APIKEY,
+        password: "x"
+    }
+};
+
 
 router.use("/", async(req, res, next) => {
     res.locals.pg = "mails";
@@ -128,23 +136,13 @@ router.get("/mailrun/progressbar_data/:mailrun_id", async (req, res) => {
     }
 })
 
-const get_touchbase_lists = async (req, res, next) => {
+// Touchbase List stuff
+
+const get_touchbase_lists_middleware = async (req, res, next) => {
     try {
-        const opts = {
-            auth: {
-                username: process.env.TOUCHBASE_APIKEY,
-                password: "x"
-            }
-        }
-        const client = (await axios.get(`${config.touchbase.api}/clients.json`, opts)).data.pop();
-        res.locals.touchbase_client = client;
-        const lists = (await axios.get(`${config.touchbase.api}/clients/${client.ClientID}/lists.json`, opts)).data;
-        // const segments = [];
-        // for (let list of lists) {
-        //     let segments = (await axios.get(`${config.touchbase.api}/lists/${list.ListID}/segments.json`, opts)).data;
-        //     list.segments = segments;
-        // }
+        const { lists, client } = await get_touchbase_lists();
         res.locals.touchbase_lists = lists;
+        res.locals.toucbase_client = client;
         next();
         // const lists = await axios.get(`${config.touchbase.api}`)
     } catch(err) {
@@ -161,60 +159,62 @@ router.get("/mailinglist/list", async (req, res) => {
     res.send("TODO");
 });
 
-router.get("/mailinglist/subscribe_by_label/:label_id", get_touchbase_lists, async (req, res) => {
-    res.render("mail/select_touchbase_list", { title: "Touchbase Lists"});
+router.get("/mailinglist/subscribe_by_label/:label_id", get_touchbase_lists_middleware, async (req, res) => {
+    const label = (await req.apihelper.getOne("label", req.params.label_id)).data;
+    res.render("mail/select_touchbase_list", { title: `Add Label "${label.name}" to Touchbase List`});
+})
+
+router.get("/mailinglist/subscribe_by_segment/:segment_id", get_touchbase_lists_middleware, async (req, res) => {
+    const segment = (await req.apihelper.getOne("segmentation", req.params.segment_id)).data;
+    res.render("mail/select_touchbase_list", { title: `Add Segment "${segment.name}" to Touchbase List`});
 })
 
 router.post("/mailinglist/subscribe_by_label/:label_id", async(req, res) => {
     try {
-        const opts = {
-            auth: {
-                username: process.env.TOUCHBASE_APIKEY,
-                password: "x"
-            }
-        }
         let list_id = null;
         if (req.body.new_list_name) { // Create list
-            const client = (await axios.get(`${config.touchbase.api}/clients.json`, opts)).data.pop();
-            const json = {
-                "Title": req.body.new_list_name,
-                // "UnsubscribePage": "http://www.example.com/unsubscribed.html",
-                "UnsubscribeSetting": "OnlyThisList",
-                "ConfirmedOptIn": false,
-                // "ConfirmationSuccessPage": "http://www.example.com/joined.html"
-            }
-            list_id = (await axios.post(`${config.touchbase.api}/lists/${client.ClientID}.json`, json, opts)).data;
-        } else {
+            list_id = await create_list(req.body.new_list_name);
+        } else { // Add to existing list
             list_id = req.body.touchbase_list;
         }
         const label = (await req.apihelper.getOne("label", req.params.label_id)).data;
         const readers = (await req.apihelper.get("reader", { "filter[label_id]": req.params.label_id, "fields": "email,first_name,last_name" })).data;
-        const json = {
-            "Subscribers": readers.map(reader => {
-                return {
-                    EmailAddress: reader.email,
-                    Name: `${reader.first_name} ${reader.last_name}`,
-                    CustomFields: [
-                        {
-                            Key: "source",
-                            Value: `RfvEngine`
-                        },
-                        {
-                            Key: "label",
-                            Value: label.name
-                        },
-                        {
-                            Key: "imported_by",
-                            Value: req.session.user.data.name
-                        }
-                    ],
-                    ConsentToTrack: "Yes"
-                }
-            })
+        const result = await add_readers_to_list(readers, list_id, {
+            source: "RfvEngine",
+            label: label.name,
+            imported_by: req.session.user.data.name
+        });
+        if (config.debug) {
+            console.log(result);
         }
-        
-        const result = (await axios.post(`${config.touchbase.api}/subscribers/${list_id}/import.json`, json, opts)).data;
         res.render("mail/select_touchbase_list_success", { title: "Subscription Success", data: result });
+    } catch(err) {
+        console.error(err);
+        if (err.response && err.response.data && err.response.data.Message) return res.render("error", {error: { status: err.response.data.Message } });
+        res.send(err);
+    }
+})
+
+router.post("/mailinglist/subscribe_by_segment/:segment_id", async(req, res) => {
+    try {
+        let list_id = null;
+        if (req.body.new_list_name) { // Create list
+            list_id = await create_list(req.body.new_list_name);
+        } else { // Add to existing list
+            list_id = req.body.touchbase_list;
+        }
+        const list = await get_touchbase_list(list_id);
+        const segment = (await req.apihelper.getOne("segmentation", req.params.segment_id)).data;
+        const readers = (await req.apihelper.get("reader", { "filter[segmentation_id]": req.params.segment_id, "fields": "email,first_name,last_name" })).data;
+        const result = await add_readers_to_list(readers, list_id, {
+            source: "RfvEngine",
+            segment: segment.name,
+            imported_by: req.session.user.data.name
+        });
+        if (config.debug) {
+            console.log(result);
+        }
+        res.render("mail/select_touchbase_list_success", { title: "Subscription Success", data: result, list_name: list.Title });
     } catch(err) {
         console.error(err);
         if (err.response && err.response.data && err.response.data.Message) return res.render("error", {error: { status: err.response.data.Message } });

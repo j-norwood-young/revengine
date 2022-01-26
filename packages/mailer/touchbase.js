@@ -5,6 +5,10 @@ require("dotenv").config();
 const JXPHelper = require("jxp-helper");
 const moment = require("moment");
 const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
+const auth = {
+    username: process.env.TOUCHBASE_APIKEY,
+    password: "x"
+};
 
 const get_woocommerce_user = async (user_id) => {
     const username = process.env.WOOCOMMERCE_USERNAME;
@@ -120,10 +124,7 @@ const group_actions = () => {
                 const result = await axios(`${config.touchbase.api}/transactional/smartemail/${transactional_id}/send`, {
                     method: "post",
                     data: body,
-                    auth: {
-                        username: process.env.TOUCHBASE_APIKEY,
-                        password: 'x'
-                    },
+                    auth,
                 });
                 if (result.data.Code) throw result.data;
             } catch(err) {
@@ -157,10 +158,7 @@ const group_actions = () => {
                 const result = await axios(`${config.touchbase.api}/transactional/smartemail/${transactional_id}/send`, {
                     method: "post",
                     data: body,
-                    auth: {
-                        username: process.env.TOUCHBASE_APIKEY,
-                        password: 'x'
-                    },
+                    auth,
                 });
                 if (result.data.Code) throw result.data;
             } catch(err) {
@@ -194,10 +192,7 @@ const group_actions = () => {
                 const result = await axios(`${config.touchbase.api}/transactional/smartemail/${transactional_id}/send`, {
                     method: "post",
                     data: body,
-                    auth: {
-                        username: process.env.TOUCHBASE_APIKEY,
-                        password: 'x'
-                    },
+                    auth,
                 });
                 if (result.data.Code) throw result.data;
             } catch(err) {
@@ -338,10 +333,7 @@ exports.monthly_uber_mail = async (req, res) => {
                         result = await axios(`${config.touchbase.api}/transactional/smartemail/${transactional_id}/send`, {
                             method: "post",
                             data: body,
-                            auth: {
-                                username: process.env.TOUCHBASE_APIKEY,
-                                password: 'x'
-                            },
+                            auth,
                         });
                         if (result.data.Code) throw result.data;
                     }
@@ -411,10 +403,7 @@ exports.test_monthly_uber_mail = async (reader_email, to, tid) => {
             result = await axios(`${config.touchbase.api}/transactional/smartemail/${transactional_id}/send`, {
                 method: "post",
                 data: body,
-                auth: {
-                    username: process.env.TOUCHBASE_APIKEY,
-                    password: 'x'
-                },
+                auth,
             });
             if (result.data.Code) throw result.data;
         }
@@ -450,10 +439,7 @@ const run_transactional = async (reader_email, to, tid) => {
             result = await axios(`${config.touchbase.api}/transactional/smartemail/${transactional.touchbase_transactional_id}/send`, {
                 method: "post",
                 data: body,
-                auth: {
-                    username: process.env.TOUCHBASE_APIKEY,
-                    password: 'x'
-                },
+                auth,
             });
             if (config.debug) {
                 console.log(result.data);
@@ -497,5 +483,53 @@ const run_mailrun = async mailrun_id => {
     }
 }
 
+const create_list = async(list_name) => {
+    const client = (await axios.get(`${config.touchbase.api}/clients.json`, { auth })).data.pop();
+    const json = {
+        "Title": list_name,
+        "UnsubscribeSetting": "OnlyThisList",
+        "ConfirmedOptIn": false,
+    }
+    list_id = (await axios.post(`${config.touchbase.api}/lists/${client.ClientID}.json`, json, { auth })).data;
+    return list_id;
+}
+
+const add_readers_to_list = async (readers, list_id, custom_fields) => {
+    const CustomFields = [];
+    for (let key in custom_fields) {
+        CustomFields.push({
+            "Key": key,
+            "Value": custom_fields[key]
+        });
+    }
+    const json = {
+        "Subscribers": readers.map(reader => {
+            return {
+                EmailAddress: reader.email,
+                Name: `${reader.first_name} ${reader.last_name}`,
+                CustomFields,
+                ConsentToTrack: "Yes"
+            }
+        })
+    }
+    const result = (await axios.post(`${config.touchbase.api}/subscribers/${list_id}/import.json`, json, { auth })).data;
+    return result;
+}
+
+const get_touchbase_lists = async () => {
+    const client = (await axios.get(`${config.touchbase.api}/clients.json`, { auth })).data.pop();
+    const lists = (await axios.get(`${config.touchbase.api}/clients/${client.ClientID}/lists.json`, { auth })).data;
+    return {lists, client};
+}
+
+const get_touchbase_list = async(list_id) => {
+    const list = (await axios.get(`${config.touchbase.api}/lists/${list_id}.json`, { auth })).data;
+    return list;
+}
+
 exports.run_mailrun = run_mailrun;
 exports.run_transactional = run_transactional;
+exports.add_readers_to_list = add_readers_to_list;
+exports.create_list = create_list;
+exports.get_touchbase_lists = get_touchbase_lists;
+exports.get_touchbase_list = get_touchbase_list;

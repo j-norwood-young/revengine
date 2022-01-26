@@ -2,7 +2,10 @@ extends ../layout
 
 block content
     .container
-        h1 Touchbase Lists 
+        h1= title
+        hr
+        p This will add the defined list of members to a new or existing Touchbase list. If the member is already on the Touchbase list, they will not be duplicated. 
+        hr
         h4 Create a new list
         form(method="post")
             .form-group 
