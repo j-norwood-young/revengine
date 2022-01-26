@@ -163,9 +163,9 @@ class Collections {
                             return formatNumber(count);
                         }
                     },
-                    { name: "Download", d: data => `<a href="/label/download/json/${data._id}">JSON</a> | <a href="/label/download/csv/${data._id}">CSV</a>`, view: "none", list_view},
+                    { name: "Download", d: data => `<a href="/download/json/label/${data._id}">JSON</a> | <a href="/download/csv/label/${data._id}">CSV</a>`, view: "none", list_view},
                     { name: "Touchbase", d: data => `<a href="/mails//mailinglist/subscribe_by_label/${data._id}">Add to list</a>`, view: "none", list_view},
-                    { name: "Code", key: "code", d: data => data.code, },
+                    { name: "Code", key: "code", d: data => data.code, list_view },
                     { name: "Prep Function", key: "fn", d: data => data.code, "view": "code", note: "Optional. Runs before applying rule. Eg: return async opts => { return [ {_id: <user_id>, name: \"val\" } ] } Available: opts.jxphelper, opts.moment. " },
                     { name: "Rules", key: "rules", d: data => data.rules, "view": "code_array", note: `Eg: { "label_data.email_clicks_in_last_5_days": { "$gte": 5 } }` },
                 ],
@@ -324,6 +324,7 @@ class Collections {
                             return formatNumber(count);
                         }
                     },
+                    { name: "Download", d: data => `<a href="/download/json/segmentation/${data._id}">JSON</a> | <a href="/download/csv/segmentation/${data._id}">CSV</a>`, view: "none", list_view},
                     { name: "Touchbase", d: data => `<a href="/mails//mailinglist/subscribe_by_segment/${data._id}">Add to list</a>`, view: "none", list_view},
                     { name: "Code", key: "code", d: data => data.code, },
                     { name: "Code", key: "code", d: data => data.code, "view": "text", list_view },

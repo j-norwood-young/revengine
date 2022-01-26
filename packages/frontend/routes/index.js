@@ -120,5 +120,6 @@ router.use("/segmentation", require("./segmentation"));
 router.use("/goals", require("./goals"));
 router.use("/settings", require("./settings"));
 router.use("/article", require("./article"));
+router.use("/download", require("./download"));
 
 module.exports = router;

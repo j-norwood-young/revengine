@@ -12,6 +12,7 @@ router.get("/", (req, res) => {
     res.render("label");
 })
 
+// Deprecated in favour of /download
 router.get("/download/json/:label_id", async (req, res) => {
     try {
         const readers = (await req.apihelper.get("reader", { "filter[label_id]": req.params.label_id, "fields": "email,first_name,last_name,createdAt,updatedAt,label_id" })).data;
@@ -22,6 +23,7 @@ router.get("/download/json/:label_id", async (req, res) => {
     }
 })
 
+// Deprecated in favour of /download
 router.get("/download/csv/:label_id", async (req, res) => {
     try {
         const label = (await req.apihelper.getOne("label", req.params.label_id)).data;
