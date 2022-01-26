@@ -527,9 +527,15 @@ const get_touchbase_list = async(list_id) => {
     return list;
 }
 
+const get_transactional_templates = async () => {
+    const templates = (await axios.get(`${config.touchbase.api}/transactional/smartEmail?status=active`, { auth })).data;
+    return templates;
+}
+
 exports.run_mailrun = run_mailrun;
 exports.run_transactional = run_transactional;
 exports.add_readers_to_list = add_readers_to_list;
 exports.create_list = create_list;
 exports.get_touchbase_lists = get_touchbase_lists;
 exports.get_touchbase_list = get_touchbase_list;
+exports.get_transactional_templates = get_transactional_templates;
