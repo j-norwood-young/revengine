@@ -113,6 +113,7 @@ const set_esdata = (index, data) => {
 const get_article_data = async (post_id) => {
     let sections = null;
     let tags = null;
+    let date_published = null;
     if (post_id) {
         const article = (
             await jxphelper.get("article", {
