@@ -21,7 +21,7 @@ table.table.table-striped.table-bordered
             v-for="(article, index) in articles"
             :key="article._id"
         )
-            td
+            td.revengine-width-700
                 p {{ article.date_published_formatted }}
                 img.float-left.ml-2.mr-2.img-fluid.img-thumbnail(v-bind:src="article.img_thumbnail" style="width: 60px; height: 60px;")
                 h4 
@@ -83,7 +83,7 @@ export default {
 
 <style lang="less" scoped>
 .revengine-width-700 {
-    width: 700px;
+    max-width: 700px;
 }
 .cursor-pointer {
     cursor: pointer;
