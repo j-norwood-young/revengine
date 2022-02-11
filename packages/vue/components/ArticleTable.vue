@@ -88,4 +88,7 @@ export default {
 .cursor-pointer {
     cursor: pointer;
 }
+table {
+    border: 1px solid #444;
+}
 </style>

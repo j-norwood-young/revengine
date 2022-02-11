@@ -444,8 +444,8 @@ const actions = {
         })
         // Sort
         articles.sort((a, b) => a[state.sort_field] > b[state.sort_field] ? 1 * state.sort_dir : -1 * state.sort_dir)
-        // Just get top 100
-        articles = articles.slice(0, 100)
+        // Just get top 20
+        articles = articles.slice(0, 20)
         // Get total hits
         let total_hits = (await apihelper.aggregate("article", [
             {
