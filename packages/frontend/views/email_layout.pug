@@ -207,6 +207,7 @@ html
             .badge-primary {
                 color: #fff;
                 background-color: #4da3ff;
+                display: none;
             }
             .revengine-width-700 {
                 width: 700px;
@@ -231,9 +232,12 @@ html
             table {
                 background-color: #fff;
             }
+            .table-bordered {
+                border: 1px solid #444;
+            }
         link(href="https://fonts.googleapis.com/css?family=Merriweather:400,400i,700,700i" rel="stylesheet")
     body(leftmargin="0" marginwidth="0" topmargin="0" marginheight="0" offset="0")
-        #container
-            img(src="https://www.dailymaverick.co.za/wp-content/themes/twentyseventeen-child/images/dm-masthead-4.png" style="width:100%")
+        #container.email-view
+            img(src="https://www.dailymaverick.co.za/wp-content/themes/twentyseventeen-child/images/dm-masthead-4.png" style="width:100%; max-width: 300px")
             block content
         block scripts
