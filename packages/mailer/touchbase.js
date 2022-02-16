@@ -418,8 +418,15 @@ const run_transactional = async (reader_email, to, tid) => {
     try {
         const transactional = (await apihelper.getOne("touchbasetransactional", tid)).data;
         const reader = (await apihelper.get("reader", { "filter[email]": reader_email })).data.pop();
-        const fn = new Function(transactional.data_fn);
-        const d = await fn()({ get_voucher, get_vouchertypes, reader });
+        let d;
+        if (transactional.data_fn) {
+            const fn = new Function(transactional.data_fn);
+            d = await fn()({ get_voucher, get_vouchertypes, reader });
+        } else {
+            d = {
+                name: reader.first_name
+            };
+        }
         const body = {
             "To": [to],
             "Data": d,
