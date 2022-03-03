@@ -24,7 +24,7 @@ class TopLastPeriod {
                 section: null,
                 author: null,
                 tag: null,
-                period: "week"
+                period: "week",
             }, opts);
             if (!periods[opts.period]) throw `Unknown period. Choose from ${ Object.keys(periods).join(", ")}`;
             const size = Number(opts.size) + 2;
@@ -110,6 +110,15 @@ class TopLastPeriod {
                         "sections": {
                             "query": opts.exclude_section,
                             "operator": "and"
+                        }
+                    }
+                })
+            }
+            if (opts.published_date_gte) {
+                query.body.query.bool.filter.push({
+                    "range": {
+                        "date_published": {
+                            "gte": moment(opts.published_date_gte).toISOString()
                         }
                     }
                 })
