@@ -276,7 +276,7 @@ const get_hit = async (req, res) => {
         const data = parse_url(url);
         if (!data) throw `No data ${url}`;
         if (!data.action) throw `No action ${url}`;
-        let index = "pageviews";
+        let index = config.debug ? "pageviews_test" : "pageviews";
         const referer = req.headers.referer || data.referer;
         if (!referer) return; // This is common with bots or noreferrer policy, we can't track it anyway, so don't worry about throwing an error
         data.url = referer;

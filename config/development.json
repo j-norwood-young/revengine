@@ -26,7 +26,8 @@
         "cache_size": 1,
         "test_interval": 1000,
         "indexes": {
-            "pageviews": [ "pageviews_test" ]
+            "pageviews": [ "pageviews_test" ],
+            "pageviews_test": [ "pageviews_test" ]
         }
     },
     "content": {
@@ -109,7 +110,8 @@
         "kafka_topic": "revengine_events_dev"
     },
     "woocommerce": {
-        "api": "https://www.dailymaverick.co.za/wp-json/wc/v2"
+        "api": "https://www.dailymaverick.co.za/wp-json/wc/v2",
+        "secret": "7Mi06e67Xgcr4ekAmQgw"
     },
     "wordpress": {
         "server": "http://local.dailymaverick.com",
