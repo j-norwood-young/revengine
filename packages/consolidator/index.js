@@ -45,7 +45,7 @@ const flush = async () => {
             const result = await esBulk({ maxRetries: 5, body: cache });
             cache = [];
             if (config.debug) {
-                console.log(result);
+                console.log(JSON.stringify(result, null, "  "));
                 console.log(`Flushed cache, loop ${count++}, items ${result.items.length}`);
                 for (let item of result.items) {
                     if (item.index.error) {
@@ -66,7 +66,7 @@ consumer.on('message', async (message) => {
     try {
         json = JSON.parse(message.value);
         if (config.debug) {
-            console.log({ json });
+            console.log(JSON.stringify(json, null, "  "));
         }
         for (let index of config.consolidator.indexes[json.index]) {
             try {
