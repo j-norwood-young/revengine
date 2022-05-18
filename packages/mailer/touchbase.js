@@ -41,7 +41,6 @@ const create_reader = async user => {
         user.user_email = user.email;
     }
     const wordpressuser = (await apihelper.postput("wordpressuser", "id", user)).data;
-    console.log({wordpressuser});
     const reader = {
         wordpressuser_id: wordpressuser._id,
         email: wordpressuser.user_email.toLowerCase().trim(),
@@ -218,18 +217,17 @@ const sync_subscription = async user_id => {
     return (await apihelper.postput("woocommerce_subscription", "id", subscription)).data;
 }
 
-exports.woocommerce_subscriptions_callback = async (req, res) => {
+exports.woocommerce_subscriptions_callback = async (req, res, next) => {
     try {
-        const data = req.body.data;
-        // console.log(req.body);
-        await sync_user(data.user_id);
-        data.subscription = await sync_subscription(data.user_id);
-        data.user = await get_woocommerce_user(data.user_id);
-        data.reader = await get_reader(data);
-        const group = check_group(data);
-        const group_action = group_actions(group);
-        await group_action[group](data);
-        res.send({ status: "ok" });
+        const subscription = req.body.subscription;
+        await sync_user(subscription.customer_id);
+        await sync_subscription(subscription.customer_id);
+        // await get_woocommerce_user(data.user_id);
+        // data.reader = await get_reader(data);
+        // const group = check_group(data);
+        // const group_action = group_actions(group);
+        // await group_action[group](data);
+        if (next) next();
     } catch(err) {
         console.error(err);
         res.send(500, { status: "error" });
@@ -546,3 +544,4 @@ exports.create_list = create_list;
 exports.get_touchbase_lists = get_touchbase_lists;
 exports.get_touchbase_list = get_touchbase_list;
 exports.get_transactional_templates = get_transactional_templates;
+exports.get_voucher = get_voucher;
