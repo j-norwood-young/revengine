@@ -7,8 +7,8 @@ const axios = require("axios");
 const mailer = require("@revengine/mailer");
 
 const JXPHelper = require("jxp-helper");
-const { run_transactional, add_readers_to_list, create_list, get_touchbase_lists, get_touchbase_list } = require('@revengine/mailer/touchbase');
-const apihelper = new JXPHelper({ server: config.api.server });
+const { run_transactional, add_readers_to_list, create_list, get_touchbase_lists, get_touchbase_list, ensure_custom_fields } = require('@revengine/mailer/touchbase');
+const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
 
 const tbp_auth = {
     auth: {
@@ -171,32 +171,13 @@ router.get("/mailinglist/subscribe_by_segment/:segment_id", get_touchbase_lists_
 
 router.post("/mailinglist/subscribe_by_label/:label_id", async(req, res) => {
     try {
-        let list_id = null;
-        if (req.body.new_list_name) { // Create list
-            list_id = await create_list(req.body.new_list_name);
-        } else { // Add to existing list
-            list_id = req.body.touchbase_list;
-        }
         const label = (await req.apihelper.getOne("label", req.params.label_id)).data;
-        const readers = (await req.apihelper.get("reader", { "filter[label_id]": req.params.label_id, "fields": "email,first_name,last_name" })).data;
-        const result = await add_readers_to_list(readers, list_id, {
-            source: "RfvEngine",
-            label: label.name,
-            imported_by: req.session.user.data.name
-        });
-        if (config.debug) {
-            console.log(result);
+        const custom_fields = {
+            import_source: "RfvEngine",
+            import_label: label.name,
+            import_by: req.session.user.data.name,
+            import_date: moment().format("YYYY-MM-DD"),
         }
-        res.render("mail/select_touchbase_list_success", { title: "Subscription Success", data: result });
-    } catch(err) {
-        console.error(err);
-        if (err.response && err.response.data && err.response.data.Message) return res.render("error", {error: { status: err.response.data.Message } });
-        res.send(err);
-    }
-})
-
-router.post("/mailinglist/subscribe_by_segment/:segment_id", async(req, res) => {
-    try {
         let list_id = null;
         if (req.body.new_list_name) { // Create list
             list_id = await create_list(req.body.new_list_name);
@@ -204,16 +185,91 @@ router.post("/mailinglist/subscribe_by_segment/:segment_id", async(req, res) => 
             list_id = req.body.touchbase_list;
         }
         const list = await get_touchbase_list(list_id);
-        const segment = (await req.apihelper.getOne("segmentation", req.params.segment_id)).data;
-        const readers = (await req.apihelper.get("reader", { "filter[segmentation_id]": req.params.segment_id, "fields": "email,first_name,last_name" })).data;
-        const result = await add_readers_to_list(readers, list_id, {
-            source: "RfvEngine",
-            segment: segment.name,
-            imported_by: req.session.user.data.name
-        });
-        if (config.debug) {
-            console.log(result);
+        const readers = (await req.apihelper.get("reader", { "filter[label_id]": req.params.label_id, "fields": "email,first_name,last_name" })).data;
+        const result = await subscribe_readers_to_list(readers, list, custom_fields, req.body.include_vouchers);
+        res.render("mail/select_touchbase_list_success", { title: "Subscription Success", data: result, list_name: list.Title });
+    } catch(err) {
+        console.error(err);
+        if (err.response && err.response.data && err.response.data.Message) return res.render("error", {error: { status: err.response.data.Message } });
+        res.send(err);
+    }
+})
+
+async function subscribe_readers_to_list(readers, list, custom_fields = {}, include_vouchers = false) {
+    try {
+        custom_fields = {
+            import_source: "RfvEngine",
+            import_date: moment().format("YYYY-MM-DD"),
+            ...custom_fields 
+        };
+        console.log(list);
+        const list_id = list.ListID;
+        const vouchertypes = (await apihelper.get("vouchertype")).data;
+        if (include_vouchers) {
+            const fieldnames = [...Object.keys(custom_fields), ...vouchertypes.map(v => v.code)];
+            await ensure_custom_fields(list_id, fieldnames);
         }
+        for (let reader of readers) {
+            reader.custom_fields = Object.assign({}, custom_fields);
+        }
+        if (include_vouchers) {
+            for (let vouchertype of vouchertypes) {
+                const vouchers = (await apihelper.query("voucher", {
+                    "$and": [
+                        {
+                            "vouchertype_id": vouchertype._id
+                        },
+                        {
+                            "valid_from": {
+                                "$gte": moment().startOf("month").format("YYYY-MM-DD")
+                            }
+                        },
+                        {
+                            "valid_to": {
+                                "$lte": moment().endOf("month").format("YYYY-MM-DD")
+                            }
+                        }
+                    ]
+                })).data;
+                const empty_vouchers = vouchers.filter(voucher => !voucher.reader_id);
+                for (let reader of readers) {
+                    let voucher = vouchers.find(voucher => voucher.reader_id === reader._id);
+                    if (!voucher) {
+                        voucher = empty_vouchers.pop();
+                        await apihelper.put("voucher", voucher._id, { "reader_id": reader._id });
+                        if (config.debug) {
+                            console.log(`Added voucher ${voucher._id} to reader ${reader._id}`);
+                        }
+                    }
+                    reader.custom_fields[vouchertype.code] = voucher.code;
+                }
+            }
+        }
+        const result = await add_readers_to_list(readers, list_id);
+        return result;
+    } catch(err) {
+        return Promise.reject(err);
+    }
+}
+
+router.post("/mailinglist/subscribe_by_segment/:segment_id", async(req, res) => {
+    try {
+        const segment = (await req.apihelper.getOne("segmentation", req.params.segment_id)).data;
+        const custom_fields = {
+            import_source: "RfvEngine",
+            import_segment: segment.name,
+            import_by: req.session.user.data.name,
+            import_date: moment().format("YYYY-MM-DD"),
+        }
+        let list_id = null;
+        if (req.body.new_list_name) { // Create list
+            list_id = await create_list(req.body.new_list_name);
+        } else { // Add to existing list
+            list_id = req.body.touchbase_list;
+        }
+        const list = await get_touchbase_list(list_id);
+        const readers = (await req.apihelper.get("reader", { "filter[segmentation_id]": req.params.segment_id, "fields": "email,first_name,last_name" })).data;
+        const result = await subscribe_readers_to_list(readers, list, custom_fields, req.body.include_vouchers);
         res.render("mail/select_touchbase_list_success", { title: "Subscription Success", data: result, list_name: list.Title });
     } catch(err) {
         console.error(err);
