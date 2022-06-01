@@ -61,7 +61,7 @@ router.use("/edit/:type/:id", getCollection, async (req, res) => {
 
 router.get("/delete/:type/:id", async(req, res) => {
     try {
-        await req.apihelper.del(req.params.type, req.params.id);
+        await req.apihelper.del_cascade(req.params.type, req.params.id);
         res.redirect(`/list/${req.params.type}`);
     } catch (err) {
         console.error(err);
