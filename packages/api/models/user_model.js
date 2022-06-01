@@ -40,6 +40,12 @@ UserSchema.pre('save', function (next) {
     next();
 })
 
+// Ensure _owner_id is always the user_id
+UserSchema.pre('save', function (next) {
+	this._owner_id = this._id;
+	next();
+});
+
 UserSchema.post("save", async function(doc) {
 	if (!this.wasNew) return;
 	await send_welcome(doc.email);
