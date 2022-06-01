@@ -15,3 +15,13 @@ top_10.forEach(article => {
     print(article.hits + ",https://www.dailymaverick.co.za/article/" + article.urlid);
 })
 ```
+
+## Export TouchBasePro list stats from Daily Maverick Main List for April 2022 to now
+
+```
+mongoexport \
+--host=rs1/rfvengine1,rfvengine2,rfvengine3 \
+-f="updatedAt,date,bounces_this_month,bounces_this_week,bounces_this_year,bounces_today,bounces_yesterday,deleted_this_month,deleted_this_week,deleted_this_year,deleted_today,deleted_yesterday,new_active_subscribers_this_month,new_active_subscribers_this_week,new_active_subscribers_this_year,new_active_subscribers_today,new_active_subscribers_yesterday,total_active_subscribers,total_bounces,total_deleted,total_unsubscribes,unsubscribes_this_month,unsubscribes_this_week,unsubscribes_this_year,unsubscribes_today,unsubscribes_yesterday" \
+-d revengine-prod -c touchbaseliststats \
+-q='{ "touchbaselist_id": { "$oid": "5f33f33a15d01e4d0c699131" }, "date": {"$gte": { "$date": "2022-04-01T00:00:00.001Z" }} }' --type="csv"
+```
