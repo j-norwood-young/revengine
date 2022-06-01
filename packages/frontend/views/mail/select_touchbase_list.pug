@@ -11,6 +11,11 @@ block content
             .form-group 
                 label.form-label New list name
                 input.form-control(name="new_list_name")
+            .form-group
+                .form-check
+                    input.form-check-input(type="checkbox", name="include_vouchers")
+                    label.form-check-label Include vouchers
+            .form-group
                 input.btn.btn-primary.mt-2(type="submit", value="Submit")
         hr
         h4 Add to an existing list
@@ -20,4 +25,9 @@ block content
                     .form-check
                         input.form-check-input(type="radio", name="touchbase_list" value=list.ListID)
                         label.form-check-label= list.Name
+            .form-group
+                .form-check
+                    input.form-check-input(type="checkbox", name="include_vouchers")
+                    label.form-check-label Include vouchers
+            .form-group
                 input.btn.btn-primary.mt-2(type="submit", value="Submit")

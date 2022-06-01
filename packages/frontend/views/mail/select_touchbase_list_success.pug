@@ -8,7 +8,7 @@ block content
             ul
                 li
                     strong Existing Subscribers 
-                    = data.TotalExistingSubscribers
+                    = data.reduce((prev, curr) => prev + curr.TotalExistingSubscribers, 0)
                 li
                     strong New Subscribers 
-                    = data.TotalNewSubscribers
+                    = data.reduce((prev, curr) => prev + curr.TotalNewSubscribers, 0)

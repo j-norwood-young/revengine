@@ -499,25 +499,46 @@ const create_list = async(list_name) => {
     return list_id;
 }
 
-const add_readers_to_list = async (readers, list_id, custom_fields) => {
-    const CustomFields = [];
-    for (let key in custom_fields) {
-        CustomFields.push({
-            "Key": key,
-            "Value": custom_fields[key]
-        });
-    }
-    const json = {
-        "Subscribers": readers.map(reader => {
-            return {
-                EmailAddress: reader.email,
-                Name: `${reader.first_name} ${reader.last_name}`,
-                CustomFields,
-                ConsentToTrack: "Yes"
+const ensure_custom_fields = async(list_id, fields) => {
+    const existing_fields = (await axios.get(`${config.touchbase.api}/lists/${list_id}/customfields.json`, { auth })).data;
+    const existing_field_names = existing_fields.map(f => f.FieldName);
+    for (let field of fields) {
+        if (!existing_field_names.includes(field)) {
+            console.log(`Creating custom field ${field} for list ${list_id}`);
+            const field_data = {
+                "FieldName": field,
+                "DataType": "Text",
+                "VisibleInPreferenceCenter": false
             }
-        })
+            await axios.post(`${config.touchbase.api}/lists/${list_id}/customfields.json`, field_data, { auth });
+        }
     }
-    const result = (await axios.post(`${config.touchbase.api}/subscribers/${list_id}/import.json`, json, { auth })).data;
+}
+
+const add_readers_to_list = async (readers, list_id) => {
+    const result = [];
+    console.log(readers);
+    while (readers.length) {
+        const json = {
+            "Subscribers": readers.splice(0, 1000).map(reader => {
+                const CustomFields = [];
+                for (let key in reader.custom_fields) {
+                    CustomFields.push({
+                        "Key": key,
+                        "Value": reader.custom_fields[key]
+                    });
+                }
+                return {
+                    EmailAddress: reader.email,
+                    Name: `${reader.first_name} ${reader.last_name}`,
+                    CustomFields,
+                    ConsentToTrack: "Yes"
+                }
+            })
+        }
+        console.log(JSON.stringify(json, null, 2));
+        result.push((await axios.post(`${config.touchbase.api}/subscribers/${list_id}/import.json`, json, { auth })).data);
+    }
     return result;
 }
 
@@ -545,3 +566,4 @@ exports.get_touchbase_lists = get_touchbase_lists;
 exports.get_touchbase_list = get_touchbase_list;
 exports.get_transactional_templates = get_transactional_templates;
 exports.get_voucher = get_voucher;
+exports.ensure_custom_fields = ensure_custom_fields;
