@@ -61,7 +61,7 @@ class Edit {
         const empty_inputs = parent.find("input").filter(function() { return !this.value });
         // If there isn't, add one
         if (empty_inputs.length === 0) {
-            newel = $(el).clone(true);
+            let newel = $(el).clone(true);
             newel.val("");
             newel.appendTo(parent);
         }
@@ -72,6 +72,7 @@ class Edit {
             }
         }
     }
+
 }
 
 module.exports = Edit;
