@@ -517,7 +517,7 @@ const ensure_custom_fields = async(list_id, fields) => {
 
 const add_readers_to_list = async (readers, list_id) => {
     const result = [];
-    console.log(readers);
+    // console.log(readers);
     while (readers.length) {
         const json = {
             "Subscribers": readers.splice(0, 1000).map(reader => {
@@ -530,14 +530,18 @@ const add_readers_to_list = async (readers, list_id) => {
                 }
                 return {
                     EmailAddress: reader.email,
-                    Name: `${reader.first_name} ${reader.last_name}`,
+                    Name: `${reader.first_name || ""} ${reader.last_name || ""}`,
                     CustomFields,
                     ConsentToTrack: "Yes"
                 }
             })
         }
-        console.log(JSON.stringify(json, null, 2));
-        result.push((await axios.post(`${config.touchbase.api}/subscribers/${list_id}/import.json`, json, { auth })).data);
+        // console.log(JSON.stringify(json, null, 2));
+        try {
+            result.push((await axios.post(`${config.touchbase.api}/subscribers/${list_id}/import.json`, json, { auth })).data);
+        } catch(err) {
+            console.error(JSON.stringify(err.response.data, null, 2));
+        }
     }
     return result;
 }
