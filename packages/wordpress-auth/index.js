@@ -7,6 +7,7 @@ const expect = require("expect");
 const Apihelper = require("jxp-helper");
 const apihelper = new Apihelper({ server: config.api.server, apikey: process.env.APIKEY });
 const axios = require("axios");
+const { ensure_custom_fields, add_readers_to_list } = require('@revengine/mailer/touchbase');
 
 const program = new Command();
 program
@@ -109,6 +110,58 @@ const sync_reader = async (reader_id) => {
     }
 }
 
+const sync_list = async (list_id) => {
+    try {
+        const list = (await apihelper.getOne("touchbaselist", list_id)).data;
+        await ensure_custom_fields(list.list_id, ["auto_login_id"]);
+        const pipeline = [
+            { $match: { "list_id": `ObjectId(\"${list_id}\")` } },
+            { $lookup: { from: "readers", localField: "email", foreignField: "email", as: "reader" } },
+            { $unwind: "$reader" },
+            { $project: { _id: 0, "wordpress_id": "$reader.wordpress_id", "revengine_id": "$_id", "email": "$reader.email", "first_name": "$reader.first_name",  "last_name":"$reader.last_name", "reader_id": "$reader._id", "data": 1 } },
+        ]
+        // console.log(pipeline);
+        const subscribers = (await apihelper.aggregate("touchbasesubscriber", pipeline)).data;
+        // console.log(subscribers);
+        // const subscribers = (await apihelper.get("touchbasesubscriber", { "filter[list_id]": list._id })).data;
+        let subscribers_to_update = subscribers.filter(subscriber => {
+            if (!subscriber.data) return;
+            for (let data of subscriber.data) {
+                if (data.Key === "auto_login_id") {
+                    return false;
+                }
+            }
+            return true;
+        })
+        console.log(`Subscribers to update: ${subscribers_to_update.length} / ${subscribers.length}`);
+        const update = subscribers_to_update.map(subscriber => {
+            const data = {
+                "wordpress_id": subscriber.wordpress_id,
+                "revengine_id": subscriber.reader_id,
+                "email": subscriber.email
+            }
+            const encrypted = encrypt(data);
+            return {
+                email: subscriber.email,
+                first_name: subscriber.first_name || "",
+                last_name: subscriber.last_name || "",
+                custom_fields: {
+                    auto_login_id: encrypted
+                }
+            }
+        });
+        // console.log(JSON.stringify(update, null, 2));
+        const result = await add_readers_to_list(update, list.list_id);
+        console.log(result);
+    } catch(err) {
+        console.error(JSON.stringify(err.response.data, null, 2));
+    }
+}
+
 if (options.syncreader) {
     sync_reader(options.syncreader);
+}
+
+if (options.synclist) {
+    sync_list(options.synclist);
 }
