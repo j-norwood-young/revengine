@@ -44,7 +44,7 @@ function mysql_real_escape_string (str) {
     });
 }
 
-class JXP2BQ {
+class JXP2SQL {
     constructor(opts) {
         this.table = opts.table;
         this.collection = opts.collection;
@@ -237,4 +237,4 @@ class JXP2BQ {
     }
 }
 
-module.exports = JXP2BQ;
+module.exports = JXP2SQL;
