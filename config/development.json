@@ -119,5 +119,8 @@
         "front_page_admin": "https://www.dailymaverick.co.za/wp-admin/admin.php?page=featured-flagged-post",
         "port": 3019,
         "revengine_api": "http://local.dailymaverick.com/wp-json/revengine/v1"
+    },
+    "wp_auth": {
+        "add_to_tbp_lists": ["5f33f33a15d01e4d0c699131"]
     }
 }
