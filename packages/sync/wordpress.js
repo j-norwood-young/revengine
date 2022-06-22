@@ -18,11 +18,20 @@ async function sync_user(wordpress_user_id) {
     try {
         const wpuser = (await axios.get(`${config.wordpress.revengine_api}/user/${wordpress_user_id}`, { headers: { Authorization: `Bearer ${process.env.WORDPRESS_KEY}` }})).data.data.pop();
         if (!wpuser) throw "User not found in Wordpress";
-        const user = (await apihelper.postput("wordpressuser", "id", wpuser)).data;
-        const reader = (await apihelper.get("reader", { "filter[wordpress_id]": user.id, "fields": "_id" })).data.pop();
-        if (!reader) throw "Reader not found";
-        // await wordpress_auth.sync_reader(reader._id);
-        return user;
+        const wordpressuser = (await apihelper.postput("wordpressuser", "id", wpuser)).data;
+        const reader_data = {
+            wordpressuser_id: wordpressuser._id,
+            email: wordpressuser.user_email.toLowerCase().trim(),
+            wordpress_id: wordpressuser.id,
+            first_name: wordpressuser.first_name,
+            last_name: wordpressuser.last_name,
+            display_name: wordpressuser.display_name,
+            user_registered_on_wordpress: wordpressuser.user_registered,
+            cc_expiry_date: wordpressuser.cc_expiry_date,
+            cc_last4_digits: wordpressuser.cc_last4_digits
+        }
+        const result = (await apihelper.postput("reader", "wordpress_id", reader_data));
+        return result;
     } catch(err) {
         return Promise.reject(err);
     }
