@@ -53,6 +53,32 @@ if (options.test) {
     console.log("Encryption test passed.");
 }
 
+const add_reader_to_list = async (reader_id, list_id) => {
+    try {
+        const reader = (await apihelper.getOne("reader", reader_id)).data;
+        const list = (await apihelper.getOne("touchbaselist", list_id)).data;
+        await ensure_custom_fields(list.list_id, ["auto_login_id"]);
+        const data = {
+            "wordpress_id": reader.wordpress_id,
+            "revengine_id": reader._id,
+            "email": reader.email
+        }
+        const encrypted = encrypt(data);
+        const result = await add_readers_to_list([{
+            email: reader.email,
+            first_name: reader.first_name,
+            last_name: reader.last_name,
+            custom_fields: {
+                auto_login_id: encrypted
+            }
+        }], list.list_id);
+        if (config.debug) console.log(result);
+        return result;
+    } catch(err) {
+        console.error(err);
+    }
+}
+
 const sync_reader = async (reader_id) => {
     try {
         const reader = (await apihelper.getOne("reader", reader_id)).data;
@@ -65,7 +91,7 @@ const sync_reader = async (reader_id) => {
         const touchbase_subscriber = (await apihelper.get("touchbasesubscriber", { "filter[email]": `$regex:/${reader.email}/i`, "populate": "touchbaselist" })).data;
         for (const subscriber of touchbase_subscriber) {
             const list = subscriber.touchbaselist;
-            console.log(list.name, list.list_id);
+            // console.log(list.name, list.list_id);
             // try {
             //     const result = await axios.put(`https://api.touchbasepro.com/email/lists/${list.list_id}/customfields/[auto_login_id]`, {
             //         "FieldName": "auto_login_id",
@@ -97,14 +123,12 @@ const sync_reader = async (reader_id) => {
                         Authorization: `Bearer ${process.env.TOUCHBASE_BEARER_APIKEY}`
                     },
                 });
-                console.log(result.status, result.data);
+                if (config.debug) console.log(result.status, result.data);
             } catch(err) {
                 console.log(err.response.status, err.response.statusText);
                 console.log(err.response.data);
             }
         }
-        // console.log(touchbase_subscriber);
-        console.log(encrypted);
     } catch(err) {
         console.error(err);
     }
@@ -164,4 +188,12 @@ if (options.syncreader) {
 
 if (options.synclist) {
     sync_list(options.synclist);
+}
+
+module.exports = {
+    sync_reader,
+    sync_list,
+    encrypt,
+    decrypt,
+    add_reader_to_list
 }
