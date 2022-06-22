@@ -161,5 +161,21 @@ module.exports = [
             date_updated: d => format_date(d.updatedAt),
         }
     },
-    
+    {
+        collection: "touchbasecampaign",
+        table: "touchbase_campaigns",
+        relationships: {
+            uid: d => d._id,
+            touchbase_campaign_id: d => d.campaign_id,
+            from_email: d => d.from_email,
+            from_name: d => d.from_name,
+            name: d => d.name,
+            reply_to: d => d.reply_to,
+            sent_date: d => format_date(d.sent_date),
+            subject: d => d.subject,
+            url: d => d.url,
+            total_recipients: d => d.total_recipients,
+            date_updated: d => format_date(d.updatedAt),
+        }
+    }
 ]
