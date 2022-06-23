@@ -55,7 +55,7 @@ public_server.post("/wp/wordpress/user/create", async (req, res) => {
         const reader = (await apihelper.get("reader", { "filter[wordpress_id]": wordpress_user_id, "fields": "_id" })).data.pop();
         if (!reader) throw "Reader not found";
         const list_ids = config.wp_auth.add_to_tbp_lists;
-        for (let list_id in list_ids) {
+        for (let list_id of list_ids) {
             await wordpress_auth.add_reader_to_list(reader._id, list_id);
         }
         res.send({ status: "ok" });
