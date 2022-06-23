@@ -120,14 +120,18 @@ ReaderSchema.pre("save", async function() {
         return;
     }
     for(touchbasesubscriber_id of item.touchbasesubscriber) {
-        let tbp = await TouchbaseSubscriber.findById(touchbasesubscriber_id);
-        let list = await TouchbaseList.findById(tbp.list_id);
-        if (list.name !== "Daily Maverick Main List") {
-            lists.push(list.name);
-        } else {
-            for (d of tbp.data) {
-                if (d.Key === "[DailyMaverickNewsletters]") lists.push(d.Value);
+        try {
+            let tbp = await TouchbaseSubscriber.findById(touchbasesubscriber_id);
+            let list = await TouchbaseList.findById(tbp.list_id);
+            if (list.name !== "Daily Maverick Main List") {
+                lists.push(list.name);
+            } else {
+                for (d of tbp.data) {
+                    if (d.Key === "[DailyMaverickNewsletters]") lists.push(d.Value);
+                }
             }
+        } catch (err) {
+            console.error(`Failed to find touchbase subscriber ${touchbasesubscriber_id}`);
         }
     }
     item.newsletters = lists;
