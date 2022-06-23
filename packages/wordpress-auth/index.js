@@ -55,6 +55,7 @@ if (options.test) {
 
 const add_reader_to_list = async (reader_id, list_id) => {
     try {
+        console.log("add_reader_to_list", reader_id, list_id);
         const reader = (await apihelper.getOne("reader", reader_id)).data;
         const list = (await apihelper.getOne("touchbaselist", list_id)).data;
         await ensure_custom_fields(list.list_id, ["auto_login_id"]);
