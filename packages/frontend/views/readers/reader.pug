@@ -46,12 +46,13 @@ block content
                                 p.card-text
                                     strong Rank 
                                     | #{ Math.round(reader.rfv.recency_quantile_rank * 100) }% 
-                                p.card-text
-                                    strong Last visit 
-                                    | #{ moment(reader.recency.timestamp).format("YYYY-MM-DD HH:mm:ss") } (#{ reader.rfv.recency.from_now } ago)
-                                p.card-text
-                                    strong Score 
-                                    | #{ reader.recency.score }
+                                if (reader.recency)
+                                    p.card-text
+                                        strong Last visit 
+                                        | #{ moment(reader.recency.timestamp).format("YYYY-MM-DD HH:mm:ss") } (#{ reader.rfv.recency.from_now } ago)
+                                    p.card-text
+                                        strong Score 
+                                        | #{ reader.recency.score }
                             if (reader.rfv.frequency)
                                 h4.card-title Frequency
                                 p.card-text
