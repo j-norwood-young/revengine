@@ -5,6 +5,7 @@ lerna-debug.log
 *.log
 config/*
 .*
+data/*
 packages/frontend/node_modules/*
 packages/pipeline/node_modules/*
 packages/exporter/node_modules/*
