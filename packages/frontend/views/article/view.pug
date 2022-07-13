@@ -9,6 +9,7 @@ block content
         h1= article.title
         h5= article.author 
         p Published #{moment(article.date_published).format("YYYY-MM-DD HH:mm:ss")} | Last Modified #{moment(article.date_modified).format("YYYY-MM-DD HH:mm:ss")}
+        p Article ID: #{article.post_id}
         .form-group
             .input-group
                 input.form-control(readonly,value=article.urlid)
