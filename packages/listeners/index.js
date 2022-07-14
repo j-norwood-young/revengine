@@ -49,6 +49,7 @@ public_server.post("/wp/wordpress/user/update", async (req, res) => {
 public_server.post("/wp/wordpress/user/create", async (req, res) => {
     try {
         if (config.debug) console.log(JSON.stringify(req.body, null, 2));
+        console.log(JSON.stringify(req.body, null, 2));
         const wordpress_user_id = req.body.user.data.ID;
         const data = await sync_wordpress.sync_user(wordpress_user_id);
         if (config.debug) console.log(data);
