@@ -56,7 +56,7 @@ public_server.post("/wp/wordpress/user/create", async (req, res) => {
         const reader = (await apihelper.get("reader", { "filter[wordpress_id]": wordpress_user_id, "fields": "_id" })).data.pop();
         if (!reader) throw "Reader not found";
         console.log({ wordpress_user_id });
-        const wordpressuser = (await apihelper.getOne("wordpressuser", { "filter[id]": wordpress_user_id })).data;
+        const wordpressuser = (await apihelper.get("wordpressuser", { "filter[id]": wordpress_user_id })).data;
         if (!wordpressuser) throw "Wordpressuser not found";
         console.log(wordpressuser);
         const list_ids = config.wp_auth.add_to_tbp_lists;
