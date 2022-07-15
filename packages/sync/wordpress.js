@@ -18,7 +18,7 @@ async function sync_user(wordpress_user_id) {
     try {
         const wpuser = (await axios.get(`${config.wordpress.revengine_api}/user/${wordpress_user_id}`, { headers: { Authorization: `Bearer ${process.env.WORDPRESS_KEY}` }})).data.data.pop();
         if (!wpuser) throw "User not found in Wordpress";
-        console.log(wpuser);
+        console.log({wpuser});
         const wordpressuser = (await apihelper.postput("wordpressuser", "id", wpuser)).data;
         const reader_data = {
             wordpressuser_id: wordpressuser._id,

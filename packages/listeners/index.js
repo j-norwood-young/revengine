@@ -48,6 +48,8 @@ public_server.post("/wp/wordpress/user/update", async (req, res) => {
 
 public_server.post("/wp/wordpress/user/create", async (req, res) => {
     try {
+        // Pause for 1 sec
+        await new Promise(resolve => setTimeout(resolve, 1000));
         if (config.debug) console.log(JSON.stringify(req.body, null, 2));
         console.log(JSON.stringify(req.body, null, 2));
         const wordpress_user_id = req.body.user.data.ID;
