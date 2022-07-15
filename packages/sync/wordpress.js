@@ -16,7 +16,9 @@ const get_woocommerce_user = async (user_id) => {
 
 async function sync_user(wordpress_user_id) {
     try {
-        const wpuser = (await axios.get(`${config.wordpress.revengine_api}/user/${wordpress_user_id}`, { headers: { Authorization: `Bearer ${process.env.WORDPRESS_KEY}` }})).data.data.pop();
+        const api_response = (await axios.get(`${config.wordpress.revengine_api}/user/${wordpress_user_id}`, { headers: { Authorization: `Bearer ${process.env.WORDPRESS_KEY}` }})).data;
+        console.log(api_response);
+        const wpuser = api_response.data.pop();
         if (!wpuser) throw "User not found in Wordpress";
         console.log({wpuser});
         const wordpressuser = (await apihelper.postput("wordpressuser", "id", wpuser)).data;
