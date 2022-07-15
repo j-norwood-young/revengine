@@ -55,10 +55,8 @@ public_server.post("/wp/wordpress/user/create", async (req, res) => {
         if (config.debug) console.log(data);
         const reader = (await apihelper.get("reader", { "filter[wordpress_id]": wordpress_user_id, "fields": "_id" })).data.pop();
         if (!reader) throw "Reader not found";
-        console.log({ wordpress_user_id });
         const wordpressuser = (await apihelper.get("wordpressuser", { "filter[id]": wordpress_user_id })).data;
         if (!wordpressuser) throw "Wordpressuser not found";
-        console.log(wordpressuser);
         const list_ids = config.wp_auth.add_to_tbp_lists;
         for (let list_id of list_ids) {
             const custom_fields = {};
@@ -71,7 +69,7 @@ public_server.post("/wp/wordpress/user/create", async (req, res) => {
             if (wordpressuser._dm_campaign_created_by_utm_campaign) {
                 custom_fields.Campaign = wordpressuser._dm_campaign_created_by_utm_campaign;
             }
-            await wordpress_auth.add_reader_to_list(reader._id, list_id);
+            await wordpress_auth.add_reader_to_list(reader._id, list_id, custom_fields);
         }
         res.send({ status: "ok" });
         if (config.debug) console.log("Synced new user", wordpress_user_id);
