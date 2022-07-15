@@ -69,6 +69,7 @@ const add_reader_to_list = async (reader_id, list_id, custom_fields = {}) => {
             "auto_login_id": encrypt(data),
             ...custom_fields
         }
+        console.log("custom_fields_data", custom_fields_data);
         const result = await add_readers_to_list([{
             email: reader.email,
             first_name: reader.first_name,
