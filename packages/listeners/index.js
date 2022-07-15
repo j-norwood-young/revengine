@@ -55,6 +55,7 @@ public_server.post("/wp/wordpress/user/create", async (req, res) => {
         if (config.debug) console.log(data);
         const reader = (await apihelper.get("reader", { "filter[wordpress_id]": wordpress_user_id, "fields": "_id" })).data.pop();
         if (!reader) throw "Reader not found";
+        console.log({ wordpress_user_id });
         const wordpressuser = (await apihelper.getOne("wordpressuser", { "filter[id]": wordpress_user_id })).data;
         if (!wordpressuser) throw "Wordpressuser not found";
         console.log(wordpressuser);
