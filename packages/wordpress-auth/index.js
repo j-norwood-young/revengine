@@ -53,25 +53,27 @@ if (options.test) {
     console.log("Encryption test passed.");
 }
 
-const add_reader_to_list = async (reader_id, list_id) => {
+const add_reader_to_list = async (reader_id, list_id, custom_fields = {}) => {
     try {
         console.log("add_reader_to_list", reader_id, list_id);
         const reader = (await apihelper.getOne("reader", reader_id)).data;
         const list = (await apihelper.getOne("touchbaselist", list_id)).data;
         await ensure_custom_fields(list.list_id, ["auto_login_id"]);
+        await ensure_custom_fields(list.list_id, Object.keys(custom_fields));
         const data = {
             "wordpress_id": reader.wordpress_id,
             "revengine_id": reader._id,
             "email": reader.email
         }
-        const encrypted = encrypt(data);
+        const custom_fields_data = {
+            "auto_login_id": encrypt(data),
+            ...custom_fields
+        }
         const result = await add_readers_to_list([{
             email: reader.email,
             first_name: reader.first_name,
             last_name: reader.last_name,
-            custom_fields: {
-                auto_login_id: encrypted
-            }
+            custom_fields: custom_fields_data
         }], list.list_id);
         if (config.debug) console.log(result);
         return result;

@@ -39,6 +39,9 @@ const WordpressUserSchema = new JXPSchema({
     "billing_phone": String,
     "cc_expiry_date": Date,
     "cc_last4_digits": String,
+    "_dm_campaign_created_by_utm_source": String,
+    "_dm_campaign_created_by_utm_medium": String,
+    "_dm_campaign_created_by_utm_campaign": String,
 },
 {
     perms: {
