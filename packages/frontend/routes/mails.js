@@ -2,9 +2,8 @@ const express = require('express');
 const router = express.Router();
 const config = require("config");
 const moment = require("moment");
-const axios = require("axios");
-
 const mailer = require("@revengine/mailer");
+const wordpress_auth = require("@revengine/wordpress_auth");
 
 const JXPHelper = require("jxp-helper");
 const { run_transactional, add_readers_to_list, create_list, get_touchbase_lists, get_touchbase_list, ensure_custom_fields } = require('@revengine/mailer/touchbase');
@@ -185,7 +184,7 @@ router.post("/mailinglist/subscribe_by_label/:label_id", async(req, res) => {
             list_id = req.body.touchbase_list;
         }
         const list = await get_touchbase_list(list_id);
-        const readers = (await req.apihelper.get("reader", { "filter[label_id]": req.params.label_id, "fields": "email,first_name,last_name" })).data;
+        const readers = (await req.apihelper.get("reader", { "filter[label_id]": req.params.label_id, "fields": "email,first_name,last_name,wordpress_id" })).data;
         const result = await subscribe_readers_to_list(readers, list, custom_fields, req.body.include_vouchers);
         res.render("mail/select_touchbase_list_success", { title: "Subscription Success", data: result, list_name: list.Title });
     } catch(err) {
@@ -195,7 +194,7 @@ router.post("/mailinglist/subscribe_by_label/:label_id", async(req, res) => {
     }
 })
 
-async function subscribe_readers_to_list(readers, list, custom_fields = {}, include_vouchers = false) {
+async function subscribe_readers_to_list(readers, list, custom_fields = {}, include_vouchers = false, include_autologin = true) {
     try {
         custom_fields = {
             import_source: "RfvEngine",
@@ -205,12 +204,31 @@ async function subscribe_readers_to_list(readers, list, custom_fields = {}, incl
         console.log(list);
         const list_id = list.ListID;
         const vouchertypes = (await apihelper.get("vouchertype")).data;
+        let fieldnames = [...Object.keys(custom_fields)];
         if (include_vouchers) {
-            const fieldnames = [...Object.keys(custom_fields), ...vouchertypes.map(v => v.code)];
+            fieldnames = [...fieldnames, ...vouchertypes.map(v => v.code)];
+        }
+        if (include_autologin) {
+            fieldnames = [...fieldnames, "auto_login_id"];
+        }
+        if (fieldnames.length > 0) {
             await ensure_custom_fields(list_id, fieldnames);
         }
         for (let reader of readers) {
             reader.custom_fields = Object.assign({}, custom_fields);
+        }
+        if (include_autologin) {
+            for (let reader of readers) {
+                const reader_data = {
+                    "wordpress_id": reader.wordpress_id,
+                    "revengine_id": reader._id,
+                    "email": reader.email
+                }
+                if (config.debug) {
+                    console.log(reader_data);
+                }
+                reader.custom_fields.auto_login_id = wordpress_auth.encrypt(reader_data);
+            }
         }
         if (include_vouchers) {
             for (let vouchertype of vouchertypes) {
@@ -245,6 +263,9 @@ async function subscribe_readers_to_list(readers, list, custom_fields = {}, incl
                 }
             }
         }
+        if (config.debug) {
+            console.log(readers);
+        }
         const result = await add_readers_to_list(readers, list_id);
         return result;
     } catch(err) {
@@ -268,7 +289,7 @@ router.post("/mailinglist/subscribe_by_segment/:segment_id", async(req, res) => 
             list_id = req.body.touchbase_list;
         }
         const list = await get_touchbase_list(list_id);
-        const readers = (await req.apihelper.get("reader", { "filter[segmentation_id]": req.params.segment_id, "fields": "email,first_name,last_name" })).data;
+        const readers = (await req.apihelper.get("reader", { "filter[segmentation_id]": req.params.segment_id, "fields": "email,first_name,last_name,wordpress_id" })).data;
         const result = await subscribe_readers_to_list(readers, list, custom_fields, req.body.include_vouchers);
         res.render("mail/select_touchbase_list_success", { title: "Subscription Success", data: result, list_name: list.Title });
     } catch(err) {
