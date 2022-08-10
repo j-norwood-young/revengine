@@ -322,13 +322,12 @@ class Collections {
                         d: async data => {
                             const count = (await $.get(`${apiserver}/count/reader?filter[segmentation_id]=${data._id}&limit=0&apikey=${apikey}`)).count;
                             return formatNumber(count);
-                        }
+                        },
+                        view: "none"
                     },
                     { name: "Download", d: data => `<a href="/download/json/segmentation/${data._id}">JSON</a> | <a href="/download/csv/segmentation/${data._id}">CSV</a>`, view: "none", list_view},
                     { name: "Touchbase", d: data => `<a href="/mails//mailinglist/subscribe_by_segment/${data._id}">Add to list</a>`, view: "none", list_view},
-                    { name: "Code", key: "code", d: data => data.code, },
                     { name: "Code", key: "code", d: data => data.code, "view": "text", list_view },
-                    { name: "Query", key: "query", d: data => data.query, view: "code" },
                 ]
             },
             touchbasetransactional: {

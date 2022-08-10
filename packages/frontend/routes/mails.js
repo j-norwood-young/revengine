@@ -185,7 +185,7 @@ router.post("/mailinglist/subscribe_by_label/:label_id", async(req, res) => {
         }
         const list = await get_touchbase_list(list_id);
         const readers = (await req.apihelper.get("reader", { "filter[label_id]": req.params.label_id, "fields": "email,first_name,last_name,wordpress_id" })).data;
-        const result = await subscribe_readers_to_list(readers, list, custom_fields, req.body.include_vouchers);
+        const result = await subscribe_readers_to_list(readers, list, custom_fields, parseInt(req.body.include_vouchers));
         res.render("mail/select_touchbase_list_success", { title: "Subscription Success", data: result, list_name: list.Title });
     } catch(err) {
         console.error(err);
@@ -225,7 +225,7 @@ async function subscribe_readers_to_list(readers, list, custom_fields = {}, incl
                     "email": reader.email
                 }
                 if (config.debug) {
-                    console.log(reader_data);
+                    // console.log(reader_data);
                 }
                 reader.custom_fields.auto_login_id = wordpress_auth.encrypt(reader_data);
             }
@@ -290,7 +290,7 @@ router.post("/mailinglist/subscribe_by_segment/:segment_id", async(req, res) => 
         }
         const list = await get_touchbase_list(list_id);
         const readers = (await req.apihelper.get("reader", { "filter[segmentation_id]": req.params.segment_id, "fields": "email,first_name,last_name,wordpress_id" })).data;
-        const result = await subscribe_readers_to_list(readers, list, custom_fields, req.body.include_vouchers);
+        const result = await subscribe_readers_to_list(readers, list, custom_fields, parseInt(req.body.include_vouchers));
         res.render("mail/select_touchbase_list_success", { title: "Subscription Success", data: result, list_name: list.Title });
     } catch(err) {
         console.error(err);
