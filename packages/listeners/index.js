@@ -55,24 +55,24 @@ public_server.post("/wp/wordpress/user/create", async (req, res) => {
         const wordpress_user_id = req.body.user.data.ID;
         const data = await sync_wordpress.sync_user(wordpress_user_id);
         if (config.debug) console.log(data);
-        const reader = (await apihelper.get("reader", { "filter[wordpress_id]": wordpress_user_id, "fields": "_id" })).data.pop();
-        if (!reader) throw "Reader not found";
-        const wordpressuser = (await apihelper.get("wordpressuser", { "filter[id]": wordpress_user_id })).data;
-        if (!wordpressuser) throw "Wordpressuser not found";
-        const list_ids = config.wp_auth.add_to_tbp_lists;
-        for (let list_id of list_ids) {
-            const custom_fields = {};
-            if (wordpressuser._dm_campaign_created_by_utm_source) {
-                custom_fields.Source = wordpressuser._dm_campaign_created_by_utm_source;
-            }
-            if (wordpressuser._dm_campaign_created_by_utm_medium) {
-                custom_fields.Medium = wordpressuser._dm_campaign_created_by_utm_medium;
-            }
-            if (wordpressuser._dm_campaign_created_by_utm_campaign) {
-                custom_fields.Campaign = wordpressuser._dm_campaign_created_by_utm_campaign;
-            }
-            await wordpress_auth.add_reader_to_list(reader._id, list_id, custom_fields);
-        }
+        // const reader = (await apihelper.get("reader", { "filter[wordpress_id]": wordpress_user_id, "fields": "_id" })).data.pop();
+        // if (!reader) throw "Reader not found";
+        // const wordpressuser = (await apihelper.get("wordpressuser", { "filter[id]": wordpress_user_id })).data;
+        // if (!wordpressuser) throw "Wordpressuser not found";
+        // const list_ids = config.wp_auth.add_to_tbp_lists;
+        // for (let list_id of list_ids) {
+        //     const custom_fields = {};
+        //     if (wordpressuser._dm_campaign_created_by_utm_source) {
+        //         custom_fields.Source = wordpressuser._dm_campaign_created_by_utm_source;
+        //     }
+        //     if (wordpressuser._dm_campaign_created_by_utm_medium) {
+        //         custom_fields.Medium = wordpressuser._dm_campaign_created_by_utm_medium;
+        //     }
+        //     if (wordpressuser._dm_campaign_created_by_utm_campaign) {
+        //         custom_fields.Campaign = wordpressuser._dm_campaign_created_by_utm_campaign;
+        //     }
+        //     await wordpress_auth.add_reader_to_list(reader._id, list_id, custom_fields);
+        // }
         res.send({ status: "ok" });
         if (config.debug) console.log("Synced new user", wordpress_user_id);
     } catch(err) {
