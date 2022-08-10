@@ -16,7 +16,9 @@ const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env
 // const woocommerce = require("./woocommerce");
 
 public_server.post("/wp/woocommerce/subscription/update", touchbase.woocommerce_subscriptions_callback, async (req, res) => {
-    if (config.debug) console.log(JSON.stringify(req.body, null, 2));
+    // if (config.debug) {
+        console.log(JSON.stringify(req.body, null, 2));
+    // }
     const wordpress_user_id = req.body.subscription.customer_id;
     const data = await sync_wordpress.sync_user(wordpress_user_id);
     if (config.debug) console.log(data);
