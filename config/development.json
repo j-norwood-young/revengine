@@ -16,6 +16,9 @@
         "refresh_token_expiry": 2678400,
         "shared_secret": "97a09d2567af0073855e786c428cfc322e5300ae"
     },
+    "autogen_newsletter": {
+        "port": 3003
+    },
     "bigquery": {
         "keyFilename": "/root/daily-maverick-265110-0b8301e84f36.json",
         "projectId": "revengine"
@@ -118,6 +121,7 @@
         "homepage": "http://local.dailymaverick.com",
         "front_page_admin": "https://www.dailymaverick.co.za/wp-admin/admin.php?page=featured-flagged-post",
         "port": 3019,
+        "local_server": "http://wordpress_api.revengine.dailymaverick.co.za:3019",
         "revengine_api": "http://local.dailymaverick.com/wp-json/revengine/v1"
     },
     "wp_auth": {

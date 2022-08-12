@@ -1,11 +1,18 @@
 const config = require("config");
 const restify = require("restify");
+const corsMiddleware = require('restify-cors-middleware2')
 const public_server = restify.createServer({
     name: config.api_name
 });
 
+const cors = corsMiddleware({
+    origins: ['*'],
+});
+
 public_server.use(restify.plugins.bodyParser()); 
 public_server.use(restify.plugins.queryParser()); 
+public_server.use(cors.preflight);
+public_server.use(cors.actual);
 const touchbase = require("@revengine/mailer/touchbase");
 const sync_wordpress = require("@revengine/sync/wordpress");
 const ml = require("@revengine/ml");
@@ -114,6 +121,18 @@ protected_server.get("/email/mailrun/:mailrun_id", async (req, res) => {
         res.send(result);
     } catch(err) {
         res.status(500).send({ error: err.toString() });
+    }
+});
+
+public_server.get("/autogen_newsletter", async (req, res) => {
+    const autogen_newsletter = require("@revengine/autogen_newsletter");
+    try {
+        const section_query = req.query.sections || "";
+        const sections = section_query.split(",").map(topic => topic.trim());
+        const result = await autogen_newsletter.generate(sections);
+        res.send(result);
+    } catch(err) {
+        res.send(500, { error: err.toString() });
     }
 });
 

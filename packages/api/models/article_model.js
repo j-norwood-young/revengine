@@ -60,7 +60,7 @@ const ArticleSchema = new JXPSchema({
     logged_in_hits: [ Mixed ],
     subscriber_hits: [ Mixed ],
     readers_led_to_subscription: [ Mixed ],
-    
+    summary: String,
 },
 {
     perms: {
