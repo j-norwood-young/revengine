@@ -104,12 +104,19 @@ const group_actions = () => {
     const actions = {
         "new_insider": async data => {
             try {
+                const reader_data = {
+                    "wordpress_id": data.reader.wordpress_id,
+                    "revengine_id": data.reader._id,
+                    "email": data.reader.email
+                }
+                console.log(reader_data);
                 const transactional_id = config.touchbase.transactional_ids.new_insiders;
                 const to = config.touchbase.override_to || data.user.email;
                 const body = {
                     "To": [to],
                     "Data": {
                         "name": data.user.first_name,
+                        "auto_login_id": wordpress_auth.encrypt(reader_data)
                     },
                     "ConsentToTrack": "unchanged"
                 }
