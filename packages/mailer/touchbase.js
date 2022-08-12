@@ -4,6 +4,7 @@ const axios = require("axios");
 require("dotenv").config();
 const JXPHelper = require("jxp-helper");
 const moment = require("moment");
+const wordpress_auth = require("@revengine/wordpress_auth");
 const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
 const auth = {
     username: process.env.TOUCHBASE_APIKEY,
