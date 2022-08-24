@@ -291,6 +291,12 @@ const get_hit = async (req, res) => {
             esdata.sections = article_data.sections;
             esdata.date_published = article_data.date_published;
         }
+        if (user_segments && user_segments.length > 0) {
+            esdata.segments = user_segments;
+        }
+        if (user_labels && user_labels.length > 0) {
+            esdata.labels = user_labels;
+        }
         if (config.debug) {
             console.log({ esdata });
         }
