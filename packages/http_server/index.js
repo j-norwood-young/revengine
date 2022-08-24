@@ -4,9 +4,14 @@ const server = restify.createServer();
 const restler = require("restler-q");
 const JXPHelper = require("jxp-helper");
 server.use(restify.plugins.authorizationParser());
+server.use(restify.plugins.queryParser());
 
 server.use(async (req, res, next) => {
     try {
+        if (!req.authorization?.basic) {
+            res.send(401, "Unauthorized");
+            return;
+        }
         const login = await restler.post(`${config.api.server}/login`, { data: { email: req.authorization.basic.username, password: req.authorization.basic.password } });
         req.apikey = login.apikey;
         req.apihelper = new JXPHelper({ server: config.api, apikey: login.apikey });
