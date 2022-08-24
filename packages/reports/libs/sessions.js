@@ -160,6 +160,117 @@ class Sessions {
         // console.log(JSON.stringify(query, null, 2));
         return {
             type: "users_by_utm_source",
+            source,
+            period,
+            total: es_result.hits.total.value,
+            data: es_result.aggregations.days.buckets.map(bucket => {
+                return {
+                    date: bucket.key_as_string,
+                    user_count: bucket.user_id.value,
+                    hit_count: bucket.doc_count,
+                }
+            }),
+        };
+    }
+
+    async get_users_by_label(label, period="week") {
+        let query = {
+            index: "pageviews_copy",
+            track_total_hits: true,
+            body: {
+                "size": 0,
+                "query": {
+                    "bool": {
+                        "filter": [
+                            {
+                                "match_phrase": {
+                                    "labels": label
+                                }
+                            }
+                        ],
+                    }
+                },
+                "aggs": {
+                    "days": {
+                        "date_histogram": {
+                            "field": "time",
+                            "calendar_interval": "1d",
+                            "time_zone": "Africa/Johannesburg",
+                            "min_doc_count": 1
+                        },
+                        "aggs": {
+                            "user_id": {
+                                "cardinality": {
+                                    "field": "user_id"
+                                },
+                            }
+                        }
+                    },
+                    
+                },
+            }
+        }
+        query = es_period_filter(query, period);
+        const es_result = await esclient.search(query);
+        // console.log(JSON.stringify(query, null, 2));
+        return {
+            type: "users_by_label",
+            label,
+            period,
+            total: es_result.hits.total.value,
+            data: es_result.aggregations.days.buckets.map(bucket => {
+                return {
+                    date: bucket.key_as_string,
+                    user_count: bucket.user_id.value,
+                    hit_count: bucket.doc_count,
+                }
+            }),
+        };
+    }
+
+    async get_users_by_segment(segment, period="week") {
+        let query = {
+            index: "pageviews_copy",
+            track_total_hits: true,
+            body: {
+                "size": 0,
+                "query": {
+                    "bool": {
+                        "filter": [
+                            {
+                                "match_phrase": {
+                                    "segments": segment
+                                }
+                            }
+                        ],
+                    }
+                },
+                "aggs": {
+                    "days": {
+                        "date_histogram": {
+                            "field": "time",
+                            "calendar_interval": "1d",
+                            "time_zone": "Africa/Johannesburg",
+                            "min_doc_count": 1
+                        },
+                        "aggs": {
+                            "user_id": {
+                                "cardinality": {
+                                    "field": "user_id"
+                                },
+                            }
+                        }
+                    },
+                    
+                },
+            }
+        }
+        query = es_period_filter(query, period);
+        const es_result = await esclient.search(query);
+        // console.log(JSON.stringify(query, null, 2));
+        return {
+            type: "users_by_segment",
+            segment,
             period,
             total: es_result.hits.total.value,
             data: es_result.aggregations.days.buckets.map(bucket => {

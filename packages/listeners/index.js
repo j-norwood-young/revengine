@@ -160,6 +160,28 @@ protected_server.get("/report/users_by_utm_source", async (req, res) => {
     }
 });
 
+protected_server.get("/report/users_by_label", async (req, res) => {
+    try {
+        if (!req.query.label) throw "label is required";
+        const Sessions = new Reports.Sessions();
+        const result = await Sessions.get_users_by_label(req.query.label, req.query?.period);
+        res.send(result);
+    } catch(err) {
+        res.send(500, { error: err.toString() });
+    }
+});
+
+protected_server.get("/report/users_by_segment", async (req, res) => {
+    try {
+        if (!req.query.segment) throw "segment is required";
+        const Sessions = new Reports.Sessions();
+        const result = await Sessions.get_users_by_segment(req.query.segment, req.query?.period);
+        res.send(result);
+    } catch(err) {
+        res.send(500, { error: err.toString() });
+    }
+});
+
 protected_server.listen(config.listeners.protected_port || 3021, function () {
     console.log('%s listening at %s', protected_server.name, protected_server.url);
 });
