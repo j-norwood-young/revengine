@@ -238,4 +238,5 @@ module.exports = {
     Facets: require("./libs/facets"),
     RFV: require("./libs/rfv"),
     Random: require("./libs/random"),
+    Sessions: require("./libs/sessions"),
 };

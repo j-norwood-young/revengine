@@ -4,6 +4,7 @@ const corsMiddleware = require('restify-cors-middleware2')
 const public_server = restify.createServer({
     name: config.api_name
 });
+const Reports = require("@revengine/reports");
 
 const cors = corsMiddleware({
     origins: ['*'],
@@ -137,6 +138,27 @@ public_server.get("/autogen_newsletter", async (req, res) => {
 });
 
 protected_server.get("/email/automated/monthly_uber_mail", touchbase.monthly_uber_mail);
+
+protected_server.get("/report/logged_in_users", async (req, res) => {
+    try {
+        const Sessions = new Reports.Sessions();
+        const result = await Sessions.get_logged_in_users(req.query?.period);
+        res.send(result);
+    } catch(err) {
+        res.send(500, { error: err.toString() });
+    }
+});
+
+protected_server.get("/report/users_by_utm_source", async (req, res) => {
+    try {
+        if (!req.query.utm_source) throw "utm_source is required";
+        const Sessions = new Reports.Sessions();
+        const result = await Sessions.get_users_by_utm_source(req.query.utm_source, req.query?.period);
+        res.send(result);
+    } catch(err) {
+        res.send(500, { error: err.toString() });
+    }
+});
 
 protected_server.listen(config.listeners.protected_port || 3021, function () {
     console.log('%s listening at %s', protected_server.name, protected_server.url);
