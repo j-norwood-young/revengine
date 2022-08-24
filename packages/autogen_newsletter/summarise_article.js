@@ -7,7 +7,7 @@ const openai = new OpenAI.OpenAIApi(configuration);
 
 function generateSummaryPrompt(body) {
     return `${body.replace(/(<([^>]+)>)/gi, "").slice(0,10000)}
-    Summarize for a newsletter for a newspaper reader:`
+    Summarize in 100 words:`
     ;
 }
 
