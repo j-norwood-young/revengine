@@ -160,7 +160,7 @@ class Sessions {
         // console.log(JSON.stringify(query, null, 2));
         return {
             type: "users_by_utm_source",
-            source,
+            utm_source,
             period,
             total: es_result.hits.total.value,
             data: es_result.aggregations.days.buckets.map(bucket => {
