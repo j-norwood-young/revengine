@@ -19,7 +19,6 @@ server.use(async (req, res, next) => {
         }
         const login = await restler.post(`${config.api.server}/login`, { data: { email: req.authorization.basic.username, password: req.authorization.basic.password } });
         req.apikey = login.apikey;
-        console.log(login);
         req.apihelper = new JXPHelper({ server: config.api, apikey: login.apikey });
         next();
     } catch (err) {
