@@ -100,7 +100,7 @@
             "Yearly Membership: R4 200 - Rinfinite Range"
         ],
         "live": true,
-        "bcc": "fran@dailymaverick.co.za"
+        "bcc": "fran@dailymaverick.co.za,julia.harris@dailymaverick.co.za"
     },
     "tracker": {
         "port": 4013,
