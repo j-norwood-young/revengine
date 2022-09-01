@@ -185,7 +185,7 @@ router.post("/mailinglist/subscribe_by_label/:label_id", async(req, res) => {
         }
         const list = await get_touchbase_list(list_id);
         const readers = (await req.apihelper.get("reader", { "filter[label_id]": req.params.label_id, "fields": "email,first_name,last_name,wordpress_id" })).data;
-        const result = await subscribe_readers_to_list(readers, list, custom_fields, parseInt(req.body.include_vouchers));
+        const result = await subscribe_readers_to_list(readers, list, custom_fields, (req.body.include_vouchers === "on"));
         res.render("mail/select_touchbase_list_success", { title: "Subscription Success", data: result, list_name: list.Title });
     } catch(err) {
         console.error(err);
@@ -211,6 +211,7 @@ async function subscribe_readers_to_list(readers, list, custom_fields = {}, incl
         if (include_autologin) {
             fieldnames = [...fieldnames, "auto_login_id"];
         }
+        console.log({fieldnames});
         if (fieldnames.length > 0) {
             await ensure_custom_fields(list_id, fieldnames);
         }
@@ -290,7 +291,7 @@ router.post("/mailinglist/subscribe_by_segment/:segment_id", async(req, res) => 
         }
         const list = await get_touchbase_list(list_id);
         const readers = (await req.apihelper.get("reader", { "filter[segmentation_id]": req.params.segment_id, "fields": "email,first_name,last_name,wordpress_id" })).data;
-        const result = await subscribe_readers_to_list(readers, list, custom_fields, parseInt(req.body.include_vouchers));
+        const result = await subscribe_readers_to_list(readers, list, custom_fields, (req.body.include_vouchers === "on"));
         res.render("mail/select_touchbase_list_success", { title: "Subscription Success", data: result, list_name: list.Title });
     } catch(err) {
         console.error(err);
@@ -298,5 +299,41 @@ router.post("/mailinglist/subscribe_by_segment/:segment_id", async(req, res) => 
         res.send(err);
     }
 })
+
+router.get("/vouchertest/:segment_id", async(req, res) => {
+    try {
+        const readers = (await req.apihelper.get("reader", { "filter[segmentation_id]": req.params.segment_id, "fields": "email,first_name,last_name,wordpress_id" })).data;
+        ensure_vouchers(readers);
+        res.send("Done");
+    } catch(err) {
+        console.error(err);
+        res.send(err)
+    }
+});
+
+// const ensure_vouchers = async(readers) => {
+//     const vouchertypes = (await apihelper.get("vouchertype")).data;
+//     const reader_ids = readers.map(reader => reader._id);
+//     const vouchers = (await apihelper.query("voucher", {
+//         "$and": [
+//             {
+//                 "valid_from": {
+//                     "$gte": moment().startOf("month").format("YYYY-MM-DD")
+//                 },
+//             },
+//             {
+//                 "valid_to": {
+//                     "$lte": moment().endOf("month").format("YYYY-MM-DD")
+//                 }
+//             }
+//         ]
+//     })).data;
+//     const empty_vouchers = vouchers.filter(voucher => !voucher.reader_id);
+//     const readers_without_vouchers = readers.filter(reader => !vouchers.find(voucher => voucher.reader_id === reader._id));
+//     for (let reader of readers_without_vouchers) {
+//         for(let vouchertype of vouchertypes) {
+
+//     console.log(readers_without_vouchers);
+// }
 
 module.exports = router;
