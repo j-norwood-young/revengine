@@ -101,9 +101,10 @@ public_server.post("/wp/wordpress/user/delete", async (req, res) => {
     }
 });
 
-public_server.post("/wp/reader/labels/:wordpress_id", async(req, res) => {
+public_server.post("/wp/reader/labels", async(req, res) => {
     try {
-        const wordpress_id = Number(req.params.wordpress_id);
+        const wordpress_id = Number(req.body.user_id);
+        if (!wordpress_id) throw "No user_id";
         const user_data = (await apihelper.aggregate("reader", [
             {
                 $match: {
