@@ -101,6 +101,61 @@ public_server.post("/wp/wordpress/user/delete", async (req, res) => {
     }
 });
 
+public_server.post("/wp/reader/labels/:wordpress_id", async(req, res) => {
+    try {
+        const wordpress_id = Number(req.params.wordpress_id);
+        const user_data = (await apihelper.aggregate("reader", [
+            {
+                $match: {
+                    wordpress_id: Number(wordpress_id),
+                },
+            },
+            {
+                $lookup: {
+                    from: "labels",
+                    localField: "label_id",
+                    foreignField: "_id",
+                    as: "labels"
+                }
+            },
+            {
+                $lookup: {
+                    from: "segmentations",
+                    localField: "segmentation_id",
+                    foreignField: "_id",
+                    as: "segments"
+                }
+            },
+            { 
+                $project: { 
+                    "labels.code": 1,
+                    "segments.code": 1,
+                } 
+            },
+        ])).data.pop();
+        if (!user_data) throw "Reader not found";
+        const data = {
+            wordpress_id,
+            labels: [],
+            segments: [],
+        }
+        console.log(user_data);
+        if (user_data) {
+            if (user_data.labels) {
+                data.labels = user_data.labels.map(label => label.code);
+            }
+            if (user_data.segments) {
+                data.segments = user_data.segments.map(segment => segment.code);
+            }
+        }
+        if (config.debug) console.log(data);
+        res.send(data);
+    } catch(err) {
+        console.error(err);
+        res.send({ status: "error", error: err.toString() });
+    }
+});
+
 public_server.post("/wp/test", (req, res) => {
     console.log({ request: req.body });
     res.send({ status: "ok" });
