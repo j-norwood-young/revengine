@@ -87,7 +87,7 @@ const main = async () => {
                     type: "section",
                     text: {
                         type: "mrkdwn",
-                        text: `<${config.wordpress.homepage}/${article.urlid}|${article.title}> (${article.hits.toLocaleString()})\n_Published ${moment(article.date_published).format("YYYY-MM-DD HH:mm")} | ${article.author} | ${article.sections.join(", ")}_\n<https://www.dailymaverick.co.za/wp-admin/admin.php?page=featured-flagged-post&post=${article.post_id}|Move to #10>`
+                        text: `<${config.wordpress.homepage}/${article.type}/${article.urlid}|${article.title}> (${article.hits.toLocaleString()})\n_Published ${moment(article.date_published).format("YYYY-MM-DD HH:mm")} | ${article.author} | ${article.sections.join(", ")}_\n<https://www.dailymaverick.co.za/wp-admin/admin.php?page=featured-flagged-post&post=${article.post_id}|Move to #10>`
                     }
                 })
             }
@@ -106,7 +106,7 @@ const main = async () => {
                     type: "section",
                     text: {
                         type: "mrkdwn",
-                        text: `<${config.wordpress.homepage}/${article.urlid}|${article.title}> (#${article.position} / ${article.hits.toLocaleString()})\n_Published ${moment(article.date_published).format("YYYY-MM-DD HH:mm")}  | ${article.author} | ${article.sections.join(", ")}_`
+                        text: `<${config.wordpress.homepage}/${article.type}/${article.urlid}|${article.title}> (#${article.position} / ${article.hits.toLocaleString()})\n_Published ${moment(article.date_published).format("YYYY-MM-DD HH:mm")}  | ${article.author} | ${article.sections.join(", ")}_`
                     }
                 })
             }
