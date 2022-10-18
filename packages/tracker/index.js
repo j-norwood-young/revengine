@@ -1,18 +1,15 @@
 const config = require("config");
 const http = require("http");
 const kafka = require("kafka-node");
-const Bowser = require("bowser");
-const utmExtractor = require("utm-extractor").Utm;
+const parse_user_agent = require("./user_agent").parse_user_agent;
+const geolocate_ip = require("./geolocate_ip").geolocate_ip;
+const parse_referer = require("./referer").parse_referer;
+const parse_utm = require("./utm").parse_utm;
+const get_article_data = require("./article").get_article_data;
+const get_user_data = require("./user").get_user_data;
 const qs = require("qs");
-const Referer = require("referer-parser");
 const cookie = require("cookie");
-const JXPHelper = require("jxp-helper");
 const crypto = require("crypto");
-require("dotenv").config();
-const jxphelper = new JXPHelper({
-    server: config.api.server,
-    apikey: process.env.APIKEY,
-});
 
 const name = config.name || "revengine";
 const port = config.tracker.port || 3012;
@@ -32,6 +29,17 @@ const client = new kafka.KafkaClient({
 });
 const producer = new Producer(client);
 
+// Process for all hits
+// 1. Get hit
+// 2. Get user segments and labels
+// 3. Respond to HTTP request with ok, user segments and labels
+// 4. Parse user agent
+// 5. Get geolocation for user
+// 6. Parse referrer
+// 7. Parse utm params
+// 8. Get post data
+// 9. Sent to kafka queue
+
 // Ensure we have the topic created
 client.createTopics(
     [
@@ -50,84 +58,34 @@ client.createTopics(
     }
 );
 
-const set_esdata = (index, data) => {
-    const ua = Bowser.parse(data.user_agent);
-    let utm = {};
-    try {
-        utm = new utmExtractor(data.url).get();
-    } catch (err) {
-        utm = {
-            utm_medium: null,
-            utm_campaign: null,
-            utm_content: null,
-            utm_source: null,
-            utm_term: null,
-        };
-    }
-    let derived_referer_medium = "direct";
-    let derived_referer_source = "";
-    if (data.referer) {
-        let derived_referer = new Referer(data.referer, data.url);
-        derived_referer_medium = derived_referer.medium;
-        derived_referer_source = derived_referer.referer;
-        if (derived_referer_medium === "unknown")
-            derived_referer_medium = "external";
-    }
+const set_esdata = async (index, data) => {
     if (data.user_id === "0") {
         data.user_id = null;
     }
-    if (utm.utm_medium === "email") derived_referer_medium = "email";
-    // Populate sections and tags
-    const esdata = {
-        index,
-        action: "hit",
-        article_id: data.post_id,
-        date_published: data.date_published || null,
-        author_id: data.post_author,
-        derived_ua_browser: ua.browser.name,
-        derived_ua_browser_version: ua.browser.version,
-        derived_ua_device: ua.platform.type,
-        derived_ua_os: ua.os.name,
-        derived_ua_os_version: ua.os.version,
-        derived_ua_platform: ua.platform.vendor,
-        derived_referer_medium,
-        derived_referer_source,
-        referer: data.referer,
-        signed_in: !!data.user_id,
-        time: new Date(),
-        url: data.url,
-        user_agent: data.user_agent,
-        user_id: data.user_id,
-        utm_medium: utm.utm_medium,
-        utm_campaign: utm.utm_campaign,
-        utm_content: utm.utm_content,
-        utm_source: utm.utm_source,
-        utm_term: utm.utm_term,
-        browser_id: data.browser_id,
-        content_type: data.post_type,
-    };
+    const esdata = Object.assign(
+        {
+            index,
+            action: "hit",
+            article_id: data.post_id,
+            date_published: data.date_published || null,
+            // author_id: data.post_author,
+            referer: data.referer,
+            url: data.url,
+            signed_in: !!data.user_id,
+            time: new Date(),
+            user_agent: data.user_agent,
+            user_id: data.user_id,
+            browser_id: data.browser_id,
+            content_type: data.post_type,
+        },
+        parse_user_agent(data.user_agent),
+        geolocate_ip(data.user_ip),
+        parse_referer(data.referer, data.url),
+        parse_utm(data.url),
+        await get_article_data(data.post_id),
+    );
     if (data.user_ip) esdata.user_ip = data.user_ip;
     return esdata;
-};
-
-const get_article_data = async (post_id) => {
-    let sections = null;
-    let tags = null;
-    let date_published = null;
-    if (post_id) {
-        const article = (
-            await jxphelper.get("article", {
-                "filter[post_id]": post_id,
-                fields: "tags,sections,date_published",
-            })
-        ).data.pop();
-        if (article) {
-            tags = article.tags;
-            sections = article.sections;
-            date_published = article.date_published;
-        }
-    }
-    return { sections, tags, date_published };
 };
 
 const post_hit = async (req, res) => {
@@ -140,6 +98,7 @@ const post_hit = async (req, res) => {
             let data = null;
             try {
                 data = JSON.parse(body);
+                
                 if (config.debug) {
                     console.log(data);
                 }
@@ -166,13 +125,7 @@ const post_hit = async (req, res) => {
                     index = "pageviews";
                 }
                 if (!index) throw `No index found for action ${data.action}`;
-                const esdata = set_esdata(index, data);
-                if (data.post_id) {
-                    const article_data = await get_article_data(data.post_id);
-                    esdata.tags = article_data.tags;
-                    esdata.sections = article_data.sections;
-                    esdata.date_published = article_data.date_published;
-                }
+                const esdata = await set_esdata(index, data);
                 if (config.debug) console.log(esdata);
                 await new Promise((resolve, reject) => {
                     producer.send(
@@ -218,47 +171,7 @@ const get_hit = async (req, res) => {
             browser_id = data.browser_id || crypto.randomBytes(20).toString('hex');
             headers["Set-Cookie"] = `${cookie_name}=${browser_id}`;
         }
-        if (data.user_id) {
-            const user_data = (
-                await jxphelper.aggregate("reader", [
-                    {
-                        $match: {
-                            wordpress_id: Number(data.user_id),
-                        },
-                    },
-                    {
-                        $lookup: {
-                            from: "labels",
-                            localField: "label_id",
-                            foreignField: "_id",
-                            as: "labels"
-                        }
-                    },
-                    {
-                        $lookup: {
-                            from: "segmentations",
-                            localField: "segmentation_id",
-                            foreignField: "_id",
-                            as: "segments"
-                        }
-                    },
-                    { 
-                        $project: { 
-                            "labels.code": 1,
-                            "segments.code": 1,
-                        } 
-                    },
-                ])
-            ).data.pop();
-            if (user_data) {
-                if (user_data.labels) {
-                    user_labels = user_data.labels.map(label => label.code);
-                }
-                if (user_data.user_segments) {
-                    user_segments = user_data.segments.map(segment => segment.code);
-                }
-            }
-        }
+        ( user_labels, user_segments ) = await get_user_data(data.user_id);
     } catch (err) {
         console.error(err);
     }
@@ -283,14 +196,7 @@ const get_hit = async (req, res) => {
         data.user_agent = req.headers["user-agent"];
         if (req.headers["x-real-ip"]) data.user_ip = req.headers["x-real-ip"];
         data.browser_id = browser_id;
-        const esdata = set_esdata(index, data);
-        if (data.post_id) {
-            const article_data = await get_article_data(data.post_id);
-            if (config.debug) console.log({article_data});
-            esdata.tags = article_data.tags;
-            esdata.sections = article_data.sections;
-            esdata.date_published = article_data.date_published;
-        }
+        const esdata = await set_esdata(index, data);
         if (user_segments && user_segments.length > 0) {
             esdata.segments = user_segments;
         }

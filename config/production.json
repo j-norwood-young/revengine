@@ -44,6 +44,9 @@
         "url": "https://admin.revengine.dailymaverick.co.za/",
         "port": 4014
     },
+    "geoip": {
+        "mmdb": "/root/mmdb/dbip-city-lite-2022-10.mmdb"
+    },
     "google_analytics": {
         "keyFilename": "/root/dmanalytics.json",
         "propertyId": "249894695"

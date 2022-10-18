@@ -46,6 +46,9 @@
         "url": "http://admin.revengine.dailymaverick.co.za:3014/",
         "port": 3014
     },
+    "geoip": {
+        "mmdb": "/root/mmdb/dbip-city-lite-2022-10.mmdb"
+    },
     "google_cloud_language": {
         "keyFilename": "/root/keys/dmbigquery-8deb86ecf874.json",
         "projectId": "DMBigQuery"

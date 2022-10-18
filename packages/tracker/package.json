@@ -11,7 +11,8 @@
   "author": "Jason Norwood-Young <jason@10layer.com>",
   "license": "MIT",
   "dependencies": {
-    "bowser": "^2.9.0",
+    "bowser": "^2.11.0",
+    "maxmind": "^4.3.8",
     "@revengine/common": "^0.0.1",
     "config": "^3.3.1",
     "kafka-node": "^5.0.0",
