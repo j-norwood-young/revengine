@@ -1,5 +1,4 @@
 const utmExtractor = require("utm-extractor").Utm;
-const Referer = require("referer-parser");
 
 module.exports.parse_utm = function (url) {
     let utm = {};
