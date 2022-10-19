@@ -3,6 +3,7 @@ const Bowser = require("bowser");
 module.exports.parse_user_agent = function (user_agent) {
     const ua = Bowser.parse(user_agent);
     return {
+        user_agent,
         derived_ua_browser: ua.browser.name,
         derived_ua_browser_version: ua.browser.version,
         derived_ua_device: ua.platform.type,
@@ -15,6 +16,7 @@ module.exports.parse_user_agent = function (user_agent) {
 module.exports.parse_user_agent_test = function () {
     const user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36";
     const expected = {
+        user_agent,
         derived_ua_browser: "Chrome",
         derived_ua_browser_version: "87.0.4280.88",
         derived_ua_device: "desktop",
