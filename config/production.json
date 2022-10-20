@@ -45,7 +45,7 @@
         "port": 4014
     },
     "geoip": {
-        "mmdb": "/root/mmdb/dbip-city-lite-2022-10.mmdb"
+        "mmdb": "/home/revengine/mmdb/dbip-city-lite-2022-10.mmdb"
     },
     "google_analytics": {
         "keyFilename": "/root/dmanalytics.json",
