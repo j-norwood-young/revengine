@@ -22,8 +22,10 @@ const headers = {
     "Access-Control-Allow-Origin": "*",
     "X-Powered-By": `${name}`,
 };
+const index = config.debug ? "pageviews_test" : "pageviews";
 
 const Producer = kafka.Producer;
+
 const client = new kafka.KafkaClient({
     kafkaHost: config.kafka.server || "localhost:9092",
 });
@@ -40,6 +42,14 @@ const producer = new Producer(client);
 // 8. Get post data
 // 9. Sent to kafka queue
 
+if (config.debug) {
+    console.log({
+        topic,
+        server: config.kafka.server || "localhost:9092",
+        partitions: config.kafka.partitions || 1,
+        replicationFactor: config.kafka.replication_factor || 1,
+    });
+}
 // Ensure we have the topic created
 client.createTopics(
     [
@@ -50,6 +60,7 @@ client.createTopics(
         },
     ],
     (err, result) => {
+        if (config.debug) console.log("createTopics", err, result);
         if (err) {
             console.error("Error creating topic");
             console.error(err);
@@ -58,7 +69,7 @@ client.createTopics(
     }
 );
 
-const set_esdata = async (index, data) => {
+const set_esdata = async (data) => {
     if (data.user_id === "0") {
         data.user_id = null;
     }
@@ -67,8 +78,6 @@ const set_esdata = async (index, data) => {
             index,
             action: "hit",
             article_id: data.post_id,
-            date_published: data.date_published || null,
-            // author_id: data.post_author,
             referer: data.referer,
             url: data.url,
             signed_in: !!data.user_id,
@@ -77,9 +86,11 @@ const set_esdata = async (index, data) => {
             user_id: data.user_id,
             browser_id: data.browser_id,
             content_type: data.post_type,
+            user_labels: data.user_labels,
+            user_segments: data.user_segments,
         },
         parse_user_agent(data.user_agent),
-        geolocate_ip(data.user_ip),
+        await geolocate_ip(data.user_ip),
         parse_referer(data.referer, data.url),
         parse_utm(data.url),
         await get_article_data(data.post_id),
@@ -88,29 +99,79 @@ const set_esdata = async (index, data) => {
     return esdata;
 };
 
+const send_to_kafka = async (data) => {
+    return await new Promise((resolve, reject) => {
+        producer.send(
+            [
+                {
+                    topic,
+                    messages: JSON.stringify(data),
+                },
+            ],
+            (err, result) => {
+                if (err) return reject(err);
+                return resolve(result);
+            }
+        );
+    });
+};
+
 const post_hit = async (req, res) => {
+    let data = undefined;
     try {
         let parts = [];
         req.on("data", (chunk) => {
             parts.push(chunk);
         }).on("end", async () => {
             const body = Buffer.concat(parts).toString();
-            let data = null;
             try {
-                data = JSON.parse(body);
-                
+                try {
+                    data = JSON.parse(body);
+                } catch (e) {
+                    throw "Error parsing json";
+                }
+                if (!data) throw `No data`;
+                // Check required fields
+                const required_fields = [
+                    "user_agent",
+                    "url",
+                    "action",
+                ];
+                const check_result = required_fields.every((f) =>
+                    data.hasOwnProperty(f)
+                );
+                if (!check_result) throw "Missing fields";
+                let { user_labels, user_segments } = await get_user_data(data.user_id);
+                data.user_labels = user_labels;
+                data.user_segments = user_segments;
                 if (config.debug) {
                     console.log(data);
                 }
+                const cookies = cookie.parse(req.headers.cookie || "");
+                if (cookies[cookie_name]) {
+                    data.browser_id = cookies[cookie_name]
+                } else {
+                    data.browser_id = data.browser_id || crypto.randomBytes(20).toString('hex');
+                    headers["Set-Cookie"] = `${cookie_name}=${data.browser_id}`;
+                }
+                data.user_ip = data.user_ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress || null;
                 res.writeHead(200, headers);
-                res.write("");
+                res.write(
+                    JSON.stringify({
+                        status: "ok",
+                        user_labels,
+                        user_segments,
+                        browser_id: data.browser_id,
+                        user_ip: data.user_ip,
+                    })
+                );
                 res.end();
             } catch (err) {
                 res.writeHead(500, headers);
                 res.write(
                     JSON.stringify({
                         status: "error",
-                        error: JSON.stringify(err),
+                        error: err,
                     })
                 );
                 res.end();
@@ -119,28 +180,9 @@ const post_hit = async (req, res) => {
             }
             try {
                 if (!data) throw "No data";
-                if (!data.action) throw "No action";
-                let index = null;
-                if (data.action === "pageview") {
-                    index = "pageviews";
-                }
-                if (!index) throw `No index found for action ${data.action}`;
-                const esdata = await set_esdata(index, data);
+                const esdata = await set_esdata(data);
                 if (config.debug) console.log(esdata);
-                await new Promise((resolve, reject) => {
-                    producer.send(
-                        [
-                            {
-                                topic,
-                                messages: JSON.stringify(esdata),
-                            },
-                        ],
-                        (err, data) => {
-                            if (err) return reject(err);
-                            return resolve(data);
-                        }
-                    );
-                });
+                await send_to_kafka(esdata);
             } catch (err) {
                 console.error(err);
             }
@@ -158,12 +200,11 @@ const parse_url = (url) => {
 };
 
 const get_hit = async (req, res) => {
-    let user_labels = [];
-    let user_segments = [];
     let browser_id = null;
+    const url = req.url;
+    let data = undefined;
     try {
-        const url = req.url;
-        const data = parse_url(url);
+        data = parse_url(url);
         const cookies = cookie.parse(req.headers.cookie || "");
         if (cookies[cookie_name]) {
             browser_id = cookies[cookie_name]
@@ -171,7 +212,9 @@ const get_hit = async (req, res) => {
             browser_id = data.browser_id || crypto.randomBytes(20).toString('hex');
             headers["Set-Cookie"] = `${cookie_name}=${browser_id}`;
         }
-        ( user_labels, user_segments ) = await get_user_data(data.user_id);
+        let { user_labels, user_segments } = await get_user_data(data.user_id);
+        data.user_labels = user_labels;
+        data.user_segments = user_segments;
     } catch (err) {
         console.error(err);
     }
@@ -179,47 +222,26 @@ const get_hit = async (req, res) => {
     res.write(
         JSON.stringify({
             status: "ok",
-            user_labels,
-            user_segments,
+            user_labels: data.user_labels,
+            user_segments: data.user_segments,
         })
     );
     res.end();
     try {
-        const url = req.url;
-        const data = parse_url(url);
         if (!data) throw `No data ${url}`;
         if (!data.action) throw `No action ${url}`;
-        let index = config.debug ? "pageviews_test" : "pageviews";
-        const referer = req.headers.referer || data.referer;
-        if (!referer) return; // This is common with bots or noreferrer policy, we can't track it anyway, so don't worry about throwing an error
+        const referer = req.headers.referer; // Our tracker is embedded as an iframe or image or similar, so it should always have a referer.
+        if (!data.referer) return; // This is common with bots or noreferrer policy, we can't track it anyway, so don't worry about throwing an error
         data.url = referer;
         data.user_agent = req.headers["user-agent"];
-        if (req.headers["x-real-ip"]) data.user_ip = req.headers["x-real-ip"];
+        data.user_ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || null;
+        // if (req.headers["x-real-ip"]) data.user_ip = req.headers["x-real-ip"];
         data.browser_id = browser_id;
-        const esdata = await set_esdata(index, data);
-        if (user_segments && user_segments.length > 0) {
-            esdata.segments = user_segments;
-        }
-        if (user_labels && user_labels.length > 0) {
-            esdata.labels = user_labels;
-        }
+        const esdata = await set_esdata(data);
         if (config.debug) {
             console.log({ esdata });
         }
-        await new Promise((resolve, reject) => {
-            producer.send(
-                [
-                    {
-                        topic,
-                        messages: JSON.stringify(esdata),
-                    },
-                ],
-                (err, data) => {
-                    if (err) return reject(err);
-                    return resolve(data);
-                }
-            );
-        });
+        await send_to_kafka(esdata);
     } catch (err) {
         console.error(err);
     }
@@ -239,8 +261,12 @@ http.createServer((req, res) => {
     ) {
         post_hit(req, res);
     }
-    if (req.method === "GET") {
+    else if (req.method === "GET") {
         get_hit(req, res);
+    } else {
+        res.writeHead(404, headers);
+        res.write(JSON.stringify({ status: "error", error: "You lost?" }));
+        res.end();
     }
 }).listen(port, host, () => {
     if (config.debug) {

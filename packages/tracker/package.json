@@ -1,6 +1,6 @@
 {
   "name": "@revengine/tracker",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "RevEngine Tracker, which tracks hits from a website",
   "main": "index.js",
   "scripts": {
