@@ -142,8 +142,8 @@ const post_hit = async (req, res) => {
                 );
                 if (!check_result) throw "Missing fields";
                 let { user_labels, user_segments } = await get_user_data(data.user_id);
-                data.user_labels = user_labels;
-                data.user_segments = user_segments;
+                data.user_labels = user_labels || {};
+                data.user_segments = user_segments || {};
                 if (config.debug) {
                     console.log(data);
                 }
@@ -213,8 +213,8 @@ const get_hit = async (req, res) => {
             headers["Set-Cookie"] = `${cookie_name}=${browser_id}`;
         }
         let { user_labels, user_segments } = await get_user_data(data.user_id);
-        data.user_labels = user_labels;
-        data.user_segments = user_segments;
+        data.user_labels = user_labels || {};
+        data.user_segments = user_segments || {};
     } catch (err) {
         console.error(err);
     }
