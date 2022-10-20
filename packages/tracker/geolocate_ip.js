@@ -7,6 +7,7 @@ const geo = new Reader(buffer);
 
 module.exports.geolocate_ip = async function (ip) {
     const geo_data = geo.get(ip);
+    if (!geo_data) return {};
     return {
         derived_city: geo_data.city.names.en,
         derived_country: geo_data.country.names.en,
