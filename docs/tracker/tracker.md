@@ -45,7 +45,7 @@ Cookie revengine_browser_id=1234567890
 ```
 
 ## Query string
-http://revengine-tracker.remp.dailymaverick.co.za:3013/?action=hit&post_id=1434629&user_id=1481&utm_source=active%20users&utm_medium=email
+http://revengine-tracker.remp.dailymaverick.co.za:3013/?action=hit&post_id=1434629&user_id=1&utm_source=active%20users&utm_medium=email
 
 ## Response
 ```json
@@ -83,7 +83,7 @@ Content-Type application/json
     "url": "https://www.dailymaverick.co.za/article/2022-10-19-phala-phala-allegations-spark-online-campaign-against-ramaphosa/",
     "referer": "https://www.dailymaverick.co.za/",
     "post_id": 1434629, // optional
-    "user_id": 1481, // optional
+    "user_id": 1, // optional
     "user_ip": "127.0.0.1", // optional
     "browser_id": "1234567890", // optional
 }
@@ -107,6 +107,6 @@ Content-Type application/json
     ],
     "user_segments": [],
     "browser_id": "1234567890",
-    "user_ip": "85.145.96.231"
+    "user_ip": "127.0.0.1"
 }
 ```
