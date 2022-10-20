@@ -106,7 +106,7 @@ Content-Type application/json
         "inactive-subscription"
     ],
     "user_segments": [],
-    "browser_id": "28a1155da2479a54d599eeae023e56a8",
+    "browser_id": "1234567890",
     "user_ip": "85.145.96.231"
 }
 ```
