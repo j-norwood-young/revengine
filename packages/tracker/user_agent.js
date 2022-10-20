@@ -29,4 +29,4 @@ module.exports.parse_user_agent_test = function () {
     console.assert(JSON.stringify(actual) === JSON.stringify(expected));
 }
 
-module.exports.parse_user_agent_test();
+// module.exports.parse_user_agent_test();

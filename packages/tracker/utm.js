@@ -37,4 +37,4 @@ module.exports.parse_utm_test = function () {
     console.assert(JSON.stringify(actual) === JSON.stringify(expected));
 }
 
-module.exports.parse_utm_test();
+// module.exports.parse_utm_test();

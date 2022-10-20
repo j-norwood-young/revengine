@@ -33,4 +33,4 @@ module.exports.geolocate_ip_test = async function () {
     console.assert(JSON.stringify(actual) === JSON.stringify(expected));
 }
 
-module.exports.geolocate_ip_test();
+// module.exports.geolocate_ip_test();

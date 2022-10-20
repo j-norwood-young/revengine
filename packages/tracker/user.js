@@ -63,4 +63,4 @@ module.exports.get_user_data_test = async function () {
     console.assert(JSON.stringify(actual) === JSON.stringify(expected));
 }
 
-module.exports.get_user_data_test();
+// module.exports.get_user_data_test();
