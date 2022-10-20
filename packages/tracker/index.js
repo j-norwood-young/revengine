@@ -222,8 +222,8 @@ const get_hit = async (req, res) => {
     res.write(
         JSON.stringify({
             status: "ok",
-            user_labels: data.user_labels,
-            user_segments: data.user_segments,
+            user_labels: data?.user_labels,
+            user_segments: data?.user_segments,
         })
     );
     res.end();
