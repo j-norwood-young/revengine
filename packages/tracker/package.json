@@ -1,6 +1,6 @@
 {
   "name": "@revengine/tracker",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "RevEngine Tracker, which tracks hits from a website",
   "main": "index.js",
   "scripts": {
@@ -19,6 +19,7 @@
     "utm-extractor": "^1.0.5",
     "qs": "^6.9.4",
     "referer-parser": "^0.0.3",
-    "cookie": "^0.4.1"
+    "cookie": "^0.4.1",
+    "redis": "^4.3.1"
   }
 }

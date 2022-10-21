@@ -10,6 +10,8 @@ const get_user_data = require("./user").get_user_data;
 const qs = require("qs");
 const cookie = require("cookie");
 const crypto = require("crypto");
+const Redis = require("redis");
+const redis = Redis.createClient();
 
 const name = config.name || "revengine";
 const port = config.tracker.port || 3012;
@@ -33,6 +35,7 @@ const producer = new Producer(client);
 
 // Process for all hits
 // 1. Get hit
+// 1.1 Check cache and skip to 3 if hit is in cache
 // 2. Get user segments and labels
 // 3. Respond to HTTP request with ok, user segments and labels
 // 4. Parse user agent
@@ -202,9 +205,12 @@ const parse_url = (url) => {
 const get_hit = async (req, res) => {
     let browser_id = null;
     const url = req.url;
+    let cache_id = null;
     let data = undefined;
     try {
         data = parse_url(url);
+        data.user_ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || null;
+        data.user_agent = req.headers["user-agent"];
         const cookies = cookie.parse(req.headers.cookie || "");
         if (cookies[cookie_name]) {
             browser_id = cookies[cookie_name]
@@ -212,9 +218,28 @@ const get_hit = async (req, res) => {
             browser_id = data.browser_id || crypto.randomBytes(20).toString('hex');
             headers["Set-Cookie"] = `${cookie_name}=${browser_id}`;
         }
-        let { user_labels, user_segments } = await get_user_data(data.user_id);
-        data.user_labels = user_labels || {};
-        data.user_segments = user_segments || {};
+        cache_id = `GET-${browser_id}-${data.user_ip}`;
+        if (config.debug) {
+            console.log({cache_id});
+        }
+        const cached_user_data_json = await redis.get(cache_id);
+        let cached_user_data = null;
+        try {
+            cached_user_data = JSON.parse(cached_user_data_json);
+        } catch (e) {
+            console.error(e);
+        }
+        if (cached_user_data) {
+            if (config.debug) console.log("Cache hit", cached_user_data);
+            data.user_labels = cached_user_data.user_labels;
+            data.user_segments = cached_user_data.user_segments;
+        } else {
+            if (config.debug) console.log("Cache miss");
+            let { user_labels, user_segments } = await get_user_data(data.user_id);
+            data.user_labels = user_labels || {};
+            data.user_segments = user_segments || {};
+            await redis.set(cache_id, JSON.stringify({user_labels, user_segments}), 'EX', 60 * 60);
+        }
     } catch (err) {
         console.error(err);
     }
@@ -233,9 +258,6 @@ const get_hit = async (req, res) => {
         const referer = req.headers.referer; // Our tracker is embedded as an iframe or image or similar, so it should always have a referer.
         if (!data.referer) return; // This is common with bots or noreferrer policy, we can't track it anyway, so don't worry about throwing an error
         data.url = referer;
-        data.user_agent = req.headers["user-agent"];
-        data.user_ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || null;
-        // if (req.headers["x-real-ip"]) data.user_ip = req.headers["x-real-ip"];
         data.browser_id = browser_id;
         const esdata = await set_esdata(data);
         if (config.debug) {
@@ -268,7 +290,8 @@ http.createServer((req, res) => {
         res.write(JSON.stringify({ status: "error", error: "You lost?" }));
         res.end();
     }
-}).listen(port, host, () => {
+}).listen(port, host, async () => {
+    await redis.connect();
     if (config.debug) {
         console.log(`RevEngine Tracker listening ${host}:${port}`);
     }
