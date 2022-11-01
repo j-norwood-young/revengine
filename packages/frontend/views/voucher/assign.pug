@@ -1,0 +1,29 @@
+extends ../layout
+
+block content
+    .container
+        form(method="POST")
+            h1 Assign Vouchers
+            hr
+            h3 Select Month
+                .row 
+                    .col-sm-4 
+                        .form-group.mt-2
+                            select.form-control(name="month")
+                                for month, i in months
+                                    option(value=month.value selected=i===0) #{month.name}
+            h3.mt-2 Select voucher types
+            each vouchertype in vouchertypes
+                .row
+                    .col-sm-4
+                        .form-check
+                            input.form-check-input(type="checkbox", name="vouchertypes[]", value=vouchertype._id)
+                            label.form-check-label= vouchertype.name
+            h3.mt-4 Select segments 
+            each segment in segments
+                .row
+                    .col-sm-4
+                        .form-check
+                            input.form-check-input(type="checkbox", name="segments[]", value=segment._id)
+                            label.form-check-label= segment.name
+            input(type="submit", value="Assign Vouchers", class="mt-4 btn btn-primary")

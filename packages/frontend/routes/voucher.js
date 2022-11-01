@@ -114,4 +114,72 @@ router.post("/upload_used", async (req, res) => {
     }
 })
 
+router.get("/assign", async (req, res) => {
+    const vouchertypes = (await req.apihelper.get("vouchertype", { "sort[name]": 1 })).data;
+    const segments = (await req.apihelper.get("segmentation", { "sort[name]": 1 })).data;
+    const months = [];
+    for (let i = 0; i < 12; i++) {
+        months.push({
+            name: moment().add(i, "months").format("MMMM YYYY"),
+            value: moment().add(i, "months").toISOString()
+        });
+    }
+    res.render("voucher/assign", { title: "Assign Vouchers", vouchertypes, segments, months });
+})
+
+router.post("/assign", async (req, res) => {
+    try {
+        const vouchertypes = req.body.vouchertypes;
+        const segments = req.body.segments;
+        const dt = req.body.month;
+        if (!vouchertypes) throw "Missing voucher types";
+        if (!segments) throw "Missing segments";
+        if (! dt) throw "Missing month";
+        const month = moment(dt);
+        const valid_from = month.startOf("month").format("YYYY-MM-DD");
+        const valid_to = month.endOf("month").format("YYYY-MM-DD");
+        const readers = (await req.apihelper.get("reader", { "filter[segmentation_id]": segments, "fields": "_id"  })).data;
+        const results = [];        
+        for (let vouchertype of vouchertypes) {
+            console.log("Processing", vouchertype);
+            const vouchers = (await req.apihelper.query("voucher", {
+                "$and": [
+                    {
+                        "vouchertype_id": vouchertype
+                    },
+                    {
+                        "valid_from": {
+                            "$gte": valid_from
+                        }
+                    },
+                    {
+                        "valid_to": {
+                            "$lte": valid_to
+                        }
+                    }
+                ]
+            })).data;
+            const data = [];
+            const empty_vouchers = vouchers.filter(voucher => !voucher.reader_id);
+            for (let reader of readers) {
+                let voucher = vouchers.find(voucher => voucher.reader_id === reader._id);
+                if (!voucher) {
+                    voucher = empty_vouchers.pop();
+                    if (!voucher) throw "Not enough vouchers";
+                    data.push({
+                        _id: voucher._id,
+                        reader_id: reader._id
+                    });
+                }
+            }
+            const result = await req.apihelper.bulk_put("voucher", "_id", data);
+            results.push({ vouchertype, result });
+        }
+        res.send({ vouchertypes, segments, valid_from, valid_to, results });
+    } catch(err) {
+        console.error(err);
+        res.status(500).send(err);
+    }
+})
+
 module.exports = router;
