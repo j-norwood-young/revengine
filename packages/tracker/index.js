@@ -76,6 +76,7 @@ const set_esdata = async (data) => {
     if (data.user_id === "0") {
         data.user_id = null;
     }
+    console.log(data);
     const esdata = Object.assign(
         {
             index,
@@ -256,7 +257,7 @@ const get_hit = async (req, res) => {
         if (!data) throw `No data ${url}`;
         if (!data.action) throw `No action ${url}`;
         const referer = req.headers.referer; // Our tracker is embedded as an iframe or image or similar, so it should always have a referer.
-        if (!data.referer) return; // This is common with bots or noreferrer policy, we can't track it anyway, so don't worry about throwing an error
+        // if (!data.referer) return; // This is common with bots or noreferrer policy, we can't track it anyway, so don't worry about throwing an error
         data.url = referer;
         data.browser_id = browser_id;
         const esdata = await set_esdata(data);

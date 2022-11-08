@@ -22,25 +22,20 @@ const consumer = new kafkaConsumerGroup(kafkaOptions, config.tracker.kafka_topic
 var cache = [];
 var count = 0;
 
-const esBulk = (params) => {
-    return new Promise((resolve, reject) => {
-        esclient.bulk(params, (err, result) => {
-            if (err) return reject(err);
-            return resolve(result);
-        });
-    })
-}
-
 const cache_size = config.consolidator.cache_size || 1000;
+let isFlushing = false;
 
 const flush = async () => {
+    if (isFlushing) return;
+    console.log("Flushing", cache.length);
     if (cache.length > cache_size) {
         try {
+            isFlushing = true;
             consumer.pause();
             if (config.debug) {
                 console.log("Cache length:", cache.length);
             }
-            const result = await esBulk({ body: cache });
+            const result = await esclient.bulk({ body: cache });
             cache = [];
             if (config.debug) {
                 console.log(JSON.stringify(result, null, "  "));
@@ -56,6 +51,8 @@ const flush = async () => {
             consumer.resume();
             console.log("We hit an error");
             console.error(err);
+        } finally {
+            isFlushing = false;
         }
     }
 }
