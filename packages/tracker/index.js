@@ -76,7 +76,6 @@ const set_esdata = async (data) => {
     if (data.user_id === "0") {
         data.user_id = null;
     }
-    console.log(data);
     const esdata = Object.assign(
         {
             index,
