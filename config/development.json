@@ -37,7 +37,7 @@
         "wordpress_api": "http://local.dailymaverick.com/wp-json/revengine/v1"
     },
     "elasticsearch": {
-        "server": "10.0.1.5:9200"
+        "server": "https://10.0.1.5:9200"
     },
     "frontend": {
         "sitename": "DM RevEngine",
