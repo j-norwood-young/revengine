@@ -40,7 +40,7 @@ const flush = async () => {
             if (config.debug) {
                 console.log("Cache length:", cache.length);
             }
-            const result = await esBulk({ maxRetries: 5, body: cache });
+            const result = await esBulk({ body: cache });
             cache = [];
             if (config.debug) {
                 console.log(JSON.stringify(result, null, "  "));
