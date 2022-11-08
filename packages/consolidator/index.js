@@ -4,14 +4,13 @@ const elasticsearch = require("@elastic/elasticsearch");
 const dotenv = require('dotenv');
 dotenv.config();
 
-const esclient = new elasticsearch.Client({
-    node: config.elasticsearch.server,
-    // host: config.elasticsearch.server,
+const es_config = Object.assign(config.elasticsearch, {
     auth: {
         username: process.env.ES_USER,
         password: process.env.ES_PASSWORD,
     }
 });
+const esclient = new elasticsearch.Client(es_config);
 
 const kafkaOptions = {
 	kafkaHost: config.kafka.server,

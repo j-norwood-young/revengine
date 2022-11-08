@@ -35,7 +35,8 @@
         "wordpress_api": "https://www.dailymaverick.co.za/wp-json/revengine/v1"
     },
     "elasticsearch": {
-        "server": "https://10.0.1.5:9200"
+        "node": "https://10.0.1.5:9200",
+        "rejectUnauthorized": false
     },
     "frontend": {
         "sitename": "DM RevEngine",
