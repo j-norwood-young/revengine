@@ -27,7 +27,6 @@ let isFlushing = false;
 
 const flush = async () => {
     if (isFlushing) return;
-    console.log("Flushing", cache.length);
     if (cache.length > cache_size) {
         try {
             isFlushing = true;
