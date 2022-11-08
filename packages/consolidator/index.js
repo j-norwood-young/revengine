@@ -1,9 +1,13 @@
 const config = require("config");
 const kafka = require('kafka-node');
 const elasticsearch = require("elasticsearch");
+const dotenv = require('dotenv');
+dotenv.config();
 
 const esclient = new elasticsearch.Client({
-    host: config.elasticsearch.server
+    host: config.elasticsearch.server,
+    user: process.env.ES_USER,
+    password: process.env.ES_PASSWORD,
 });
 
 const kafkaOptions = {
