@@ -1,16 +1,8 @@
 const config = require("config");
 const kafka = require('kafka-node');
-const elasticsearch = require("@elastic/elasticsearch");
 const dotenv = require('dotenv');
 dotenv.config();
-
-const es_config = Object.assign(config.elasticsearch, {
-    auth: {
-        username: process.env.ES_USER,
-        password: process.env.ES_PASSWORD,
-    }
-});
-const esclient = new elasticsearch.Client(es_config);
+const esclient = require("@revengine/common/esclient");
 
 const kafkaOptions = {
 	kafkaHost: config.kafka.server,

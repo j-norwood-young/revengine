@@ -1,11 +1,7 @@
 const config = require("config")
 const Action = require("./action")
 const _ = require("lodash");
-const elasticsearch = require("elasticsearch")
-const esclient = new elasticsearch.Client({
-    host: config.elasticsearch.server,
-    // log: "trace"
-});
+const esclient = require("@revengine/common/esclient");
 
 class ES extends Action {
     constructor(...params) {

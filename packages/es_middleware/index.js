@@ -5,8 +5,7 @@ const restler = require("restler-q");
 const JXPHelper = require("jxp-helper");
 const apihelper = new JXPHelper({ server: config.api });
 server.use(restify.plugins.authorizationParser());
-const elasticsearch = require("elasticsearch");
-const esclient = new elasticsearch.Client(config.elasticsearch);
+const esclient = require("@revengine/common/esclient");
 
 // Log in to our API (for security and stuff)
 server.use(async (req, res, next) => {

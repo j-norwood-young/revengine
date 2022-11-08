@@ -2,10 +2,7 @@ const config = require("config");
 require("dotenv").config();
 const moment = require("moment-timezone");
 moment.tz.setDefault(config.timezone || "UTC");
-const elasticsearch = require("elasticsearch")
-const esclient = new elasticsearch.Client({
-    host: config.elasticsearch.server,
-});
+const esclient = require("@revengine/common/esclient");
 
 class TopLastPeriod {
     async run(opts) {

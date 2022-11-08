@@ -4,10 +4,8 @@ require("dotenv").config();
 const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
 const moment = require("moment-timezone");
 moment.tz.setDefault(config.timezone || "UTC");
-const elasticsearch = require("elasticsearch")
-const esclient = new elasticsearch.Client({
-    host: config.elasticsearch.server,
-});
+const esclient = require("@revengine/common/esclient");
+
 const es_period_filter = require("./es_period_filter");
 
 class Sessions {

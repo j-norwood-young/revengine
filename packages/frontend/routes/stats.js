@@ -2,8 +2,7 @@ const express = require('express');
 const router = express.Router();
 const config = require("config");
 const { createCanvas } = require('canvas');
-const Elasticsearch = require("elasticsearch");
-const esclient = new Elasticsearch.Client({ ...config.elasticsearch });
+const esclient = require("@revengine/common/esclient");
 const Charts = require("../libs/charts");
 const charts = new Charts();
 

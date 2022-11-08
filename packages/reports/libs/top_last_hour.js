@@ -2,10 +2,7 @@ const config = require("config");
 require("dotenv").config();
 const moment = require("moment-timezone");
 moment.tz.setDefault(config.timezone || "UTC");
-const elasticsearch = require("elasticsearch")
-const esclient = new elasticsearch.Client({
-    host: config.elasticsearch.server,
-});
+const esclient = require("@revengine/common/esclient");
 
 class TopLastHour {
     constructor(opts) {
@@ -56,11 +53,19 @@ class TopLastHour {
             }
         }
         if (opts.article_id) {
-            query.body.query.bool.must.push({
-                "match": {
-                    article_id: opts.article_id
-                }
-            })
+            if (Array.isArray(opts.article_id)) {
+                query.body.query.bool.must.push({
+                    "terms": {
+                        "article_id": opts.article_id
+                    }
+                });
+            } else {
+                query.body.query.bool.must.push({
+                    "match": {
+                        "article_id": opts.article_id
+                    }
+                })
+            }
         }
         if (opts.section) {
             query.body.query.bool.must.push({
@@ -69,6 +74,7 @@ class TopLastHour {
                 }
             })
         }
+        console.log(JSON.stringify(query, null, 2));
         const result = (await esclient.search(query)).aggregations.result.buckets;
         return result;
     }

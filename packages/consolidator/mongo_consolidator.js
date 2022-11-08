@@ -3,10 +3,7 @@ require("dotenv").config();
 const JXPHelper = require("jxp-helper");
 const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
 const moment = require("moment");
-const elasticsearch = require("@elastic/elasticsearch");
-const esclient = new elasticsearch.Client({
-    node: config.elasticsearch.node
-});
+const esclient = require("@revengine/common/esclient");
 const crypto = require("crypto");
 const { url } = require("inspector");
 const RFV = require("@revengine/reports/libs/rfv");

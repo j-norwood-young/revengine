@@ -19,7 +19,7 @@ pico config/default.json
         "password": "password"
     },
     "elasticsearch": {
-        "host": "localhost:9200"
+        "node": "https://localhost:9200"
     },
     "mysql": {
         "host": "localhost",
