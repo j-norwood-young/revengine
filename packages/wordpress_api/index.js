@@ -275,6 +275,22 @@ server.get("/reader/:wordpress_id", apicache.middleware("5 minutes"), async (req
     }
 })
 
+server.get("/analytics/posts", async (req, res) => {
+    try {
+        let post_ids = req.query.post_ids;
+        if (!Array.isArray(post_ids)) {
+            post_ids = [post_ids];
+        }
+        const report = new Reports.TopLastHour();
+        const top_articles = await report.run({ article_id: post_ids.map(id => Number(id)) });
+        res.send(top_articles.map(a => ({ post_id: a.key, hits: a.doc_count })));
+    } catch(err) {
+        console.error(err);
+        res.send(500, { status: "error", error: err });
+    }
+});
+
+
 server.listen(config.wordpress.port, () => {
     console.log('%s listening at %s', server.name, server.url);
 });
