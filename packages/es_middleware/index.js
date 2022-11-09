@@ -3,7 +3,6 @@ const restify = require("restify");
 const server = restify.createServer();
 const restler = require("restler-q");
 const JXPHelper = require("jxp-helper");
-const apihelper = new JXPHelper({ server: config.api });
 server.use(restify.plugins.authorizationParser());
 const esclient = require("@revengine/common/esclient");
 
