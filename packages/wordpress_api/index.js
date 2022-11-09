@@ -290,7 +290,6 @@ server.get("/analytics/posts", async (req, res) => {
     }
 });
 
-
 server.listen(config.wordpress.port, () => {
     console.log('%s listening at %s', server.name, server.url);
 });
