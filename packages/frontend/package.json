@@ -44,7 +44,7 @@
     "promised-mongo": "^1.2.0",
     "redis": "^3.1.2",
     "wpapi": "^1.2.1",
-    "checkbox-fix-post": "^0.0.2",
+    "checkbox-fix-post": "^1.0.0",
     "vader-sentiment": "1.1.3"
   },
   "devDependencies": {
