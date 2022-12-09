@@ -7,7 +7,7 @@ block content
                 .card
                     .card-title
                         h2 Most Read (one day)
-                        h3 #{moment().subtract(day_start_days_ago, "days").format("Do H:mm")} to #{moment().subtract(day_end_days_ago, "days").format("Do H:mm")}
+                        h3 #{moment().subtract(day_start_days_ago, "days").format("ddd Do H:mm")} to #{moment().subtract(day_end_days_ago, "days").format("Do H:mm")}
                     .card-body
                         each article, i in top_articles_one_day
                             include article

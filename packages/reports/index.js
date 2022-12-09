@@ -6,13 +6,24 @@ const moment = require("moment-timezone");
 const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
 moment.tz.setDefault(config.timezone || "UTC");
 
-const get_hits = async (start_date, end_date) => {
+const get_hits = async (published_start_date, published_end_date) => {
     let params = {
-        // "filter[date_published]": `$lte:${end_date.toISOString()}`,
-        "filter[date_published]": `$gte:${start_date.toISOString()}`,
+        // "filter[date_published]": `$lte:${published_end_date.toISOString()}`,
+        "filter[date_published]": `$gte:${published_start_date.toISOString()}`,
         "filter[hits]": "$exists:1"
     }
-    const result = (await jxphelper.get("article", params)).data.filter(article => article.hits.length && article.date_published && moment(article.date_published).valueOf() < moment(end_date).valueOf());
+    const result = (await jxphelper.get("article", params)).data.filter(article => article.hits.length && article.date_published && moment(article.date_published).valueOf() < moment(published_end_date).valueOf());
+    return result;
+}
+
+const get_unique_hits = async (published_start_date, published_end_date) => {
+    let params = {
+        // "filter[date_published]": `$lte:${published_end_date.toISOString()}`,
+        "filter[date_published]": `$gte:${published_start_date.toISOString()}`,
+        "filter[unique_hits]": "$exists:1",
+        "fields": "title,urlid,post_id,type,unique_hits,date_published,author,sections,tags,img_thumbnail,avg_secs_engaged,engagement_rate,returning_readers"
+    }
+    const result = (await jxphelper.get("article", params)).data.filter(article => article.unique_hits.length && article.date_published && moment(article.date_published).valueOf() < moment(published_end_date).valueOf());
     return result;
 }
 
@@ -30,11 +41,11 @@ class ArticleHits {
     }
 
     async run(start_days_ago = 1, end_days_ago = 2) {
-        const start_date = moment().subtract(start_days_ago, "days");
-        const end_date = moment().subtract(end_days_ago, "days");
-        let articles = await get_hits(start_date, end_date)
+        const published_start_date = moment().subtract(start_days_ago, "days");
+        const published_end_date = moment().subtract(end_days_ago, "days");
+        let articles = await get_unique_hits(published_start_date, published_end_date)
         for (let article of articles) {
-            article.peak = await this.peak(article.hits);
+            article.peak = await this.peak(article.unique_hits);
         }
         articles = articles.sort((a, b) => {
             try {
@@ -65,15 +76,15 @@ class ArticleTags {
     }
 
     async run(start_days_ago = 1, end_days_ago = 1) {
-        const start_date = moment().subtract(start_days_ago, "days").startOf("day");
-        const end_date = moment().subtract(end_days_ago, "days").endOf("day");
-        let articles = await get_hits(start_date, end_date)
+        const published_start_date = moment().subtract(start_days_ago, "days").startOf("day");
+        const published_end_date = moment().subtract(end_days_ago, "days").endOf("day");
+        let articles = await get_unique_hits(published_start_date, published_end_date)
         let tags = this.get_tags(articles);
         let tag_count = {};
         for (let tag of tags) {
             if (!tag_count[tag]) tag_count[tag] = 0;
             tag_count[tag] = articles.filter(article => article.tags.includes(tag)).reduce((prev, cur) => {
-                return prev += cur.hits.reduce((hit_prev, hit_cur) => hit_prev + hit_cur.count, 0)
+                return prev += cur.unique_hits.reduce((hit_prev, hit_cur) => hit_prev + hit_cur.count, 0)
             }, tag_count[tag]);
         }
         let tag_array = [];
@@ -102,15 +113,15 @@ class ArticleSections {
     }
 
     async run(start_days_ago = 3, end_days_ago = 2) {
-        const start_date = moment().subtract(start_days_ago, "days").startOf("day");
-        const end_date = moment().subtract(end_days_ago, "days").endOf("day");
-        let articles = await get_hits(start_date, end_date)
+        const published_start_date = moment().subtract(start_days_ago, "days").startOf("day");
+        const published_end_date = moment().subtract(end_days_ago, "days").endOf("day");
+        let articles = await get_unique_hits(published_start_date, published_end_date)
         let sections = this.get_sections(articles);
         let section_count = {};
         for (let section of sections) {
             if (!section_count[section]) section_count[section] = 0;
             section_count[section] = articles.filter(article => article.sections.includes(section)).reduce((prev, cur) => {
-                return prev += cur.hits.reduce((hit_prev, hit_cur) => hit_prev + hit_cur.count, 0)
+                return prev += cur.unique_hits.reduce((hit_prev, hit_cur) => hit_prev + hit_cur.count, 0)
             }, section_count[section]);
         }
         let section_array = [];
