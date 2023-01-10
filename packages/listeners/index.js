@@ -24,9 +24,10 @@ const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env
 // const woocommerce = require("./woocommerce");
 
 public_server.post("/wp/woocommerce/subscription/update", touchbase.woocommerce_subscriptions_callback, async (req, res) => {
-    // if (config.debug) {
+    res.send({ status: "ok" });
+    if (config.debug) {
         console.log(JSON.stringify(req.body, null, 2));
-    // }
+    }
     const wordpress_user_id = req.body.subscription.customer_id;
     const data = await sync_wordpress.sync_user(wordpress_user_id);
     if (config.debug) console.log(data);
@@ -36,11 +37,11 @@ public_server.post("/wp/woocommerce/subscription/update", touchbase.woocommerce_
     if (req.body.old === "pending" && req.body.new === "active") {
         
     }
-    res.send({ status: "ok" });
 });
 
 public_server.post("/wp/wordpress/user/update", async (req, res) => {
     try {
+        res.send({ status: "ok" });
         if (config.debug) console.log(JSON.stringify(req.body, null, 2));
         const wordpress_user_id = req.body.user.ID;
         const data = await sync_wordpress.sync_user(wordpress_user_id);
@@ -48,7 +49,6 @@ public_server.post("/wp/wordpress/user/update", async (req, res) => {
         const reader = (await apihelper.get("reader", { "filter[wordpress_id]": req.body.user.data.ID, "fields": "_id" })).data.pop();
         if (!reader) throw "Reader not found";
         await wordpress_auth.sync_reader(reader._id);
-        res.send({ status: "ok" });
         if (config.debug) console.log("Synced existing user", wordpress_user_id);
     } catch(err) {
         console.log(err);
@@ -58,6 +58,7 @@ public_server.post("/wp/wordpress/user/update", async (req, res) => {
 
 public_server.post("/wp/wordpress/user/create", async (req, res) => {
     try {
+        res.send({ status: "ok" });
         // Pause for 1 sec
         await new Promise(resolve => setTimeout(resolve, 1000));
         if (config.debug) console.log(JSON.stringify(req.body, null, 2));
@@ -83,7 +84,6 @@ public_server.post("/wp/wordpress/user/create", async (req, res) => {
         //     }
         //     await wordpress_auth.add_reader_to_list(reader._id, list_id, custom_fields);
         // }
-        res.send({ status: "ok" });
         if (config.debug) console.log("Synced new user", wordpress_user_id);
     } catch(err) {
         console.error(err);
