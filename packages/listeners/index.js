@@ -4,6 +4,7 @@ const corsMiddleware = require('restify-cors-middleware2')
 const public_server = restify.createServer({
     name: config.api_name
 });
+const protected_server = require("@revengine/http_server");
 const Reports = require("@revengine/reports");
 
 const cors = corsMiddleware({
@@ -140,7 +141,7 @@ public_server.post("/wp/reader/labels", async(req, res) => {
             labels: [],
             segments: [],
         }
-        console.log(user_data);
+        // console.log(user_data);
         if (user_data) {
             if (user_data.labels) {
                 data.labels = user_data.labels.map(label => label.code);
@@ -150,6 +151,59 @@ public_server.post("/wp/reader/labels", async(req, res) => {
             }
         }
         if (config.debug) console.log(data);
+        res.send(data);
+    } catch(err) {
+        console.error(err);
+        res.send({ status: "error", error: err.toString() });
+    }
+});
+
+protected_server.get("/wp/readers/labels", async(req, res) => {
+    try {
+        const raw_data = (await apihelper.aggregate("reader", [
+            {
+                $lookup: {
+                    from: "labels",
+                    localField: "label_id",
+                    foreignField: "_id",
+                    as: "labels"
+                }
+            },
+            {
+                $lookup: {
+                    from: "segmentations",
+                    localField: "segmentation_id",
+                    foreignField: "_id",
+                    as: "segments"
+                }
+            },
+            { 
+                $project: {
+                    "_id": false,
+                    "labels.code": 1,
+                    "segments.code": 1,
+                } 
+            },
+        ])).data;
+        if (!raw_data.length) throw "Data not found";
+        const data = raw_data.map(user_data => {
+            const user = {
+                wordpress_id: user_data.wordpress_id,
+                labels: [],
+                segments: [],
+            }
+            if (user_data) {
+                if (user_data.labels) {
+                    user.labels = user_data.labels.map(label => label.code);
+                }
+                if (user_data.segments) {
+                    user.segments = user_data.segments.map(segment => segment.code);
+                }
+            }
+            return user;
+        })
+        .filter(user => user.labels.length || user.segments.length);
+        if (config.debug) console.log(data.slice(0, 10));
         res.send(data);
     } catch(err) {
         console.error(err);
@@ -169,8 +223,6 @@ public_server.post("/ml/prediction_dump", ml.prediction_dump);
 public_server.listen(config.listeners.public_port || 3020, function () {
     console.log('%s listening at %s', public_server.name, public_server.url);
 });
-
-const protected_server = require("@revengine/http_server");
 
 protected_server.get("/email/mailrun/:mailrun_id", async (req, res) => {
     try {
