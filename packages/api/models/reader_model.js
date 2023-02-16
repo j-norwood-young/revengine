@@ -58,6 +58,7 @@ const ReaderSchema = new JXPSchema({
 
     medium: String,
     source: String,
+    campaign: String,
     browser: String,
     browser_version: String,
     device: String,
