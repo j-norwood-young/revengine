@@ -83,6 +83,7 @@ class RFV {
         this.y1 = y1_date.toISOString();
     }
 
+    // How many times has this reader clicked on a link in the last 30 days?
     async calculate_frequencies() {
         const f_pipeline = [
             { 
@@ -101,9 +102,28 @@ class RFV {
                 }
             },
             {
+                $project: {
+                    "email": "$email",
+                    "timestamp": "$timestamp",
+                    // "day_of_week": { $dayOfWeek: "$timestamp" },
+                    // "day_of_month": { $dayOfMonth: "$timestamp" },
+                    "day_of_year": { $dayOfYear: "$timestamp" },
+                }
+            },
+            {
                 $group: {
-                    _id: { email: "$email" },
+                    _id: { email: "$email", day_of_year: "$day_of_year" },
+                }
+            },
+            {
+                $group: {
+                    _id: { email: "$_id.email" },
                     count: { $sum: 1 }
+                }
+            },
+            {
+                $sort: {
+                    "count": -1
                 }
             },
             {
@@ -147,9 +167,6 @@ class RFV {
                     last_timestamp: { $last: "$timestamp" }
                 }
             },
-            // {
-            //     $sort: { last_timestamp: -1 }
-            // },
             {
                 $project: {
                     "email": "$_id.email",
