@@ -210,7 +210,7 @@ class RFV {
             },
             {
                 $group: {
-                    _id: { email: "$email" },
+                    _id: { email: "$email", url: "$url" },
                     count: { $sum: 1 }
                 }
             },
