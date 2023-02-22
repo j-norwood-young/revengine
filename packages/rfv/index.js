@@ -48,7 +48,7 @@ mysql revengine -e "LOAD DATA LOCAL INFILE '/root/data/rfvs.csv' INTO TABLE rfvs
 // 6. Save to users
 // 7. Use labels to calculate groups
 
-const save_rfv = (data) => {
+const save_rfv = (data, date) => {
     try {
         const update = data.map(item => {
             return {
@@ -56,7 +56,7 @@ const save_rfv = (data) => {
                     "upsert": true,
                     "update": item,
                     "filter": {
-                        "date": item.date,
+                        "date": moment(date).startOf("day").toDate(),
                         "email": item.email
                     }
                 }
@@ -78,7 +78,8 @@ const calc_frequency = async (date) => {
         // console.log(touchbase_frequency);
         const frequencies = [...touchbase_frequency];
         while (frequencies.length) {
-            const result = await save_rfv(frequencies.splice(0, 1000));
+            console.log(frequencies.length);
+            const result = await save_rfv(frequencies.splice(0, 1000), date);
             // const result = await jxphelper.bulk_postput("reader", "email", frequencies.splice(0, 1000))
             // console.log(JSON.stringify(result.data, null, "\t"));
         }
@@ -119,7 +120,7 @@ const calc_recency = async (date) => {
         while (recencies.length) {
             // console.log(recencies.slice(0, 1));
             console.log(recencies.length);
-            const result = await save_rfv(recencies.splice(0, 1000));
+            const result = await save_rfv(recencies.splice(0, 1000), date);
             // const result = await jxphelper.bulk_postput("reader", "email", recencies.splice(0, 1000))
             // console.log(JSON.stringify(result.data, null, "\t"));
         }
@@ -138,7 +139,8 @@ const calc_volume = async (date) => {
         // console.log(touchbase_volume);
         const volumes = [...touchbase_volume];
         while (volumes.length) {
-            const result = await save_rfv(volumes.splice(0, 1000));
+            console.log(volumes.length);
+            const result = await save_rfv(volumes.splice(0, 1000), date);
             // const result = await jxphelper.bulk_postput("reader", "email", volumes.splice(0, 1000))
             // console.log(JSON.stringify(result.data, null, "\t"));
         }
@@ -185,6 +187,7 @@ const assign_reader_ids = async() => {
     try {
         const readers = (await jxphelper.get("reader", { "fields": "email" })).data.filter(reader => (reader.email));
         console.log(`Sycing ${readers.length} emails...`)
+        const total = readers.length;
         while(readers.length) {
             const query = readers.splice(0,1000).map(reader => {
                 return {
@@ -194,6 +197,7 @@ const assign_reader_ids = async() => {
                     }
                 }
             })
+            console.log(`${readers.length} / ${total} (${Math.round((readers.length / total) * 100)}%)`);
             const result = await jxphelper.bulk("rfv", query);
         }
     } catch(err) {

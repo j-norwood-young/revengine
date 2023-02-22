@@ -37,22 +37,33 @@ class Frequency {
                     "timestamp": {
                         $gte: `new Date(\"${this.date}\")`,
                         $lt: `new Date(\"${this.end_date}\")`
-                    },
+                    }
                     // "event": "opens",
                 }
             },
             {
+                $project: {
+                    "email": "$email",
+                    "timestamp": "$timestamp",
+                    // "day_of_week": { $dayOfWeek: "$timestamp" },
+                    // "day_of_month": { $dayOfMonth: "$timestamp" },
+                    "day_of_year": { $dayOfYear: "$timestamp" },
+                }
+            },
+            {
                 $group: {
-                    _id: { 
-                        email: "$email",
-                        date: {
-                            "$dateToString": {
-                                "format": "%Y-%m-%d",
-                                "date": "$timestamp"
-                            }
-                        }
-                    },
+                    _id: { email: "$email", day_of_year: "$day_of_year" },
+                }
+            },
+            {
+                $group: {
+                    _id: { email: "$_id.email" },
                     count: { $sum: 1 }
+                }
+            },
+            {
+                $sort: {
+                    "count": -1
                 }
             },
             {
