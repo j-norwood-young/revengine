@@ -108,9 +108,9 @@ function toSet(a) {
 }
 
 // Trimmed lowercase email
-ReaderSchema.pre("save", function() {
-    this.email = this.email.toLowerCase().trim();
-})
+// ReaderSchema.pre("save", function() {
+//     this.email = this.email.toLowerCase().trim();
+// })
 
 // Newsletters
 ReaderSchema.pre("save", async function() {
