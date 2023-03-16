@@ -4,7 +4,7 @@ const config = require("config");
 const moment = require("moment");
 
 const opts = {
-    "fields": "email,first_name,last_name,createdAt,updatedAt,label_id,segmentation_id,cc_expiry_date,cc_last4_digits"
+    "fields": "email,first_name,last_name,createdAt,updatedAt,label_id,segmentation_id,cc_expiry_date,cc_last4_digits,wordpress_id,paying_customer"
 }
 
 router.get("/json/:type/:_id", async (req, res) => {
