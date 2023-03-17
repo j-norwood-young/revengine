@@ -5,6 +5,7 @@ const public_server = restify.createServer({
     name: config.api_name
 });
 const protected_server = require("@revengine/http_server");
+protected_server.use(restify.plugins.bodyParser()); 
 const Reports = require("@revengine/reports");
 
 const cors = corsMiddleware({
@@ -230,6 +231,21 @@ protected_server.get("/email/mailrun/:mailrun_id", async (req, res) => {
         res.send(result);
     } catch(err) {
         res.status(500).send({ error: err.toString() });
+    }
+});
+
+protected_server.post("/add_autologin", async (req, res) => {
+    try {
+        const user_id = req.body.user_id;
+        const tbp_list_id = req.body.list_id;
+        if (!user_id) throw "No user_id";
+        if (!tbp_list_id) throw "No list_id";
+        const list = (await apihelper.get("touchbaselist", { "filter[list_id]": tbp_list_id })).data.pop();
+        if (!list) throw "List not found";
+        await wordpress_auth.force_sync_reader(user_id, list._id);
+        res.send({ status: "ok" });
+    } catch(err) {
+        res.send(500, { error: err.toString() });
     }
 });
 

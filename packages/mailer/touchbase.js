@@ -508,11 +508,12 @@ const create_list = async(list_name) => {
 }
 
 const ensure_custom_fields = async(list_id, fields) => {
+    if (config.debug) console.log(`Ensuring custom fields ${fields} for list ${list_id}`);
     const existing_fields = (await axios.get(`${config.touchbase.api}/lists/${list_id}/customfields.json`, { auth })).data;
     const existing_field_names = existing_fields.map(f => f.FieldName);
     for (let field of fields) {
         if (!existing_field_names.includes(field)) {
-            console.log(`Creating custom field ${field} for list ${list_id}`);
+            if (config.debug) console.log(`Creating custom field ${field} for list ${list_id}`);
             const field_data = {
                 "FieldName": field,
                 "DataType": "Text",

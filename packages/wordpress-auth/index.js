@@ -7,7 +7,7 @@ const expect = require("expect");
 const Apihelper = require("jxp-helper");
 const apihelper = new Apihelper({ server: config.api.server, apikey: process.env.APIKEY });
 const axios = require("axios");
-const { ensure_custom_fields, add_readers_to_list } = require('@revengine/mailer/touchbase');
+const tbp = require('@revengine/mailer/touchbase');
 
 const program = new Command();
 program
@@ -58,8 +58,8 @@ const add_reader_to_list = async (reader_id, list_id, custom_fields = {}) => {
         console.log("add_reader_to_list", reader_id, list_id);
         const reader = (await apihelper.getOne("reader", reader_id)).data;
         const list = (await apihelper.getOne("touchbaselist", list_id)).data;
-        await ensure_custom_fields(list.list_id, ["auto_login_id"]);
-        await ensure_custom_fields(list.list_id, Object.keys(custom_fields));
+        await tbp.ensure_custom_fields(list.list_id, ["auto_login_id"]);
+        await tbp.ensure_custom_fields(list.list_id, Object.keys(custom_fields));
         const data = {
             "wordpress_id": reader.wordpress_id,
             "revengine_id": reader._id,
@@ -70,7 +70,7 @@ const add_reader_to_list = async (reader_id, list_id, custom_fields = {}) => {
             ...custom_fields
         }
         console.log("custom_fields_data", custom_fields_data);
-        const result = await add_readers_to_list([{
+        const result = await tbp.add_readers_to_list([{
             email: reader.email,
             first_name: reader.first_name,
             last_name: reader.last_name,
@@ -91,8 +91,10 @@ const sync_reader = async (reader_id) => {
             "revengine_id": reader._id,
             "email": reader.email
         }
+        console.log("Syncing reader", reader_id, reader.email);
         const encrypted = encrypt(data);
         const touchbase_subscriber = (await apihelper.get("touchbasesubscriber", { "filter[email]": `$regex:/${reader.email}/i`, "populate": "touchbaselist" })).data;
+        console.log(touchbase_subscriber.length, "TouchBasePro subscribers found for", reader.email);
         for (const subscriber of touchbase_subscriber) {
             const list = subscriber.touchbaselist;
             // console.log(list.name, list.list_id);
@@ -141,7 +143,7 @@ const sync_reader = async (reader_id) => {
 const sync_list = async (list_id) => {
     try {
         const list = (await apihelper.getOne("touchbaselist", list_id)).data;
-        await ensure_custom_fields(list.list_id, ["auto_login_id"]);
+        await tbp.ensure_custom_fields(list.list_id, ["auto_login_id"]);
         const pipeline = [
             { $match: { "list_id": `ObjectId(\"${list_id}\")` } },
             { $lookup: { from: "readers", localField: "email", foreignField: "email", as: "reader" } },
@@ -179,19 +181,57 @@ const sync_list = async (list_id) => {
             }
         });
         // console.log(JSON.stringify(update, null, 2));
-        const result = await add_readers_to_list(update, list.list_id);
+        const result = await tbp.add_readers_to_list(update, list.list_id);
         console.log(result);
     } catch(err) {
         console.error(JSON.stringify(err.response.data, null, 2));
     }
 }
 
-if (options.syncreader) {
-    sync_reader(options.syncreader);
+const force_sync_reader = async (reader_id, list_id) => {
+    try {
+        console.log("Syncing reader", reader_id, list_id);
+        const reader = (await apihelper.getOne("reader", reader_id)).data;
+        const data = {
+            "wordpress_id": reader.wordpress_id,
+            "revengine_id": reader._id,
+            "email": reader.email
+        }
+        const list = (await apihelper.getOne("touchbaselist", list_id)).data;
+        await tbp.ensure_custom_fields(list.list_id, ["auto_login_id"]);
+        const encrypted = encrypt(data);
+        const url = `https://api.touchbasepro.com/email/subscribers/${list.list_id}?email=${reader.email}`;
+        const result = await axios.put(url, {
+            CustomFields: [
+                {
+                    "Key": "auto_login_id",
+                    "Value": encrypted
+                }
+            ],
+            "ConsentToTrack": "Unchanged"
+        }, {
+            headers: {
+                Authorization: `Bearer ${process.env.TOUCHBASE_BEARER_APIKEY}`
+            },
+        });
+        if (config.debug) console.log(result.status, result.data);
+    } catch(err) {
+        console.log(err.response.status, err.response.statusText);
+        console.log(err.response.data);
+    }
 }
 
-if (options.synclist) {
-    sync_list(options.synclist);
+
+if (options.synclist && options.syncreader) {
+    force_sync_reader(options.syncreader, options.synclist);
+} else {
+    if (options.syncreader) {
+        sync_reader(options.syncreader);
+    }
+
+    if (options.synclist) {
+        sync_list(options.synclist);
+    }
 }
 
 module.exports = {
@@ -199,5 +239,6 @@ module.exports = {
     sync_list,
     encrypt,
     decrypt,
-    add_reader_to_list
+    add_reader_to_list,
+    force_sync_reader
 }
