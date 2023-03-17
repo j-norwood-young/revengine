@@ -217,6 +217,10 @@ public_server.post("/wp/test", (req, res) => {
     res.send({ status: "ok" });
 });
 
+protected_server.get("/test", (req, res) => {
+    res.send({ status: "ok" });
+});
+
 public_server.post("/woocommerce/subscriptions/zapier/callback", touchbase.woocommerce_subscriptions_zapier_callback);
 
 public_server.post("/ml/prediction_dump", ml.prediction_dump);
