@@ -163,7 +163,7 @@ class Collections {
                             return formatNumber(count);
                         }
                     },
-                    { name: "Download", d: data => `<a href="/download/json/label/${data._id}">JSON</a> | <a href="/download/csv/label/${data._id}">CSV</a>`, view: "none", list_view},
+                    { name: "Download", d: data => `<a href="/download/json/label/${data._id}">JSON</a> | <a href="/download/csv/label/${data._id}">CSV</a> | <a href="/download/label/autologins/${data._id}">Autologins</a>`, view: "none", list_view},
                     { name: "Touchbase", d: data => `<a href="/mails//mailinglist/subscribe_by_label/${data._id}">Add to list</a>`, view: "none", list_view},
                     { name: "Code", key: "code", d: data => data.code, list_view },
                     { name: "Prep Function", key: "fn", d: data => data.code, "view": "code", note: "Optional. Runs before applying rule. Eg: return async opts => { return [ {_id: <user_id>, name: \"val\" } ] } Available: opts.jxphelper, opts.moment. " },
