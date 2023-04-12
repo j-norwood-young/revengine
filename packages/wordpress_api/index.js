@@ -282,8 +282,47 @@ server.get("/analytics/posts", async (req, res) => {
             post_ids = [post_ids];
         }
         const report = new Reports.TopLastHour();
-        const top_articles = await report.run({ article_id: post_ids.map(id => Number(id)) });
-        res.send(top_articles.map(a => ({ post_id: a.key, hits: a.doc_count })));
+        const post_hits = await report.run({ article_id: post_ids.map(id => Number(id)) });
+        res.send(post_hits.map(a => ({ post_id: a.key, hits: a.doc_count })));
+    } catch(err) {
+        console.error(err);
+        res.send(500, { status: "error", error: err });
+    }
+});
+
+server.post("/analytics/posts", async (req, res) => {
+    try {
+        let { post_ids } = req.body;
+        if (!Array.isArray(post_ids)) {
+            if (typeof post_ids === "object") {
+                post_ids = Object.values(post_ids);
+            } else {
+                post_ids = [post_ids];
+            }
+        }
+        post_ids = post_ids.map(id => Number(id));
+        const report = new Reports.TopLastHour();
+        const top_articles = await report.run({ article_id: post_ids });
+        const result = [];
+        for(let post_id of post_ids) {
+            const post = top_articles.find(a => a.key === Number(post_id));
+            result.push({ post_id, hits: post ? post.doc_count : 0 });
+        }
+        console.log(result)
+        res.send(result);
+    } catch(err) {
+        console.error(err);
+        res.send(500, { status: "error", error: err });
+    }
+});
+
+server.post("/simulate/top_articles", async (req, res) => {
+    try {
+        const { posts } = req.body;
+        for(let post in posts) {
+            post.hits_last_hour = Math.floor(Math.random() * 100);
+        }
+        res.send(posts);
     } catch(err) {
         console.error(err);
         res.send(500, { status: "error", error: err });
