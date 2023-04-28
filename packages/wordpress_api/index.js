@@ -59,7 +59,10 @@ server.use(cors.actual);
  * - content_type: (String) return posts by content type
  * - tag: (String) return posts by tag
  * - section: (String) return posts by section
- * - exclude_section: (String) return posts by section, excluding the given section
+ * - exclude_section: (String) exclude posts by section, comma-separate for multiple
+ * - exclude_tag: (String) exclude posts by tag, comma-separate for multiple
+ * - exclude_author: (String) exclude posts by author, comma-separate for multiple
+ * - exclude_content_type: (String) exclude posts by content type, comma-separate for multiple
  * 
  * returns:
  * (Array) array of posts

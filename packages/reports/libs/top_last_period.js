@@ -47,7 +47,9 @@ class TopLastPeriod {
                                         "field": "article_id"
                                     }
                                 },
-                            ]
+                            ],
+                            "must": [],
+                            "should": [],
                         }
                     },
                     "aggs": {
@@ -102,14 +104,50 @@ class TopLastPeriod {
                 })
             }
             if (opts.exclude_section) {
-                query.body.query.bool.must_not.push({
-                    "match": {
-                        "sections": {
-                            "query": opts.exclude_section,
-                            "operator": "and"
+                const exclude_sections = opts.exclude_section.split(",").map(s => s.trim());
+                exclude_sections.forEach(exclude_section => {
+                    query.body.query.bool.must_not.push({
+                        "match": {
+                            "sections": {
+                                "query": exclude_section,
+                                "operator": "and"
+                            }
                         }
-                    }
-                })
+                    })
+                });
+            }
+            if (opts.exclude_tag) {
+                const tags = opts.exclude_tag.split(",").map(s => s.trim());
+                tags.forEach(tag => {
+                    query.body.query.bool.must_not.push({
+                        "match": {
+                            "tags": {
+                                "query": tag,
+                                "operator": "and"
+                            }
+                        }
+                    })
+                });
+            }
+            if (opts.exclude_author) {
+                const authors = opts.exclude_author.split(",").map(s => s.trim());
+                authors.forEach(author => {
+                    query.body.query.bool.must_not.push({
+                        "term": {
+                            "author_id": author
+                        }
+                    })
+                });
+            }
+            if (opts.exclude_content_type) {
+                const content_types = opts.exclude_content_type.split(",").map(s => s.trim());
+                content_types.forEach(content_type => {
+                    query.body.query.bool.must_not.push({
+                        "term": {
+                            "content_type": content_type
+                        }
+                    })
+                });
             }
             if (opts.published_date_gte) {
                 query.body.query.bool.filter.push({
@@ -120,7 +158,7 @@ class TopLastPeriod {
                     }
                 })
             }
-            // console.log(JSON.stringify(query, null, "  "));
+            console.log(JSON.stringify(query, null, "  "));
             const esresult = await esclient.search(query)
             const result = esresult.aggregations.result.buckets.sort((a, b) => b.doc_count - a.doc_count);
             // console.log(JSON.stringify(esresult, null, "  "));
