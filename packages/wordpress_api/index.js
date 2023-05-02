@@ -112,7 +112,8 @@ server.use(cors.actual);
         "img_medium": "https://www.dailymaverick.co.za/wp-content/uploads/fire-pic-480x360.jpeg",
         "img_thumbnail": "https://www.dailymaverick.co.za/wp-content/uploads/fire-pic-150x150.jpeg",
         "custom_section_label": "Pyrocene Cape II",
-        "hits": 4
+        "hits": 4,
+        "url": "https://www.dailymaverick.co.za/article/2021-04-18-out-of-control-table-mountain-fire-forces-uct-evacuation/"
     },
     ...
     ]
@@ -150,6 +151,7 @@ server.get("/top_articles/:period", apicache.middleware("5 minutes"), async (req
         ])).data;
         for (let article of articles) {
             article.hits = top_articles.find(hit => hit.key === article.post_id).doc_count;
+            article.url = `https://www.dailymaverick.co.za/article/${article.date_published.substring(0, 10)}-${article.urlid}`;
         }
         articles.sort((a, b) => b.hits - a.hits);
         let filtered_articles = articles;
