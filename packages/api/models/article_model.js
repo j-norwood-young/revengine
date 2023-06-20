@@ -11,6 +11,7 @@ const ArticleSchema = new JXPSchema({
     excerpt: String,
     type: String,
     tags: [ String ],
+    terms: [ String ],
     sections: [ String ],
     custom_section_label: String,
     img_thumbnail: String,
@@ -71,6 +72,9 @@ const ArticleSchema = new JXPSchema({
         all: ""
     }
 });
+
+ArticleSchema.index({ terms: 1 });
+ArticleSchema.index({ tags: 1 });
 
 const Article = JXPSchema.model('Article', ArticleSchema);
 module.exports = Article;
