@@ -13,7 +13,7 @@ module.exports.parse_utm = function (url) {
             utm_term: null,
         };
     }
-    if (utm.utm_medium === "email") derived_referer_medium = "email";
+    // if (utm.utm_medium === "email") derived_referer_medium = "email";
     return {
         derived_utm_campaign: utm.utm_campaign,
         derived_utm_content: utm.utm_content,
