@@ -12,7 +12,7 @@ const content = async (params = {}) => {
         if (!params.scheduled_report_id) return "?scheduled_report_id=<scheduled_report_id> required";
         const fname = `/tmp/${params.scheduled_report_id}.pdf`
         const url = `${config.frontend.url}report/editorial_dashboard_mail?scheduled_report_id=${params.scheduled_report_id}&mail_view=1&apikey=${process.env.APIKEY}&user_id=${process.env.USER_ID}`
-        console.log(url)
+        // console.log(url)
         browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
         const page = await browser.newPage();
         await page.goto(url)

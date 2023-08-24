@@ -28,7 +28,7 @@ class Newsletter {
     }
 
     async run(opts) {
-        console.log("Running");
+        // console.log("Running");
         opts = Object.assign({
             start: moment().subtract(2, "day").toDate()
         }, opts);
@@ -105,7 +105,7 @@ class Newsletter {
     }
 
     async list_report() {
-        console.log("list_report");
+        // console.log("list_report");
         const lists = (await jxphelper.get("touchbaselist", { "sort[name]": 1 })).data;
         const stats = (await jxphelper.get("touchbaseliststats", { "sort[total_active_subscribers]": -1, "filter[date]": `${ moment().utc().startOf("day").format("YYYY-MM-DD") }`, "populate[touchbaselist]": "name" })).data;
         return {

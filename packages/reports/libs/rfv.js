@@ -184,7 +184,7 @@ class RFV {
         });
         recency_result.sort((a, b) => a.recency - b.recency)
         const values = recency_result.map(a => a.recency);
-        console.log(values.length);
+        // console.log(values.length);
         for (let recency of recency_result) {
             recency.quantile_rank = ss.quantileRankSorted(values, recency.recency)
         }

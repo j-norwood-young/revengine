@@ -74,7 +74,7 @@ class TopLastHour {
                 }
             })
         }
-        console.log(JSON.stringify(query, null, 2));
+        // console.log(JSON.stringify(query, null, 2));
         const result = (await esclient.search(query)).aggregations.result.buckets;
         return result;
     }

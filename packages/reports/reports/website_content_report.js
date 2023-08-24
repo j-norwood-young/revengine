@@ -74,7 +74,7 @@ const content = async () => {
         }
 
         // console.log(top_articles_per_section);
-        console.log({ day_start_days_ago, day_end_days_ago, week_start_days_ago, week_end_days_ago, month_start_days_ago, month_end_days_ago });
+        // console.log({ day_start_days_ago, day_end_days_ago, week_start_days_ago, week_end_days_ago, month_start_days_ago, month_end_days_ago });
         return template({ moment, numberFormat, top_articles_one_day, bottom_articles_one_day, top_articles_one_week, bottom_articles_one_week, tags_one_week, tags_one_month, sections_one_week, sections_one_month, long_tails, sections, top_articles_per_section, bottom_articles_per_section , day_start_days_ago, day_end_days_ago, week_start_days_ago, week_end_days_ago, month_start_days_ago, month_end_days_ago });
     } catch (err) {
         console.error(err);

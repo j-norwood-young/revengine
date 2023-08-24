@@ -158,7 +158,7 @@ class TopLastPeriod {
                     }
                 })
             }
-            console.log(JSON.stringify(query, null, "  "));
+            // console.log(JSON.stringify(query, null, "  "));
             const esresult = await esclient.search(query)
             const result = esresult.aggregations.result.buckets.sort((a, b) => b.doc_count - a.doc_count);
             // console.log(JSON.stringify(esresult, null, "  "));
