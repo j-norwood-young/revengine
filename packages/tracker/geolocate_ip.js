@@ -14,7 +14,7 @@ module.exports.geolocate_ip = async function (ip) {
         derived_country_code: geo_data.country.iso_code,
         derived_latitude: geo_data.location.latitude,
         derived_longitude: geo_data.location.longitude,
-        derived_region: isArray(geo_data.subdivisions) ? geo_data.subdivisions[0]?.names.en : undefined,
+        derived_region: Array.isArray(geo_data.subdivisions) ? geo_data.subdivisions[0]?.names.en : undefined,
     }
 }
 
