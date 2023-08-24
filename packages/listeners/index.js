@@ -26,18 +26,22 @@ const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env
 // const woocommerce = require("./woocommerce");
 
 public_server.post("/wp/woocommerce/subscription/update", touchbase.woocommerce_subscriptions_callback, async (req, res) => {
-    res.send({ status: "ok" });
-    if (config.debug) {
-        console.log(JSON.stringify(req.body, null, 2));
-    }
-    const wordpress_user_id = req.body.subscription.customer_id;
-    const data = await sync_wordpress.sync_user(wordpress_user_id);
-    if (config.debug) console.log(data);
-    const subscription_data = await sync_wordpress.sync_subscription(wordpress_user_id);
-    if (config.debug) console.log(subscription_data);
-    // Is this a new subscription?
-    if (req.body.old === "pending" && req.body.new === "active") {
-        
+    try {
+        res.send({ status: "ok" });
+        if (config.debug) {
+            console.log(JSON.stringify(req.body, null, 2));
+        }
+        const wordpress_user_id = req.body.subscription.customer_id;
+        const data = await sync_wordpress.sync_user(wordpress_user_id);
+        if (config.debug) console.log(data);
+        const subscription_data = await sync_wordpress.sync_subscription(wordpress_user_id);
+        if (config.debug) console.log(subscription_data);
+        // Is this a new subscription?
+        if (req.body.old === "pending" && req.body.new === "active") {
+            
+        }
+    } catch(err) {
+        console.error(err);
     }
 });
 
@@ -54,7 +58,6 @@ public_server.post("/wp/wordpress/user/update", async (req, res) => {
         if (config.debug) console.log("Synced existing user", wordpress_user_id);
     } catch(err) {
         console.error(err);
-        res.send({ status: "error" });
     }
 });
 
@@ -64,32 +67,12 @@ public_server.post("/wp/wordpress/user/create", async (req, res) => {
         // Pause for 1 sec
         await new Promise(resolve => setTimeout(resolve, 1000));
         if (config.debug) console.log(JSON.stringify(req.body, null, 2));
-        console.log(JSON.stringify(req.body, null, 2));
         const wordpress_user_id = req.body.user.data.ID;
         const data = await sync_wordpress.sync_user(wordpress_user_id);
         if (config.debug) console.log(data);
-        // const reader = (await apihelper.get("reader", { "filter[wordpress_id]": wordpress_user_id, "fields": "_id" })).data.pop();
-        // if (!reader) throw "Reader not found";
-        // const wordpressuser = (await apihelper.get("wordpressuser", { "filter[id]": wordpress_user_id })).data;
-        // if (!wordpressuser) throw "Wordpressuser not found";
-        // const list_ids = config.wp_auth.add_to_tbp_lists;
-        // for (let list_id of list_ids) {
-        //     const custom_fields = {};
-        //     if (wordpressuser._dm_campaign_created_by_utm_source) {
-        //         custom_fields.Source = wordpressuser._dm_campaign_created_by_utm_source;
-        //     }
-        //     if (wordpressuser._dm_campaign_created_by_utm_medium) {
-        //         custom_fields.Medium = wordpressuser._dm_campaign_created_by_utm_medium;
-        //     }
-        //     if (wordpressuser._dm_campaign_created_by_utm_campaign) {
-        //         custom_fields.Campaign = wordpressuser._dm_campaign_created_by_utm_campaign;
-        //     }
-        //     await wordpress_auth.add_reader_to_list(reader._id, list_id, custom_fields);
-        // }
         if (config.debug) console.log("Synced new user", wordpress_user_id);
     } catch(err) {
         console.error(err);
-        res.send({ status: "error", error: err.toString() });
     }
 });
 
@@ -99,7 +82,7 @@ public_server.post("/wp/wordpress/user/delete", async (req, res) => {
         res.send({ status: "not implemented" });
     } catch(err) {
         console.error(err);
-        res.send({ status: "error", error: err.toString() });
+        res.send(500, { status: "error", error: err.toString() });
     }
 });
 
@@ -142,7 +125,6 @@ public_server.post("/wp/reader/labels", async(req, res) => {
             labels: [],
             segments: [],
         }
-        // console.log(user_data);
         if (user_data) {
             if (user_data.labels) {
                 data.labels = user_data.labels.map(label => label.code);
@@ -155,7 +137,7 @@ public_server.post("/wp/reader/labels", async(req, res) => {
         res.send(data);
     } catch(err) {
         console.error(err);
-        res.send({ status: "error", error: err.toString() });
+        res.send(500, { status: "error", error: err.toString() });
     }
 });
 
@@ -208,7 +190,7 @@ protected_server.get("/wp/readers/labels", async(req, res) => {
         res.send(data);
     } catch(err) {
         console.error(err);
-        res.send({ status: "error", error: err.toString() });
+        res.send(500, { status: "error", error: err.toString() });
     }
 });
 
@@ -230,7 +212,7 @@ protected_server.get("/email/mailrun/:mailrun_id", async (req, res) => {
         const result = await touchbase.run_mailrun(req.params.mailrun_id);
         res.send(result);
     } catch(err) {
-        res.status(500).send({ error: err.toString() });
+        res.send(500, { error: err.toString() });
     }
 });
 
