@@ -14,7 +14,7 @@ const options = program.opts();
 
 const main = async () => {
     try {
-        console.log(options);
+        // console.log(options);
         if (!options.collections) throw "Collection required";
         const collections = options.collections;
         const mongo_kafka_stream = new MongoKafkaStream();

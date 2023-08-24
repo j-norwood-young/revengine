@@ -21,13 +21,13 @@ class Get extends Action {
             this.pg = 0;
             const count = await jxphelper.count(this.instructions.collection, this.options);
             this.options.limit = this.options.per_page;
-            console.log(this.options);
+            // console.log(this.options);
             const pages = Math.ceil(count / this.options.per_page);
             for (let page = 0; page < pages; page++) {
                 const complete = page * this.options.per_page;
                 const to_go = count - complete;
                 const perc = complete / count * 100;
-                console.log({pages, page, complete, to_go, perc});
+                // console.log({pages, page, complete, to_go, perc});
                 this.options.page = page;
                 this.data = (await jxphelper.get(this.instructions.collection, this.options)).data;
                 if (this.instructions.parse) {
@@ -51,9 +51,9 @@ class Get extends Action {
                     this.global_data = this.data;
                     this.data = tmp;
                 }
-                console.log({ length_after: this.data.length });
+                // console.log({ length_after: this.data.length });
                 const result = await this.next(this.data, this.global_data);
-                console.log(result);
+                // console.log(result);
             }
             return [];
         } catch (err) {

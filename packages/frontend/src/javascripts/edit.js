@@ -26,9 +26,9 @@ class Edit {
             e.preventDefault();
             const action_id = $(e.currentTarget).data("id");
             const action = self.datadef.actions[action_id];
-            console.log(self.datadef, { action });
+            // console.log(self.datadef, { action });
             const result = await action.action(this.data);
-            console.log(result);
+            // console.log(result);
         })
     }
 

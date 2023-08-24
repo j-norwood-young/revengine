@@ -104,7 +104,7 @@ const convertRecords = new Stream.Transform({
 const log = new Stream.Transform({
     objectMode: true,
     transform(data, encoding, callback) {
-        console.log(data);
+        // console.log(data);
         this.push(data);
         callback(null);
     },
@@ -164,7 +164,7 @@ const main = async() => {
         if (options.collection) {
             limited_defs = defs.filter(def => def.collection === options.collection);
         }
-        console.log({ collection: options.collection });
+        // console.log({ collection: options.collection });
         if (!limited_defs.length) throw `Collection ${options.collection} not found`;
         // Truncate, then Find time this collection was last updated
         for (let def of limited_defs) {

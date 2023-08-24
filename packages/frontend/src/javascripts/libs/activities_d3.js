@@ -71,7 +71,7 @@ class ActivitiesD3 {
                 const color = d3.scaleOrdinal()
                     .domain([1, max])
                     .range(["#8BF656", "#70CE44", "#56A832", "#3F8223", "#2B5F15", "#183E09"]);
-                console.log('data', data);
+                // console.log('data', data);
 
                 rect.filter(function (d) { return data.has(d); })
                     .style("fill", d => color(data.get(d)))

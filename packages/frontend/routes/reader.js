@@ -17,7 +17,7 @@ router.get("/ammalgamate/:email", async(req, res) => {
     try {
         let parts = req.params.email.split("@");
         let s = `${escapeRegExp(parts[0])}(\\+.*)@${escapeRegExp(parts[1])}`
-        console.log(s);
+        // console.log(s);
         const query = {
             "$or": [
                 {
@@ -34,11 +34,11 @@ router.get("/ammalgamate/:email", async(req, res) => {
                 }
             ]
         }
-        console.log(query);
+        // console.log(query);
         const datasources = (await req.apihelper.get("datasource")).data;
         let result = {};
         for (let datasource of datasources) {
-            console.log(datasource)
+            // console.log(datasource)
             result[datasource.name] = await req.apihelper.query(datasource.model, query);
         }
         res.send(result);
@@ -414,7 +414,7 @@ router.post("/bulk_update", async (req, res) => {
             if (uber_code_override) result.uber_code_override = uber_code_override;
             return result;
         })
-        console.log(data);
+        // console.log(data);
         const result = await req.apihelper.bulk_put("reader", "email", data);
         res.render("readers/bulk_update_result", result);
     } catch (err) {

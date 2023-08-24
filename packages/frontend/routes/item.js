@@ -10,7 +10,7 @@ const loadForeignCollection = async (datadef, apihelper) => {
         for (let field of datadef.fields) {
             if (field.foreign_collection) {
                 field.options = (await apihelper.get(field.foreign_collection, { fields: "_id,name", "sort[name]": 1 })).data;
-                console.log(field.options);
+                // console.log(field.options);
             }
         }
         return datadef;
@@ -51,7 +51,7 @@ router.use("/edit/:type/:id", getCollection, async (req, res) => {
         }
         const data = (await req.apihelper.getOne(req.params.type, req.params.id)).data;
         res.locals.collection = await loadForeignCollection(res.locals.collection, req.apihelper);
-        console.log(res.locals.collection);
+        // console.log(res.locals.collection);
         res.render("item/edit", { title: data.name || res.locals.collection.name, data, type: req.params.type, pg: req.params.type });
     } catch (err) {
         console.error(err);

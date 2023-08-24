@@ -67,7 +67,7 @@ const Favourites = async (email) => {
         }
     });
     // if (!result.count) return false;
-    console.log(results)
+    // console.log(results)
     return results;
 }
 

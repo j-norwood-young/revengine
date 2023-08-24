@@ -51,6 +51,7 @@ class ArticleHits {
             try {
                 return b.peak.count - a.peak.count
             } catch (err) {
+                console.error(err);
                 console.log({ a, b });
             }
         });
@@ -225,6 +226,7 @@ class ArticleLongTails {
                 try {
                     return b.hit_count - a.hit_count
                 } catch (err) {
+                    console.error(err);
                     console.log({ a, b });
                 }
             });

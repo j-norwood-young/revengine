@@ -53,7 +53,7 @@ public_server.post("/wp/wordpress/user/update", async (req, res) => {
         await wordpress_auth.sync_reader(reader._id);
         if (config.debug) console.log("Synced existing user", wordpress_user_id);
     } catch(err) {
-        console.log(err);
+        console.error(err);
         res.send({ status: "error" });
     }
 });

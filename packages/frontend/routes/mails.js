@@ -109,7 +109,7 @@ router.post("/group", async (req, res) => {
 
 router.get("/mailrun/progress/:mailrun_id", async (req, res) => {
     try {
-        console.log(req.params.mailrun_id);
+        // console.log(req.params.mailrun_id);
         const mailrun = (await req.apihelper.getOne("mailrun", req.params.mailrun_id)).data;
         res.render("mail/mailrun", { mailrun, title: mailrun.name });
     } catch(err) {
@@ -201,7 +201,7 @@ async function subscribe_readers_to_list(readers, list, custom_fields = {}, incl
             import_date: moment().format("YYYY-MM-DD"),
             ...custom_fields 
         };
-        console.log(list);
+        // console.log(list);
         const list_id = list.ListID;
         const vouchertypes = (await apihelper.get("vouchertype")).data;
         let fieldnames = [...Object.keys(custom_fields)];
@@ -211,7 +211,7 @@ async function subscribe_readers_to_list(readers, list, custom_fields = {}, incl
         if (include_autologin) {
             fieldnames = [...fieldnames, "auto_login_id"];
         }
-        console.log({fieldnames});
+        // console.log({fieldnames});
         if (fieldnames.length > 0) {
             await ensure_custom_fields(list_id, fieldnames);
         }

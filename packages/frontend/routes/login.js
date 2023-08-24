@@ -32,7 +32,7 @@ router.post("/forgot", async (req, res) => {
         const mail = new Mail();
         const content = `Someone (hopefully you) forgot your password for ${config.frontend.sitename}. You can log in <a href="${config.frontend.url}login/token/${result.token}">HERE</a>.`
         let mailresult = await mail.send({ to: result.email, content, subject: `${config.frontend.sitename} forgotten password` })
-        console.log(mailresult);
+        // console.log(mailresult);
         res.render("login/forgot_sent");
     } catch (err) {
         console.error(err)

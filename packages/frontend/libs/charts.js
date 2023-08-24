@@ -127,13 +127,13 @@ class Charts {
     drawArticleProgress(article_progress, ctx, unit) {
         unit = unit || "month";
         const mapped = item => {
-            console.log({ item })
+            // console.log({ item })
             return {
                 x: item.key_as_string,
                 y: (item.article_progress_avg.value) ? item.article_progress_avg.value : 0
             }
         };
-        console.log({ article_progress});
+        // console.log({ article_progress});
         const data = article_progress.buckets.map(mapped).filter(d => d.y);
         let opts = {
             type: 'line',

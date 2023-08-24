@@ -6,9 +6,9 @@ class Progressbar {
         document.addEventListener("DOMContentLoaded", () => {
             self.els = document.querySelectorAll(".dynamic-progress");
             for (let el of self.els) {
-                console.log(el);
+                // console.log(el);
                 const src = el.getAttribute("src");
-                console.log(src);
+                // console.log(src);
                 const progressbar = el.querySelector(".progress-bar");
                 const remaining = el.querySelector(".remaining");
                 const complete = el.querySelector(".complete");
@@ -19,7 +19,7 @@ class Progressbar {
                 if (src) {
                     const updatefn = async function() {
                         const data = (await axios.get(src)).data;
-                        console.log(data);
+                        // console.log(data);
                         if (progressbar) {
                             progressbar.setAttribute("aria-valuenow", data.perc);
                             progressbar.style.width = `${data.perc}%`;

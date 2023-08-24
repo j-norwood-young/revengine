@@ -66,7 +66,7 @@ router.get("/label/autologins/:label_id", async (req, res) => {
                 token
             ])
         }
-        console.log(data);
+        // console.log(data);
         const csv = require("csv-stringify");
         csv(data, (err, output) => {
             if (err) throw err;

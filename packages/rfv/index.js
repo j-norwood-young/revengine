@@ -78,7 +78,7 @@ const calc_frequency = async (date) => {
         // console.log(touchbase_frequency);
         const frequencies = [...touchbase_frequency];
         while (frequencies.length) {
-            console.log(frequencies.length);
+            // console.log(frequencies.length);
             const result = await save_rfv(frequencies.splice(0, 1000), date);
             // const result = await jxphelper.bulk_postput("reader", "email", frequencies.splice(0, 1000))
             // console.log(JSON.stringify(result.data, null, "\t"));
@@ -119,7 +119,7 @@ const calc_recency = async (date) => {
         // 6. Save to users
         while (recencies.length) {
             // console.log(recencies.slice(0, 1));
-            console.log(recencies.length);
+            // console.log(recencies.length);
             const result = await save_rfv(recencies.splice(0, 1000), date);
             // const result = await jxphelper.bulk_postput("reader", "email", recencies.splice(0, 1000))
             // console.log(JSON.stringify(result.data, null, "\t"));
@@ -139,7 +139,7 @@ const calc_volume = async (date) => {
         // console.log(touchbase_volume);
         const volumes = [...touchbase_volume];
         while (volumes.length) {
-            console.log(volumes.length);
+            // console.log(volumes.length);
             const result = await save_rfv(volumes.splice(0, 1000), date);
             // const result = await jxphelper.bulk_postput("reader", "email", volumes.splice(0, 1000))
             // console.log(JSON.stringify(result.data, null, "\t"));
@@ -170,7 +170,7 @@ const historical = async(start_date, end_date) => {
         let date = moment(new Date(start_date || "2021-01-01"));
         const to_date = end_date ? moment(new Date(end_date)) : moment();
         while (date.isBefore(to_date)) {
-            console.log(date);
+            // console.log(date);
             await calc_recency(date);
             await calc_frequency(date);
             await calc_volume(date);

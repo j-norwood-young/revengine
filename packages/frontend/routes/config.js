@@ -14,7 +14,7 @@ router.get("/settings", async (req, res) => {
 router.post("/settings", async (req, res) => {
     try {
         // for (req.body as params) 
-        console.log(req.body);
+        // console.log(req.body);
         // await req.apihelper.put("config", req.session.user._id, req.body);
         res.redirect("/config/settings");
     } catch (err) {

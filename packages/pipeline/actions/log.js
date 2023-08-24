@@ -11,11 +11,13 @@ class Log extends Action {
         console.log({ index: this.index });
         console.log({ global_data: this.global_data });
         if (Array.isArray(this.data)) {
+            let resolved_data = [];
             for (let data of this.data) {
-                const resolved_data = await Promise.resolve(data);
-            } 
+                resolved_data.push(await Promise.resolve(data));
+            }
+            console.log({ data: resolved_data });
         } else {
-            console.log({ data: Promise.resolve(this.data) });
+            console.log({ data: await Promise.resolve(this.data) });
         }
         return await this.next(this.data);
     }

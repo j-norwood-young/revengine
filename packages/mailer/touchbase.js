@@ -384,7 +384,7 @@ exports.test_monthly_uber_mail = async (reader_email, to, tid) => {
     try {
         const vouchertypes = await get_vouchertypes();
         const transactional_id = config.touchbase.transactional_ids[tid];
-        console.log({ reader_email });
+        // console.log({ reader_email });
         const reader = (await apihelper.get("reader", { "filter[email]": reader_email })).data.pop();
         if (!reader) throw "Could not find reader";
         const vouchers = {};

@@ -269,7 +269,7 @@ const monetary_value = async() => {
 const total_lifetime_value = async () => {
     console.time("total_lifetime_value");
     const total_lifetime_values = await Total_Lifetime_Value();
-    console.log(total_lifetime_values.slice(0,3));
+    // console.log(total_lifetime_values.slice(0,3));
     const per_page = 10000;
     while (total_lifetime_values.length) {
         const bulk_result = await apihelper.bulk_postput("reader", "_id", total_lifetime_values.splice(0, per_page));
