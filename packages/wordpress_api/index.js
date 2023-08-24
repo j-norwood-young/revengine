@@ -313,7 +313,7 @@ server.post("/analytics/posts", async (req, res) => {
             const post = top_articles.find(a => a.key === Number(post_id));
             result.push({ post_id, hits: post ? post.doc_count : 0 });
         }
-        console.log(result)
+        // console.log(result)
         res.send(result);
     } catch(err) {
         console.error(err);
