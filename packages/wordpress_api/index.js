@@ -91,7 +91,7 @@ const top_articles_report = async (params) => {
 }
 
 /**
- * {post} /top_articles/:period?params
+ * {get} /top_articles/:period?params
  * 
  * @param (String) "hour", "day", "week", "month"
  * 
@@ -194,7 +194,7 @@ server.get("/top_articles/:period", apicache.middleware("5 minutes"), async (req
 })
 
 /**
- * {post} /top_articles
+ * {get} /top_articles
  * 
  * A shortcut for /top_articles with default size=5 and period=hour
  * 
