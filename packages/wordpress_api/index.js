@@ -45,14 +45,62 @@ server.use(cors.actual);
     }
 })
 
+const top_articles_report = async (params) => {
+    try {
+        const report = new Reports.TopLastPeriod();
+        const default_params = {
+            size: 5,
+            start_period: "now-1h/h",
+            end_period: "now/h",
+        }
+        params = Object.assign(default_params, params);
+        const top_articles = await report.run(params);
+        let articles = (await jxphelper.aggregate("article", [
+            {
+                $match: {
+                    post_id: { $in: top_articles.map(a => a.key) }
+                }
+            },
+            {
+                $project: {
+                    post_id: 1,
+                    title: 1,
+                    urlid: 1,
+                    author: 1,
+                    exceprt: 1,
+                    sections: 1,
+                    tags: 1,
+                    custom_section_label: 1,
+                    date_published: 1,
+                    date_modified: 1,
+                    img_thumbnail: 1,
+                    img_medium: 1,
+                    img_full: 1
+                }
+            }
+        ])).data;
+        for (let article of articles) {
+            article.hits = top_articles.find(hit => hit.key === article.post_id).doc_count;
+            article.url = `https://www.dailymaverick.co.za/article/${article.date_published.substring(0, 10)}-${article.urlid}`;
+        }
+        articles.sort((a, b) => b.hits - a.hits);
+        return articles.slice(0, params.size);
+    } catch(err) {
+        throw err;
+    }
+}
+
 /**
  * {post} /top_articles/:period?params
  * 
  * @param (String) "hour", "day", "week", "month"
  * 
- * POST params:
+ * Query params:
  * - size: (Int) number of posts to return, default: 5
  * - published_date_gte: (Date) return posts published on or after this date
+ * - start_period: (ES Period) filter hits on or after this date (NOTE: this will override the period parameter, but you could just use /top_articles endpoint for clarity)
+ * - end_period: (ES Period) filter hits on or before this date
+ * - signed_in: (Boolean) filter hits by signed in users
  * - unfiltered_fallback: (Boolean) return unfiltered posts if less than ${size} results are found
  * - article_id: (Int) return a single post by id
  * - author: (String) return posts by author
@@ -120,87 +168,45 @@ server.use(cors.actual);
  **/
 server.get("/top_articles/:period", apicache.middleware("5 minutes"), async (req, res) => {
     try {
-        const report = new Reports.TopLastPeriod();
-        const size = req.query.size || req.params.size || 5;
-        const params = Object.assign({ size }, req.params, req.query);
-        // console.log(params);
-        const top_articles = await report.run(params);
-        let articles = (await jxphelper.aggregate("article", [
-            {
-                $match: {
-                    post_id: { $in: top_articles.map(a => a.key) }
-                }
-            },
-            {
-                $project: {
-                    post_id: 1,
-                    title: 1,
-                    urlid: 1,
-                    author: 1,
-                    exceprt: 1,
-                    sections: 1,
-                    tags: 1,
-                    custom_section_label: 1,
-                    date_published: 1,
-                    date_modified: 1,
-                    img_thumbnail: 1,
-                    img_medium: 1,
-                    img_full: 1
-                }
-            }
-        ])).data;
-        for (let article of articles) {
-            article.hits = top_articles.find(hit => hit.key === article.post_id).doc_count;
-            article.url = `https://www.dailymaverick.co.za/article/${article.date_published.substring(0, 10)}-${article.urlid}`;
+        const periods = {
+            hour: "now-1h/h",
+            day: "now-1d/d",
+            week: "now-7d/d",
+            month: "now-30d/d",
+            // sixmonth: "now-6M/M",
+            // year: "now-1y/y",
         }
-        articles.sort((a, b) => b.hits - a.hits);
-        let filtered_articles = articles;
-        if (params.published_date_gte) {
-            filtered_articles = articles.filter(a => +new Date(a.date_published) >= +new Date(params.published_date_gte));
+        const period = req.params.period;
+        if (!periods[period]) throw `Unknown period. Choose from ${ Object.keys(periods).join(", ")}`;
+        const size = req.query.size || 5;
+        const start_period = periods[period];
+        const end_period = "now/h";
+        const params = Object.assign({ size, start_period, end_period }, req.query);
+        if (config.debug) {
+            console.log({ params });
         }
-        if (params.unfiltered_fallback && filtered_articles.length < size) {
-            filtered_articles = articles;
-        }
-        res.send(filtered_articles.slice(0, size));
+        const articles = await top_articles_report(params);
+        res.send(articles);
     } catch(err) {
         console.error(err);
         res.send(500, { status: "error", error: err });
     }
 })
 
+/**
+ * {post} /top_articles
+ * 
+ * A shortcut for /top_articles with default size=5 and period=hour
+ * 
+ */
 server.get("/top_articles", apicache.middleware("5 minutes"), async (req, res) => {
     try {
-        const report = new Reports.TopLastHour();
-        const size = +req.query.size || 5;
-        const top_articles = await report.run({ size });
-        const articles = (await jxphelper.aggregate("article", [
-            {
-                $match: {
-                    post_id: { $in: top_articles.map(a => a.key) }
-                }
-            },
-            {
-                $project: {
-                    post_id: 1,
-                    title: 1,
-                    urlid: 1,
-                    author: 1,
-                    exceprt: 1,
-                    sections: 1,
-                    tags: 1,
-                    date_published: 1,
-                    date_modified: 1,
-                    img_thumbnail: 1,
-                    img_medium: 1,
-                    img_full: 1
-                }
-            }
-        ])).data;
-        for (let article of articles) {
-            article.hits_last_hour = top_articles.find(hit => hit.key === article.post_id).doc_count;
-        }
-        articles.sort((a, b) => b.hits_last_hour - a.hits_last_hour);
-        res.send(articles.slice(0, size));
+        const params = Object.assign({
+            size: req.query.size || 5,
+            start_period: "now-1h/h",
+        }, req.query);
+        const articles = await top_articles_report(params);
+        res.send(articles);
     } catch(err) {
         console.error(err);
         res.send(500, { status: "error", error: err });

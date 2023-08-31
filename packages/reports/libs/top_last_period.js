@@ -7,25 +7,28 @@ const esclient = require("@revengine/common/esclient");
 class TopLastPeriod {
     async run(opts) {
         try {
-            const periods = {
-                hour: "now-1h/h",
-                day: "now-1d/d",
-                week: "now-7d/d",
-                month: "now-30d/d",
-                // sixmonth: "now-6M/M",
-                // year: "now-1y/y",
-            }
+            // const periods = {
+            //     hour: "now-1h/h",
+            //     day: "now-1d/d",
+            //     week: "now-7d/d",
+            //     month: "now-30d/d",
+            //     // sixmonth: "now-6M/M",
+            //     // year: "now-1y/y",
+            // }
             opts = Object.assign({
                 size: 40,
                 article_id: null,
                 section: null,
                 author: null,
                 tag: null,
-                period: "week",
+                start_period: "week",
+                end_period: "now",
             }, opts);
-            if (!periods[opts.period]) throw `Unknown period. Choose from ${ Object.keys(periods).join(", ")}`;
+            // if (!periods[opts.period]) throw `Unknown period. Choose from ${ Object.keys(periods).join(", ")}`;
             const size = Number(opts.size) + 2;
-            // console.log(opts);
+            if (config.debug) {
+                console.log({opts});
+            }
             const query = {
                 index: "pageviews_copy",
                 body: {
@@ -37,8 +40,8 @@ class TopLastPeriod {
                                 {
                                     "range": {
                                         "time": {
-                                            "lt": "now",
-                                            "gte": periods[opts.period],
+                                            "lt": opts.end_period,
+                                            "gte": opts.start_period,
                                         }
                                     }
                                 },
@@ -158,7 +161,16 @@ class TopLastPeriod {
                     }
                 })
             }
-            // console.log(JSON.stringify(query, null, "  "));
+            if (opts.signed_in) {
+                query.body.query.bool.filter.push({
+                    "term": {
+                        "signed_in": true
+                    }
+                })
+            }
+            if (config.debug) {
+                console.log(JSON.stringify(query, null, "  "));
+            }
             const esresult = await esclient.search(query)
             const result = esresult.aggregations.result.buckets.sort((a, b) => b.doc_count - a.doc_count);
             // console.log(JSON.stringify(esresult, null, "  "));
