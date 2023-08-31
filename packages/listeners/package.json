@@ -14,7 +14,7 @@
       "@revengine/common": "^0.0.1",
       "axios": "^0.24.0",
       "config": "^3.3.1",
-      "node-fetch": "2.6.1",
+      "node-fetch": "2.6.7",
       "restify":"^8.5.1",
       "restify-cors-middleware":"^1.1.1",
       "restify-plugins":"^1.6.0",
