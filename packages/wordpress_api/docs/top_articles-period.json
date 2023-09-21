@@ -1,0 +1,271 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Top Articles",
+        "description": "Returns the top articles for a given period",
+        "version": "0.1.0"
+    },
+    "servers": [
+        {
+            "url": "https://wordpressapi.revengine.dailymaverick.co.za",
+            "description": "RevEngine Production server"
+        },
+        {
+            "url": "http://revengine.dailymaverick.co.za:3019",
+            "description": "RevEngine Development server"
+        }
+    ],
+    "paths": {
+        "/top_articles/{period}": {
+            "get": {
+                "summary": "Returns the top articles for a given period",
+                "description": "Returns the top articles for a given period",
+                "parameters": [
+                    {
+                        "name": "period",
+                        "in": "path",
+                        "description": "The period to return articles for",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "hour",
+                                "day",
+                                "week",
+                                "month"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "size",
+                        "in": "query",
+                        "description": "The number of articles to return",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 5
+                        }
+                    },
+                    {
+                        "name": "published_date_gte",
+                        "in": "query",
+                        "description": "Return articles published on or after this date",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "start_period",
+                        "in": "query",
+                        "description": "Return hits received on or after this date",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "now-1h/h",
+                            "enum": [
+                                "now-1h/h",
+                                "now-1d/d",
+                                "now-7d/d",
+                                "now-30d/d"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "end_period",
+                        "in": "query",
+                        "description": "Return hits received on or before this date",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "now",
+                            "enum": [
+                                "now",
+                                "now-1h/h",
+                                "now-1d/d",
+                                "now-7d/d",
+                                "now-30d/d"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "signed_in",
+                        "in": "query",
+                        "description": "Filter hits by signed in users",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    {
+                        "name": "article_id",
+                        "in": "query",
+                        "description": "Return a single post by id",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "author",
+                        "in": "query",
+                        "description": "Return posts by author",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "content_type",
+                        "in": "query",
+                        "description": "Return posts by content type",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "tag",
+                        "in": "query",
+                        "description": "Return posts by tag",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "section",
+                        "in": "query",
+                        "description": "Return posts by section",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "exclude_section",
+                        "in": "query",
+                        "description": "Exclude posts by section, comma-separate for multiple",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "exclude_tag",
+                        "in": "query",
+                        "description": "Exclude posts by tag, comma-separate for multiple",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "exclude_author",
+                        "in": "query",
+                        "description": "Exclude posts by author, comma-separate for multiple",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "exclude_content_type",
+                        "in": "query",
+                        "description": "Exclude posts by content type, comma-separate for multiple",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+
+                ],
+                "responses": {
+                    "200": {
+                        "description": "An array of articles",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Article"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Article": {
+                "_id": {
+                    "type": "string",
+                    "description": "The article id"
+                },
+                "post_id": {
+                    "type": "integer",
+                    "description": "The article post id"
+                },
+                "author": {
+                    "type": "string",
+                    "description": "The article author"
+                },
+                "date_modified": {
+                    "type": "string",
+                    "description": "The article date modified"
+                },
+                "date_published": {
+                    "type": "string",
+                    "description": "The article date published"
+                },
+                "sections": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "The article sections"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "The article tags"
+                },
+                "title": {
+                    "type": "string",
+                    "description": "The article title"
+                },
+                "urlid": {
+                    "type": "string",
+                    "description": "The article urlid"
+                },
+                "img_full": {
+                    "type": "string",
+                    "description": "The article full image"
+                },
+                "img_medium": {
+                    "type": "string",
+                    "description": "The article medium image"
+                },
+                "img_thumbnail": {
+                    "type": "string",
+                    "description": "The article thumbnail image"
+                },
+                "custom_section_label": {
+                    "type": "string",
+                    "description": "The article custom section label"
+                },
+                "hits": {
+                    "type": "integer",
+                    "description": "The article hits"
+                }
+            }
+        }
+    }
+}

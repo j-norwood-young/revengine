@@ -101,7 +101,6 @@ const top_articles_report = async (params) => {
  * - start_period: (ES Period) filter hits on or after this date (NOTE: this will override the period parameter, but you could just use /top_articles endpoint for clarity)
  * - end_period: (ES Period) filter hits on or before this date
  * - signed_in: (Boolean) filter hits by signed in users
- * - unfiltered_fallback: (Boolean) return unfiltered posts if less than ${size} results are found
  * - article_id: (Int) return a single post by id
  * - author: (String) return posts by author
  * - content_type: (String) return posts by content type
