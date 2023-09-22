@@ -13,23 +13,28 @@ const crypto = require("crypto");
 const Redis = require("redis");
 const redis = Redis.createClient();
 
-const name = config.name || "revengine";
-const port = config.tracker.port || 3012;
-const host = config.tracker.host || "127.0.0.1";
-const topic = config.tracker.kafka_topic || `${name}_events`;
-const cookie_name = config.tracker.cookie_name || "revengine_browser_id"
+const name = process.env.TRACKER_NAME || config.name || "revengine";
+const port = process.env.PORT || config.tracker.port || 3012;
+const kafka_server = process.env.KAFKA_SERVER || config.kafka.server || "localhost:9092";
+const host = process.env.TRACKER_HOST || config.tracker.host || "127.0.0.1";
+const topic = process.env.TRACKER_KAFKA_TOPIC || config.tracker.kafka_topic || `${name}_events`;
+const kafka_partitions = process.env.KAFKA_PARTITIONS || config.kafka.partitions || 1;
+const kafka_replication_factor = process.env.KAFKA_REPLICATION_FACTOR || config.kafka.replication_factor || 1;
+const cookie_name = process.env.TRACKER_COOKIE_NAME || config.tracker.cookie_name || "revengine_browser_id"
+const allow_origin = process.env.TRACKER_ALLOWED_ORIGINS || config.tracker.allow_origin || "*";
+
 const headers = {
     "Content-Type": "text/html",
     "Content-Disposition": "inline",
-    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Origin": allow_origin,
     "X-Powered-By": `${name}`,
 };
-const index = config.debug ? "pageviews_test" : "pageviews";
+const index = process.env.INDEX || config.debug ? "pageviews_test" : "pageviews";
 
 const Producer = kafka.Producer;
 
 const client = new kafka.KafkaClient({
-    kafkaHost: config.kafka.server || "localhost:9092",
+    kafkaHost: kafka_server
 });
 const producer = new Producer(client);
 
@@ -48,9 +53,9 @@ const producer = new Producer(client);
 if (config.debug) {
     console.log({
         topic,
-        server: config.kafka.server || "localhost:9092",
-        partitions: config.kafka.partitions || 1,
-        replicationFactor: config.kafka.replication_factor || 1,
+        server: kafka_server,
+        partitions: kafka_partitions,
+        replicationFactor: kafka_replication_factor
     });
 }
 // Ensure we have the topic created
@@ -58,8 +63,8 @@ client.createTopics(
     [
         {
             topic,
-            partitions: config.kafka.partitions || 1,
-            replicationFactor: config.kafka.replication_factor || 1,
+            partitions: kafka_partitions,
+            replicationFactor: kafka_replication_factor,
         },
     ],
     (err, result) => {
@@ -76,10 +81,11 @@ const set_esdata = async (data) => {
     if (data.user_id === "0") {
         data.user_id = null;
     }
+    const action = data.action || "hit";
     const esdata = Object.assign(
         {
             index,
-            action: "hit",
+            action,
             article_id: data.post_id,
             referer: data.referer,
             url: data.url,
@@ -178,7 +184,7 @@ const post_hit = async (req, res) => {
                     })
                 );
                 res.end();
-                console.error(err);
+                console.error(err.toString());
                 return null;
             }
             try {
@@ -187,11 +193,11 @@ const post_hit = async (req, res) => {
                 if (config.debug) console.log(esdata);
                 await send_to_kafka(esdata);
             } catch (err) {
-                console.error(err);
+                console.error(err.toString());
             }
         });
     } catch (err) {
-        console.error(err);
+        console.error(err.toString());
     }
 };
 
@@ -226,8 +232,8 @@ const get_hit = async (req, res) => {
         let cached_user_data = null;
         try {
             cached_user_data = JSON.parse(cached_user_data_json);
-        } catch (e) {
-            console.error(e);
+        } catch (err) {
+            console.error(err.toString());
         }
         if (cached_user_data) {
             if (config.debug) console.log("Cache hit", cached_user_data);
@@ -241,7 +247,7 @@ const get_hit = async (req, res) => {
             await redis.set(cache_id, JSON.stringify({user_labels, user_segments}), 'EX', 60 * 60);
         }
     } catch (err) {
-        console.error(err);
+        console.error(err.toString());
     }
     res.writeHead(200, headers);
     res.write(
@@ -265,7 +271,7 @@ const get_hit = async (req, res) => {
         }
         await send_to_kafka(esdata);
     } catch (err) {
-        console.error(err);
+        console.error(err.toString());
     }
 };
 

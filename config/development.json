@@ -114,7 +114,8 @@
         "port": 3013,
         "host": "95.216.245.172",
         "cache_size": 1,
-        "kafka_topic": "revengine_events_dev"
+        "kafka_topic": "revengine_events_dev",
+        "allow_origin": "http://localhost:8200"
     },
     "woocommerce": {
         "api": "https://www.dailymaverick.co.za/wp-json/wc/v2",

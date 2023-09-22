@@ -110,7 +110,8 @@
         "port": 4013,
         "host": "localhost",
         "cache_size": 1,
-        "kafka_topic": "revengine_events"
+        "kafka_topic": "revengine_events",
+        "allow_origin": "https://www.dailymaverick.co.za"
     },
     "woocommerce": {
         "api": "https://www.dailymaverick.co.za/wp-json/wc/v2"
