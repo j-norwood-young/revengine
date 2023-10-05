@@ -14,12 +14,13 @@ program
     .option('-t, --test', 'test encryption')
     .option('-l, --synclist <listid>', 'sync a TouchBasePro list with encrypted identification data')
     .option('-u, --syncreader <readerid>', 'sync a RevEngine Reader\'s encrypted identification data with TouchBasePro')
+    .option('-g, --generate <readerid>', 'generate encrypted identification data for a RevEngine Reader')
     .parse(process.argv);
 
 const options = program.opts();
 
 if (require.main === module && !options.mailer) {
-    console.log("Loading wordpress-auth...");
+    // console.log("Loading wordpress-auth...");
     // Do some work here
 }
 
@@ -221,6 +222,16 @@ const force_sync_reader = async (reader_id, list_id) => {
     }
 }
 
+async function generate(reader_id) {
+    const reader = (await apihelper.getOne("reader", reader_id)).data;
+    const data = {
+        "wordpress_id": reader.wordpress_id,
+        "revengine_id": reader._id,
+        "email": reader.email
+    }
+    console.log(encrypt(data));
+}
+
 
 if (options.synclist && options.syncreader) {
     force_sync_reader(options.syncreader, options.synclist);
@@ -232,6 +243,10 @@ if (options.synclist && options.syncreader) {
     if (options.synclist) {
         sync_list(options.synclist);
     }
+}
+
+if (options.generate) {
+    generate(options.generate);
 }
 
 module.exports = {
