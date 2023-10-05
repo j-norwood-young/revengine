@@ -4,7 +4,7 @@ const Woocommerce_SubscriptionSchema = new JXPSchema({
     id: Number,
     billing_interval: Number,
     billing_period: String,
-    cancelled_email_sent: { type: Boolean, default: false },
+    // cancelled_email_sent: { type: Boolean, default: false },
     created_via: String,
     customer_id: Number,
     customer_ip_address: String,
