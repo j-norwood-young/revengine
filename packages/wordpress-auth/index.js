@@ -14,7 +14,7 @@ program
     .option('-t, --test', 'test encryption')
     .option('-l, --synclist <listid>', 'sync a TouchBasePro list with encrypted identification data')
     .option('-u, --syncreader <readerid>', 'sync a RevEngine Reader\'s encrypted identification data with TouchBasePro')
-    .option('-g, --generate <readerid>', 'generate encrypted identification data for a RevEngine Reader')
+    .option('-g, --generate <readerid>', 'generate encrypted identification data for a RevEngine Reader, accepts email address or reader id')
     .parse(process.argv);
 
 const options = program.opts();
@@ -222,16 +222,41 @@ const force_sync_reader = async (reader_id, list_id) => {
     }
 }
 
-async function generate(reader_id) {
+async function generate_by_id(reader_id) {
     const reader = (await apihelper.getOne("reader", reader_id)).data;
+    if (!reader) throw new Error(`No reader found for id ${reader_id}`);
     const data = {
         "wordpress_id": reader.wordpress_id,
         "revengine_id": reader._id,
         "email": reader.email
     }
-    console.log(encrypt(data));
+    return encrypt(data);
 }
 
+async function generate_by_email (email) {
+    const readers = (await apihelper.get("reader", {"filter[email]": email, fields: "wordpress_id,revengine_id,email"})).data;
+    if (readers.length === 0) throw new Error(`No readers found for email ${email}`);
+    const reader = readers[0];
+    const data = {
+        "wordpress_id": reader.wordpress_id,
+        "revengine_id": reader._id,
+        "email": reader.email
+    }
+    return encrypt(data);
+}
+
+async function generate(param) {
+    try {
+        if (param.includes("@")) {
+            console.log(await generate_by_email(param));
+        } else {
+            console.log(await generate_by_id(param));
+        }
+    } catch(err) {
+        console.log(err);
+        process.exit(1);
+    }
+}
 
 if (options.synclist && options.syncreader) {
     force_sync_reader(options.syncreader, options.synclist);
