@@ -15,7 +15,7 @@ const ReaderSchema = new JXPSchema({
     // touchbasesubscriber_id: [{ type: ObjectId, link: "touchbasesubscriber" }],
     // woocommercecustomer_id: [{ type: ObjectId, link: "WoocommerceCustomer" }],
     // woocommercesubscription_id: [{ type: ObjectId, link: "WoocommerceSubscription" }],
-    wordpressuser_id: { type: ObjectId, link: "wordpressuser" },
+    wordpressuser_id: { type: ObjectId, link: "wordpressuser", index: true },
 
     // Segments and labels
     label_id: [ { type: ObjectId, link: "label" } ],
@@ -92,8 +92,8 @@ const ReaderSchema = new JXPSchema({
     volume_quantile_rank: Number,
     total_lifetime_value_score: { type: Number, index: true },
     total_lifetime_value: Number,
-    
-    _owner_id: ObjectId
+
+    sent_insider_welcome_email: { type: Date, index: true }
 },
 {
     perms: {
