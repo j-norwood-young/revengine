@@ -1,0 +1,33 @@
+extends ../layout
+
+block content
+    .container
+        h1= title
+        hr
+        p This will add the defined list of members to a new or existing mailing list. If the member is already on the mailing list, they will not be duplicated. 
+        hr
+        h4 Create a new list
+        form(method="post")
+            .form-group 
+                label.form-label New list name
+                input.form-control(name="new_list_name")
+            .form-group
+                .form-check
+                    input.form-check-input(type="checkbox", name="include_vouchers")
+                    label.form-check-label Include vouchers
+            .form-group
+                input.btn.btn-primary.mt-2(type="submit", value="Submit")
+        hr
+        h4 Add to an existing list
+        form(method="post")
+            .form-group
+                each list in lists
+                    .form-check
+                        input.form-check-input(type="radio", name="list_id" value=list.list_id)
+                        label.form-check-label= list.name
+            .form-group
+                .form-check
+                    input.form-check-input(type="checkbox", name="include_vouchers")
+                    label.form-check-label Include vouchers
+            .form-group
+                input.btn.btn-primary.mt-2(type="submit", value="Submit")
