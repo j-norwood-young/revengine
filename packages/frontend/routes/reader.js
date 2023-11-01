@@ -401,6 +401,55 @@ router.get("/expunge/:reader_id", async (req, res) => {
     }
 })
 
+router.get("/assign_vouchers/:reader_id", async (req, res) => {
+    try {
+        const vouchertypes = (await req.apihelper.get("vouchertype", { "sort[name]": 1 })).data;
+        const reader_id = req.params.reader_id;
+        const month = moment();
+        let results = [];
+        const valid_from = month.startOf("month").format("YYYY-MM-DD");
+        const valid_to = month.endOf("month").format("YYYY-MM-DD");
+        for (let vouchertype of vouchertypes) {
+            console.log("Processing", vouchertype);
+            const vouchers = (await req.apihelper.query("voucher", {
+                "$and": [
+                    {
+                        "vouchertype_id": vouchertype
+                    },
+                    {
+                        "valid_from": {
+                            "$gte": valid_from
+                        }
+                    },
+                    {
+                        "valid_to": {
+                            "$lte": valid_to
+                        }
+                    }
+                ]
+            })).data;
+            const data = [];
+            const empty_vouchers = vouchers.filter(voucher => !voucher.reader_id);
+            let voucher = vouchers.find(voucher => voucher.reader_id === reader_id);
+            if (!voucher) {
+                voucher = empty_vouchers.pop();
+                if (!voucher) throw "Not enough vouchers";
+                data.push({
+                    _id: voucher._id,
+                    reader_id
+                });
+            }
+            const result = await req.apihelper.bulk_put("voucher", "_id", data);
+            results.push({ vouchertype, result });
+        }
+        // res.send({ vouchertypes, valid_from, valid_to, results });
+        res.redirect(`/reader/view/${reader_id}`);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({ error: err });
+    }
+});
+
 router.get("/bulk_update", async (req, res) => {
     res.render("readers/bulk_update");
 })

@@ -178,9 +178,14 @@ block content
 
 
             hr
-        if (reader.vouchers.length)
+        
+        .row 
             .col-sm-12.mb-4 
                 h2 Vouchers
+        .row 
+            .col.mb-4
+                a.btn.btn-info.confirm(href=`/reader/assign_vouchers/${reader._id}`) Assign Vouchers
+        if (reader.vouchers.length)
             .row
                 for voucher in reader.vouchers
                     .col-sm-6.col-md-4.mb-4
@@ -198,7 +203,7 @@ block content
                                 p.card-text
                                     strong Code 
                                     = voucher.code
-            hr
+        hr
         if (reader.touchbase_subscriber[0])
             .row
                 .col-sm-12.mb-4 
