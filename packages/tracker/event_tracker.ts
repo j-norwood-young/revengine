@@ -9,24 +9,23 @@ const get_article_data = require("./article").get_article_data;
 const get_user_data = require("./user").get_user_data;
 const qs = require("qs");
 const cookie = require("cookie");
-const crypto = require("crypto");
 const Redis = require("redis");
 const redis = Redis.createClient();
+const myCrypto = require("crypto");
 
-const name = process.env.TRACKER_NAME || config.name || "revengine";
+const tracker_name = process.env.TRACKER_NAME || config.name || "revengine";
 const port = process.env.PORT || config.tracker.port || 3012;
 const kafka_server = process.env.KAFKA_SERVER || config.kafka.server || "localhost:9092";
 const host = process.env.TRACKER_HOST || config.tracker.host || "127.0.0.1";
-const topic = process.env.TRACKER_KAFKA_TOPIC || config.tracker.kafka_topic || `${name}_events`;
+const topic = process.env.TRACKER_KAFKA_TOPIC || config.tracker.kafka_topic || `${tracker_name}_events`;
 const kafka_partitions = process.env.KAFKA_PARTITIONS || config.kafka.partitions || 1;
 const kafka_replication_factor = process.env.KAFKA_REPLICATION_FACTOR || config.kafka.replication_factor || 1;
 const cookie_name = process.env.TRACKER_COOKIE_NAME || config.tracker.cookie_name || "revengine_browser_id"
-const allow_origin = process.env.TRACKER_ALLOWED_ORIGINS || config.tracker.allow_origin || "*";
-
 const headers = {
-    "Content-Type": "application/json",
+    "Content-Type": "text/html",
     "Content-Disposition": "inline",
-    "X-Powered-By": `${name}`,
+    "Access-Control-Allow-Origin": "*",
+    "X-Powered-By": `${tracker_name}`,
 };
 const index = process.env.INDEX || config.debug ? "pageviews_test" : "pageviews";
 
@@ -124,82 +123,6 @@ const send_to_kafka = async (data) => {
     });
 };
 
-const post_hit = async (req, res) => {
-    let data = undefined;
-    try {
-        let parts = [];
-        req.on("data", (chunk) => {
-            parts.push(chunk);
-        }).on("end", async () => {
-            const body = Buffer.concat(parts).toString();
-            try {
-                try {
-                    data = JSON.parse(body);
-                } catch (e) {
-                    throw "Error parsing json";
-                }
-                if (!data) throw `No data`;
-                if (config.debug) console.log(data);
-                // Check required fields
-                const required_fields = [
-                    "referer",
-                    "action",
-                ];
-                const check_result = required_fields.every((f) =>
-                    data.hasOwnProperty(f)
-                );
-                if (!check_result) throw "Missing fields";
-                let { user_labels, user_segments } = await get_user_data(data.user_id);
-                data.user_labels = user_labels || {};
-                data.user_segments = user_segments || {};
-                if (config.debug) {
-                    console.log(data);
-                }
-                const cookies = cookie.parse(req.headers.cookie || "");
-                if (cookies[cookie_name]) {
-                    data.browser_id = cookies[cookie_name]
-                } else {
-                    data.browser_id = data.browser_id || crypto.randomBytes(20).toString('hex');
-                    headers["Set-Cookie"] = `${cookie_name}=${data.browser_id}`;
-                }
-                data.user_ip = data.user_ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress || null;
-                res.writeHead(200, headers);
-                res.write(
-                    JSON.stringify({
-                        status: "ok",
-                        user_labels,
-                        user_segments,
-                        browser_id: data.browser_id,
-                        user_ip: data.user_ip,
-                    })
-                );
-                res.end();
-            } catch (err) {
-                res.writeHead(500, headers);
-                res.write(
-                    JSON.stringify({
-                        status: "error",
-                        error: err,
-                    })
-                );
-                res.end();
-                console.error(err.toString());
-                return null;
-            }
-            try {
-                if (!data) throw "No data";
-                const esdata = await set_esdata(data);
-                if (config.debug) console.log(esdata);
-                await send_to_kafka(esdata);
-            } catch (err) {
-                console.error(err.toString());
-            }
-        });
-    } catch (err) {
-        console.error(err.toString());
-    }
-};
-
 const parse_url = (url) => {
     if (!url) throw "No url";
     let parts = url.split("?");
@@ -220,7 +143,7 @@ const get_hit = async (req, res) => {
         if (cookies[cookie_name]) {
             browser_id = cookies[cookie_name]
         } else {
-            browser_id = data.browser_id || crypto.randomBytes(20).toString('hex');
+            browser_id = data.browser_id || myCrypto.randomBytes(20).toString('hex');
             headers["Set-Cookie"] = `${cookie_name}=${browser_id}`;
         }
         cache_id = `GET-${browser_id}-${data.user_ip}`;
@@ -231,8 +154,8 @@ const get_hit = async (req, res) => {
         let cached_user_data = null;
         try {
             cached_user_data = JSON.parse(cached_user_data_json);
-        } catch (err) {
-            console.error(err.toString());
+        } catch (e) {
+            console.error(e);
         }
         if (cached_user_data) {
             if (config.debug) console.log("Cache hit", cached_user_data);
@@ -246,7 +169,7 @@ const get_hit = async (req, res) => {
             await redis.set(cache_id, JSON.stringify({user_labels, user_segments}), 'EX', 60 * 60);
         }
     } catch (err) {
-        console.error(err.toString());
+        console.error(err);
     }
     res.writeHead(200, headers);
     res.write(
@@ -270,29 +193,19 @@ const get_hit = async (req, res) => {
         }
         await send_to_kafka(esdata);
     } catch (err) {
-        console.error(err.toString());
+        console.error(err);
     }
 };
 
-console.log(`===${config.name} Tracker Started===`);
+console.log(`===${tracker_name} Tracker Started===`);
 if (config.debug) console.log("Debug mode on");
 
 http.createServer((req, res) => {
     if (req.url == "/favicon.ico") return;
-    console.log(req.method, req.url);
-    if (req.method === "OPTIONS") {
-        console.log("Preflight...");
-        res.writeHead(204, {
-            "Access-Control-Allow-Origin": allow_origin,
-            "Access-Control-Allow-Credentials": "true",
-            "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization, Content-Length, X-Requested-With",
-        });
-        res.end();
-    } else if (req.method === "POST") {
-        console.log("Here");
-        post_hit(req, res);
-    } else if (req.method === "GET") {
+    if (config.debug) {
+        console.log({ headers: req.headers });
+    }
+    if (req.method === "GET") {
         get_hit(req, res);
     } else {
         res.writeHead(404, headers);
