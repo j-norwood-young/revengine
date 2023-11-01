@@ -5,7 +5,7 @@ const WordpressUserSchema = new JXPSchema({
     "user_login": String,
     "user_pass": String,
     "user_nicename": String,
-    "user_email": String,
+    "user_email": { type: String, unique: true, index: true },
     "user_url": String,
     "user_registered": Date,
     "display_name": String,
