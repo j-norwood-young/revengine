@@ -8,7 +8,7 @@ const wordpress_auth = require("@revengine/wordpress_auth");
 const JXPHelper = require("jxp-helper");
 const { 
     run_transactional, 
-    add_readers_to_list, 
+    // add_readers_to_list, 
     // create_list, 
     // get_touchbase_lists, 
     // get_touchbase_list, 
@@ -18,6 +18,7 @@ const {
     get_lists, 
     get_list,
     create_list,
+    add_readers_to_list,
 } = require('@revengine/mailer/sailthru');
 
 const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
