@@ -63,7 +63,9 @@
     },
     "listeners": {
         "public_port": 4020,
-        "protected_port": 4021
+        "protected_port": 4021,
+        "public_url": "https://listeners.revengine.dailymaverick.co.za",
+        "protected_url": "https://protected.revengine.dailymaverick.co.za"
     },
     "mailer": {
         "port": 4017,
