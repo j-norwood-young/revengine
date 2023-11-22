@@ -149,6 +149,7 @@ async function serve_segments_test(req, res) {
         }
         res.end();
     } catch (err) {
+        console.error(err);
         res.send(new errs.InternalServerError(err));
     }
 }
@@ -172,6 +173,7 @@ async function serve_segments_paginated(req, res) {
         }
         res.end();
     } catch (err) {
+        console.error(err);
         res.send(new errs.InternalServerError(err));
     }
 }
@@ -182,6 +184,7 @@ async function serve_update_job_test(req, res) {
         const job = await run_job(url);
         res.send(job);
     } catch (err) {
+        console.error(err);
         res.send(new errs.InternalServerError(err));
     }
 }
@@ -201,6 +204,7 @@ async function serve_job_status(req, res) {
         const job = await get_job_status(job_id);
         res.send(job);
     } catch (err) {
+        console.error(err);
         res.send(new errs.InternalServerError(err));
     }
 }
@@ -226,6 +230,7 @@ async function serve_queue_all_jobs(req, res) {
         const jobs = await queue_all_jobs();
         res.send(jobs);
     } catch (err) {
+        console.error(err);
         res.send(new errs.InternalServerError(err));
     }
 }
