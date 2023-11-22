@@ -123,12 +123,45 @@ async function map_reader_to_sailthru(reader) {
     return record;
 }
 
+function redis_get(key) {
+    return new Promise((resolve, reject) => {
+        redis.get(key, (err, reply) => {
+            if (err) return reject(err);
+            try {
+                const json = JSON.parse(reply);
+                console.log("Cache hit")
+                resolve(json);
+            } catch (err) {
+                resolve(false);
+            }
+        });
+    });
+}
+
+function redis_set(key, value, ttl) {
+    const json = JSON.stringify(value);
+    return new Promise((resolve, reject) => {
+        redis.set(key, json, "EX", ttl, (err, reply) => {
+            if (err) return reject(err);
+            resolve(reply);
+        });
+    });
+}
+
 async function load_cache() {
     segments_cache = (await apihelper.get("segmentation")).data;
     labels_cache = (await apihelper.get("label")).data;
-    subscriptions_cache = (await apihelper.get("woocommerce_subscription", {
-        "fields": "customer_id,billing_period,payment_method,status,total,utm_campaign,utm_medium,utm_source,meta_data"
-    })).data;
+    // Check if we have a redis cache for subscriptions. If not, load it from the API and cache it for 1 hour.
+    const subscriptions_cache_key = "sailthru_subscriptions_cache";
+    const subscriptions_cache_ttl = 60 * 60;
+    subscriptions_cache = await redis_get(subscriptions_cache_key);
+    if (!subscriptions_cache) {
+        console.log("Cache miss")
+        subscriptions_cache = (await apihelper.get("woocommerce_subscription", {
+            "fields": "customer_id,billing_period,payment_method,status,total,utm_campaign,utm_medium,utm_source,meta_data"
+        })).data;
+        await redis_set(subscriptions_cache_key, subscriptions_cache, subscriptions_cache_ttl);
+    }
 }
 
 async function serve_segments_test(req, res) {
