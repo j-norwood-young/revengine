@@ -6,6 +6,7 @@ const sailthru_client = require("sailthru-client").createSailthruClient(process.
 const wordpress_auth = require("@revengine/wordpress_auth");
 const Redis = require("redis");
 const redis = Redis.createClient();
+var errs = require('restify-errors');
 
 async function get_lists() {
     return new Promise((resolve, reject) => {
@@ -131,46 +132,58 @@ async function load_cache() {
 }
 
 async function serve_segments_test(req, res) {
-    const readers = (await apihelper.get("reader", { "limit": 10000, "filter[email]": "$regex:@dailymaverick.co.za", "fields": "email,segmentation_id,label_id,wordpress_id,display_name,first_name,last_name,cc_expiry_date,favourite_author,favourite_section,sent_insider_welcome_email,cc_last4_digits" })).data;
-    // We only want to generate segmenst and labels once
-    await load_cache();
-    const result = [];
-    for (let reader of readers) {
-        const record = await map_reader_to_sailthru(reader);
-        result.push(record);
+    try {
+        const readers = (await apihelper.get("reader", { "limit": 10000, "filter[email]": "$regex:@dailymaverick.co.za", "fields": "email,segmentation_id,label_id,wordpress_id,display_name,first_name,last_name,cc_expiry_date,favourite_author,favourite_section,sent_insider_welcome_email,cc_last4_digits" })).data;
+        // We only want to generate segmenst and labels once
+        await load_cache();
+        const result = [];
+        for (let reader of readers) {
+            const record = await map_reader_to_sailthru(reader);
+            result.push(record);
+        }
+        console.log(`Generate Sailthru user list. ${result.length} records.`)
+        let s = "";
+        for (let record of result) {
+            s = JSON.stringify(record, null, "") + "\n";
+            res.write(s);
+        }
+        res.end();
+    } catch (err) {
+        res.send(new errs.InternalServerError(err));
     }
-    console.log(`Generate Sailthru user list. ${result.length} records.`)
-    let s = "";
-    for (let record of result) {
-        s = JSON.stringify(record, null, "") + "\n";
-        res.write(s);
-    }
-    res.end();
 }
 
 async function serve_segments_paginated(req, res) {
-    const per_page = req.params.per_page || 10000;
-    const page = req.params.page || 1;
-    const readers = (await apihelper.get("reader", { "filter[wordpress_id]": "$exists:1", "sort": "wordpress_id", "limit": per_page, "page": page, "fields": "email,segmentation_id,label_id,wordpress_id,display_name,first_name,last_name,cc_expiry_date,cc_last4_digits" })).data;
-    await load_cache();
-    const result = [];
-    for (let reader of readers) {
-        const record = await map_reader_to_sailthru(reader);
-        result.push(record);
+    try {
+        const per_page = req.params.per_page || 10000;
+        const page = req.params.page || 1;
+        const readers = (await apihelper.get("reader", { "filter[wordpress_id]": "$exists:1", "sort": "wordpress_id", "limit": per_page, "page": page, "fields": "email,segmentation_id,label_id,wordpress_id,display_name,first_name,last_name,cc_expiry_date,cc_last4_digits" })).data;
+        await load_cache();
+        const result = [];
+        for (let reader of readers) {
+            const record = await map_reader_to_sailthru(reader);
+            result.push(record);
+        }
+        console.log(`Generate Sailthru user list. ${result.length} records.`)
+        let s = "";
+        for (let record of result) {
+            s = JSON.stringify(record, null, "") + "\n";
+            res.write(s);
+        }
+        res.end();
+    } catch (err) {
+        res.send(new errs.InternalServerError(err));
     }
-    console.log(`Generate Sailthru user list. ${result.length} records.`)
-    let s = "";
-    for (let record of result) {
-        s = JSON.stringify(record, null, "") + "\n";
-        res.write(s);
-    }
-    res.end();
 }
 
 async function serve_update_job_test(req, res) {
-    const url = `${config.listeners.protected_url}/sailthru/segment_update/test?apikey=${process.env.SAILTHRU_REVENGINE_APIKEY}`
-    const job = await run_job(url);
-    res.send(job);
+    try {
+        const url = `${config.listeners.protected_url}/sailthru/segment_update/test?apikey=${process.env.SAILTHRU_REVENGINE_APIKEY}`
+        const job = await run_job(url);
+        res.send(job);
+    } catch (err) {
+        res.send(new errs.InternalServerError(err));
+    }
 }
 
 async function get_job_status(job_id) {
@@ -183,9 +196,13 @@ async function get_job_status(job_id) {
 }
 
 async function serve_job_status(req, res) {
-    const job_id = req.params.job_id;
-    const job = await get_job_status(job_id);
-    res.send(job);
+    try {
+        const job_id = req.params.job_id;
+        const job = await get_job_status(job_id);
+        res.send(job);
+    } catch (err) {
+        res.send(new errs.InternalServerError(err));
+    }
 }
 
 async function queue_all_jobs() {
@@ -205,8 +222,12 @@ async function queue_all_jobs() {
 }
 
 async function serve_queue_all_jobs(req, res) {
-    const jobs = await queue_all_jobs();
-    res.send(jobs);
+    try {
+        const jobs = await queue_all_jobs();
+        res.send(jobs);
+    } catch (err) {
+        res.send(new errs.InternalServerError(err));
+    }
 }
 
 exports.get_lists = get_lists;
