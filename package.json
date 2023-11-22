@@ -11,7 +11,7 @@
     "test": "lerna run test --stream",
     "prod:consolidator": "env NODE_ENV=production node packages/consolidator",
     "prod:tracker": "env NODE_ENV=production node packages/tracker",
-    "prod:api": "env NODE_ENV=production env NODE_OPTIONS=--max-old-space-size=8192 node packages/api",
+    "prod-fork:api": "env NODE_ENV=production env NODE_OPTIONS=--max-old-space-size=8192 node packages/api",
     "prod:frontend": "env NODE_ENV=production node packages/frontend/bin/www",
     "prod:pipeline": "env NODE_ENV=production node packages/pipeline",
     "prod:wordpress_api": "env NODE_ENV=production node packages/wordpress_api",
