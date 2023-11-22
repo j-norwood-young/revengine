@@ -17,6 +17,7 @@ public_server.use(restify.plugins.queryParser());
 public_server.use(cors.preflight);
 public_server.use(cors.actual);
 const touchbase = require("@revengine/mailer/touchbase");
+const sailthru = require("@revengine/mailer/sailthru");
 const sync_wordpress = require("@revengine/sync/wordpress");
 const ml = require("@revengine/ml");
 const wordpress_auth = require("@revengine/wordpress_auth");
@@ -287,6 +288,12 @@ protected_server.get("/report/users_by_segment", async (req, res) => {
         res.send(500, { error: err.toString() });
     }
 });
+
+protected_server.get("/sailthru/segment_update/test", sailthru.serve_segments_test);
+protected_server.get("/sailthru/update_job/test", sailthru.serve_update_job_test);
+protected_server.get("/sailthru/job_status/:job_id", sailthru.serve_job_status);
+protected_server.get("/sailthru/segment_update/:page", sailthru.serve_segments_paginated);
+protected_server.get("/sailthru/queue_all_jobs", sailthru.serve_queue_all_jobs);
 
 protected_server.listen(config.listeners.protected_port || 3021, function () {
     console.log('%s listening at %s', protected_server.name, protected_server.url);

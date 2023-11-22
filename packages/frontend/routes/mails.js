@@ -6,7 +6,21 @@ const mailer = require("@revengine/mailer");
 const wordpress_auth = require("@revengine/wordpress_auth");
 
 const JXPHelper = require("jxp-helper");
-const { run_transactional, add_readers_to_list, create_list, get_touchbase_lists, get_touchbase_list, ensure_custom_fields } = require('@revengine/mailer/touchbase');
+const { 
+    run_transactional, 
+    // add_readers_to_list, 
+    // create_list, 
+    // get_touchbase_lists, 
+    // get_touchbase_list, 
+    ensure_custom_fields 
+} = require('@revengine/mailer/touchbase');
+const { 
+    get_lists, 
+    get_list,
+    create_list,
+    add_readers_to_list,
+} = require('@revengine/mailer/sailthru');
+
 const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
 
 const tbp_auth = {
@@ -31,6 +45,18 @@ router.get("/reports", async (req, res) => {
         reports: mailer.mailer_names
     })
 })
+
+// Testing Sailthru
+router.get("/lists", async (req, res) => {
+    try {
+        const lists = await get_lists();
+        res.send(lists);
+        // res.render("mail/lists", { title: "Mailing Lists", lists });
+    } catch(err) {
+        console.error(err);
+        res.status(500).send(err);
+    }
+});
 
 router.get("/individual", async (req, res) => {
     try {
@@ -137,11 +163,10 @@ router.get("/mailrun/progressbar_data/:mailrun_id", async (req, res) => {
 
 // Touchbase List stuff
 
-const get_touchbase_lists_middleware = async (req, res, next) => {
+const get_lists_middleware = async (req, res, next) => {
     try {
-        const { lists, client } = await get_touchbase_lists();
-        res.locals.touchbase_lists = lists;
-        res.locals.toucbase_client = client;
+        const { lists } = await get_lists();
+        res.locals.lists = lists;
         next();
         // const lists = await axios.get(`${config.touchbase.api}`)
     } catch(err) {
@@ -158,14 +183,14 @@ router.get("/mailinglist/list", async (req, res) => {
     res.send("TODO");
 });
 
-router.get("/mailinglist/subscribe_by_label/:label_id", get_touchbase_lists_middleware, async (req, res) => {
+router.get("/mailinglist/subscribe_by_label/:label_id", get_lists_middleware, async (req, res) => {
     const label = (await req.apihelper.getOne("label", req.params.label_id)).data;
-    res.render("mail/select_touchbase_list", { title: `Add Label "${label.name}" to Touchbase List`});
+    res.render("mail/select_list", { title: `Add Label "${label.name}" to Touchbase List`});
 })
 
-router.get("/mailinglist/subscribe_by_segment/:segment_id", get_touchbase_lists_middleware, async (req, res) => {
+router.get("/mailinglist/subscribe_by_segment/:segment_id", get_lists_middleware, async (req, res) => {
     const segment = (await req.apihelper.getOne("segmentation", req.params.segment_id)).data;
-    res.render("mail/select_touchbase_list", { title: `Add Segment "${segment.name}" to Touchbase List`});
+    res.render("mail/select_list", { title: `Add Segment "${segment.name}" to Touchbase List`});
 })
 
 router.post("/mailinglist/subscribe_by_label/:label_id", async(req, res) => {
@@ -179,14 +204,14 @@ router.post("/mailinglist/subscribe_by_label/:label_id", async(req, res) => {
         }
         let list_id = null;
         if (req.body.new_list_name) { // Create list
-            list_id = await create_list(req.body.new_list_name);
+            list_id = (await create_list(req.body.new_list_name)).list_id;
         } else { // Add to existing list
-            list_id = req.body.touchbase_list;
+            list_id = req.body.list_id;
         }
-        const list = await get_touchbase_list(list_id);
+        const list = await get_list(list_id);
         const readers = (await req.apihelper.get("reader", { "filter[label_id]": req.params.label_id, "fields": "email,first_name,last_name,wordpress_id" })).data;
         const result = await subscribe_readers_to_list(readers, list, custom_fields, (req.body.include_vouchers === "on"));
-        res.render("mail/select_touchbase_list_success", { title: "Subscription Success", data: result, list_name: list.Title });
+        res.render("mail/select_touchbase_list_success", { title: "Subscription Success", data: result, list_name: list.name });
     } catch(err) {
         console.error(err);
         if (err.response && err.response.data && err.response.data.Message) return res.render("error", {error: { status: err.response.data.Message } });
@@ -202,7 +227,7 @@ async function subscribe_readers_to_list(readers, list, custom_fields = {}, incl
             ...custom_fields 
         };
         // console.log(list);
-        const list_id = list.ListID;
+        const list_id = list.list_id;
         const vouchertypes = (await apihelper.get("vouchertype")).data;
         let fieldnames = [...Object.keys(custom_fields)];
         if (include_vouchers) {
@@ -212,9 +237,9 @@ async function subscribe_readers_to_list(readers, list, custom_fields = {}, incl
             fieldnames = [...fieldnames, "auto_login_id"];
         }
         // console.log({fieldnames});
-        if (fieldnames.length > 0) {
-            await ensure_custom_fields(list_id, fieldnames);
-        }
+        // if (fieldnames.length > 0) {
+        //     await ensure_custom_fields(list_id, fieldnames);
+        // }
         for (let reader of readers) {
             reader.custom_fields = Object.assign({}, custom_fields);
         }
@@ -233,6 +258,7 @@ async function subscribe_readers_to_list(readers, list, custom_fields = {}, incl
         }
         if (include_vouchers) {
             for (let vouchertype of vouchertypes) {
+                // We should first see if the user already has a voucher for this vouchertype and month
                 const vouchers = (await apihelper.query("voucher", {
                     "$and": [
                         {
@@ -275,29 +301,29 @@ async function subscribe_readers_to_list(readers, list, custom_fields = {}, incl
 }
 
 router.post("/mailinglist/subscribe_by_segment/:segment_id", async(req, res) => {
-    try {
-        const segment = (await req.apihelper.getOne("segmentation", req.params.segment_id)).data;
-        const custom_fields = {
-            import_source: "RfvEngine",
-            import_segment: segment.name,
-            import_by: req.session.user.data.name,
-            import_date: moment().format("YYYY-MM-DD"),
-        }
-        let list_id = null;
-        if (req.body.new_list_name) { // Create list
-            list_id = await create_list(req.body.new_list_name);
-        } else { // Add to existing list
-            list_id = req.body.touchbase_list;
-        }
-        const list = await get_touchbase_list(list_id);
-        const readers = (await req.apihelper.get("reader", { "filter[segmentation_id]": req.params.segment_id, "fields": "email,first_name,last_name,wordpress_id" })).data;
-        const result = await subscribe_readers_to_list(readers, list, custom_fields, (req.body.include_vouchers === "on"));
-        res.render("mail/select_touchbase_list_success", { title: "Subscription Success", data: result, list_name: list.Title });
-    } catch(err) {
-        console.error(err);
-        if (err.response && err.response.data && err.response.data.Message) return res.render("error", {error: { status: err.response.data.Message } });
-        res.send(err);
-    }
+    // try {
+    //     const segment = (await req.apihelper.getOne("segmentation", req.params.segment_id)).data;
+    //     const custom_fields = {
+    //         import_source: "RfvEngine",
+    //         import_segment: segment.name,
+    //         import_by: req.session.user.data.name,
+    //         import_date: moment().format("YYYY-MM-DD"),
+    //     }
+    //     let list_id = null;
+    //     if (req.body.new_list_name) { // Create list
+    //         list_id = await create_list(req.body.new_list_name);
+    //     } else { // Add to existing list
+    //         list_id = req.body.touchbase_list;
+    //     }
+    //     const list = await get_touchbase_list(list_id);
+    //     const readers = (await req.apihelper.get("reader", { "filter[segmentation_id]": req.params.segment_id, "fields": "email,first_name,last_name,wordpress_id" })).data;
+    //     const result = await subscribe_readers_to_list(readers, list, custom_fields, (req.body.include_vouchers === "on"));
+    //     res.render("mail/select_touchbase_list_success", { title: "Subscription Success", data: result, list_name: list.Title });
+    // } catch(err) {
+    //     console.error(err);
+    //     if (err.response && err.response.data && err.response.data.Message) return res.render("error", {error: { status: err.response.data.Message } });
+    //     res.send(err);
+    // }
 })
 
 router.get("/vouchertest/:segment_id", async(req, res) => {

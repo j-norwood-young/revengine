@@ -65,7 +65,9 @@
     },
     "listeners": {
         "public_port": 3020,
-        "protected_port": 3021
+        "protected_port": 3021,
+        "public_url": "http://listeners.revengine.dailymaverick.co.za:3020",
+        "protected_url": "http://listeners.revengine.dailymaverick.co.za:3021"
     },
     "mailer": {
         "from": "Revengine <revengine@dailymaverick.co.za>",

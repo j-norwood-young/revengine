@@ -6,6 +6,10 @@ const JXPHelper = require("jxp-helper");
 server.use(restify.plugins.authorizationParser());
 server.use(restify.plugins.queryParser());
 
+// Set thread pool size to number of CPUs
+const OS = require('os')
+process.env.UV_THREADPOOL_SIZE = OS.cpus().length
+
 server.use(async (req, res, next) => {
     try {
         if (!req.authorization?.basic && !req.query?.apikey) {
