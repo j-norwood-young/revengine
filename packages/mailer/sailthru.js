@@ -85,12 +85,12 @@ async function map_reader_to_sailthru(reader) {
         "revengine_segments": segments,
         "revengine_labels": labels,
         "revengine_last_update_time": Math.floor(new Date().getTime() / 1000),
-        "first_name": reader.first_name,
-        "last_name": reader.last_name,
         login_token,
         "wordpress_user_id": reader.wordpress_id,
         "revengine_id": reader._id,
     }
+    if (reader.first_name) vars["first_name"] = reader.first_name;
+    if (reader.last_name) vars["last_name"] = reader.last_name;
     if (reader.cc_expiry_date && reader.cc_last4_digits) {
         vars["cc_expiry_date"] = new Date(reader.cc_expiry_date).toISOString().slice(0, 10);
         vars["cc_last4_digits"] = reader.cc_last4_digits;
@@ -166,7 +166,8 @@ async function load_cache() {
 
 async function serve_segments_test(req, res) {
     try {
-        const readers = (await apihelper.get("reader", { "limit": 10000, "filter[email]": "$regex:@dailymaverick.co.za", "fields": "email,segmentation_id,label_id,wordpress_id,display_name,first_name,last_name,cc_expiry_date,favourite_author,favourite_section,sent_insider_welcome_email,cc_last4_digits" })).data;
+        // const readers = (await apihelper.get("reader", { "limit": 10000, "filter[email]": "$regex:@dailymaverick.co.za", "fields": "email,segmentation_id,label_id,wordpress_id,display_name,first_name,last_name,cc_expiry_date,favourite_author,favourite_section,sent_insider_welcome_email,cc_last4_digits" })).data;
+        const readers = (await apihelper.get("reader", { "filter[email]": "ken@watercrew.co.za", "sort": "wordpress_id", "limit": 10000, "fields": "email,segmentation_id,label_id,wordpress_id,display_name,first_name,last_name,cc_expiry_date,cc_last4_digits" })).data;
         // We only want to generate segmenst and labels once
         await load_cache();
         const result = [];
