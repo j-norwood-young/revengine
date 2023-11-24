@@ -73,7 +73,7 @@ async function sync_readers_missing_in_wordpress() {
             // const wpuser = api_response.data;
             // console.log(wpuser);
         } catch(err) {
-            console.error(err);
+            console.error(err.toString());
         }
     }
 }
