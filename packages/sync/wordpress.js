@@ -53,7 +53,33 @@ async function sync_subscription(wordpress_user_id) {
     return (await apihelper.postput("woocommerce_subscription", "id", subscription)).data;
 }
 
+async function sync_readers_missing_in_wordpress() {
+    console.log("Syncing readers missing in Wordpress");
+    const readers = (await apihelper.get("reader", { "filter[wordpress_id]": "$exists:1", "limit": 100, "fields": "email,wordpress_id,source" })).data;
+    console.log(`Found ${readers.length} readers missing in Wordpress`);
+    for (let reader of readers.slice(0, 10)) {
+        const url = `${config.wordpress.revengine_api}/sync_user/${reader._id}`;
+        console.log(`Syncing ${reader.email} to ${url}`);
+        try {
+            const api_response = (await axios.get(url, { 
+                headers: { 
+                    Authorization: `Bearer ${process.env.WORDPRESS_KEY}` 
+                },
+                timeout: 1000
+            })).data;
+            if (config.debug) {
+                console.log(JSON.stringify(api_response, null, 2));
+            }
+            const wpuser = api_response.data.pop();
+            console.log(wpuser);
+        } catch(err) {
+            console.error(err);
+        }
+    }
+}
+
 module.exports = {
     sync_user,
     sync_subscription,
+    sync_readers_missing_in_wordpress
 };

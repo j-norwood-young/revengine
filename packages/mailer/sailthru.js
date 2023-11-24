@@ -6,7 +6,11 @@ const sailthru_client = require("sailthru-client").createSailthruClient(process.
 const wordpress_auth = require("@revengine/wordpress_auth");
 const Redis = require("redis");
 const redis = Redis.createClient();
-var errs = require('restify-errors');
+const errs = require('restify-errors');
+const fs = require("fs");
+const path = require("path");
+const log_filename = path.join(__dirname, "..", "..", "logs", "sailthru.log");
+const log_file = fs.createWriteStream(log_filename, { flags: 'a' });
 
 async function get_lists() {
     return new Promise((resolve, reject) => {
@@ -198,6 +202,7 @@ async function serve_segments_paginated(req, res) {
         for (let reader of readers) {
             const record = await map_reader_to_sailthru(reader);
             result.push(record);
+            await log_file.write(`${reader.email}\n`);
         }
         console.log(`Generate Sailthru user list. ${result.length} records.`)
         let s = "";

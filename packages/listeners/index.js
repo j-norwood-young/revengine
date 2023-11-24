@@ -1,5 +1,6 @@
 const config = require("config");
 const restify = require("restify");
+const errs = require('restify-errors');
 const corsMiddleware = require('restify-cors-middleware2')
 const public_server = restify.createServer({
     name: config.api_name
@@ -294,6 +295,16 @@ protected_server.get("/sailthru/update_job/test", sailthru.serve_update_job_test
 protected_server.get("/sailthru/job_status/:job_id", sailthru.serve_job_status);
 protected_server.get("/sailthru/segment_update/:page", sailthru.serve_segments_paginated);
 protected_server.get("/sailthru/queue_all_jobs", sailthru.serve_queue_all_jobs);
+
+protected_server.get("/wordpress/sync_readers_missing_in_wordpress", async (req, res) => {
+    try {
+        await sync_wordpress.sync_readers_missing_in_wordpress();
+        res.send({ status: "ok" });
+    } catch(err) {
+        console.error(err);
+        res.send(new errs.InternalServerError(err));
+    }
+});
 
 protected_server.listen(config.listeners.protected_port || 3021, function () {
     console.log('%s listening at %s', protected_server.name, protected_server.url);
