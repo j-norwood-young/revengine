@@ -65,7 +65,7 @@ async function sync_readers_missing_in_wordpress() {
                 headers: { 
                     Authorization: `Bearer ${process.env.WORDPRESS_KEY}` 
                 },
-                timeout: 1000
+                timeout: 10000
             })).data;
             if (config.debug) {
                 console.log(JSON.stringify(api_response, null, 2));
