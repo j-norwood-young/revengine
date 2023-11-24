@@ -4,6 +4,7 @@ node_modules/*
 lerna-debug.log
 *.log
 config/*
+logs/*
 .*
 data/*
 packages/frontend/node_modules/*
