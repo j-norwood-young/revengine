@@ -295,7 +295,40 @@ protected_server.get("/sailthru/update_job/test", sailthru.serve_update_job_test
 protected_server.get("/sailthru/job_status/:job_id", sailthru.serve_job_status);
 protected_server.get("/sailthru/segment_update/:page", sailthru.serve_segments_paginated);
 protected_server.get("/sailthru/queue_all_jobs", sailthru.serve_queue_all_jobs);
-
+protected_server.post("/sailthru/subscribe_email_to_list", async (req, res) => {
+    try {
+        const email = req.body.email;
+        const list_name = req.body.list_name;
+        if (!email) throw "No email";
+        if (!list_name) throw "No list_name";
+        const result = await sailthru.subscribe_email_to_list(email, list_name);
+        res.send(result);
+        // res.send({ status: "ok" });
+    } catch(err) {
+        res.send(500, { error: err.toString() });
+    }
+})
+protected_server.post("/sailthru/unsubscribe_email_from_list", async (req, res) => {
+    try {
+        const email = req.body.email;
+        const list_name = req.body.list_name;
+        if (!email) throw "No email";
+        if (!list_name) throw "No list_name";
+        const result = await sailthru.unsubscribe_email_from_list(email, list_name);
+        res.send(result);
+        // res.send({ status: "ok" });
+    } catch(err) {
+        res.send(500, { error: err.toString() });
+    }
+})
+protected_server.get("/sailthru/get_lists", async (req, res) => {
+    try {
+        const lists = await sailthru.get_lists();
+        res.send({ lists });
+    } catch(err) {
+        res.send(500, { error: err.toString() });
+    }
+})
 protected_server.get("/wordpress/sync_readers_missing_in_wordpress", async (req, res) => {
     try {
         await sync_wordpress.sync_readers_missing_in_wordpress();

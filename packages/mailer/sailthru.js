@@ -12,6 +12,8 @@ const path = require("path");
 const log_filename = path.join(__dirname, "..", "..", "logs", "sailthru.log");
 const log_file = fs.createWriteStream(log_filename, { flags: 'a' });
 
+const USER_FIELDS = "email,segmentation_id,label_id,wordpress_id,display_name,first_name,last_name,cc_expiry_date,cc_last4_digits";
+
 async function get_lists() {
     return new Promise((resolve, reject) => {
         sailthru_client.apiGet("list", { limit: 100 }, (err, response) => {
@@ -33,6 +35,45 @@ async function get_list(list_id) {
 async function create_list(list_name) {
     return new Promise((resolve, reject) => {
         sailthru_client.apiPost("list", { list: list_name }, (err, response) => {
+            if (err) return reject(err);
+            resolve(response);
+        });
+    });
+}
+
+async function subscribe_email_to_list(email, list_name) {
+    const reader = (await apihelper.get("reader", { "filter[email]": email, "fields": USER_FIELDS })).data.pop();
+    if (!reader) throw "Reader not found";
+    console.log(reader);
+    const vars = map_reader_to_sailthru(reader);
+    return new Promise((resolve, reject) => {
+        const payload = { 
+            id: email, 
+            key: "email",
+            lists: { [list_name]: 1 }, 
+            vars 
+        }
+        // console.log(JSON.stringify(payload, null, 2));
+        sailthru_client.apiPost("user", payload, (err, response) => {
+            if (err) return reject(err);
+            resolve(response);
+        });
+    });
+}
+
+async function unsubscribe_email_from_list(email, list_name) {
+    const reader = (await apihelper.get("reader", { "filter[email]": email, "fields": USER_FIELDS })).data.pop();
+    if (!reader) throw "Reader not found";
+    const vars = map_reader_to_sailthru(reader);
+    return new Promise((resolve, reject) => {
+        const payload = { 
+            id: email, 
+            key: "email",
+            lists: { [list_name]: 0 }, 
+            vars 
+        }
+        console.log(JSON.stringify(payload, null, 2));
+        sailthru_client.apiPost("user", payload, (err, response) => {
             if (err) return reject(err);
             resolve(response);
         });
@@ -170,8 +211,8 @@ async function load_cache() {
 
 async function serve_segments_test(req, res) {
     try {
-        // const readers = (await apihelper.get("reader", { "limit": 10000, "filter[email]": "$regex:@dailymaverick.co.za", "fields": "email,segmentation_id,label_id,wordpress_id,display_name,first_name,last_name,cc_expiry_date,favourite_author,favourite_section,sent_insider_welcome_email,cc_last4_digits" })).data;
-        const readers = (await apihelper.get("reader", { "filter[email]": "ken@watercrew.co.za", "sort": "wordpress_id", "limit": 10000, "fields": "email,segmentation_id,label_id,wordpress_id,display_name,first_name,last_name,cc_expiry_date,cc_last4_digits" })).data;
+        const readers = (await apihelper.get("reader", { "limit": 10000, "filter[email]": "$regex:@dailymaverick.co.za", "fields": USER_FIELDS })).data;
+        // const readers = (await apihelper.get("reader", { "filter[email]": "jason@10layer.com", "sort": "wordpress_id", "limit": 10000, "fields": USER_FIELDS })).data;
         // We only want to generate segmenst and labels once
         await load_cache();
         const result = [];
@@ -196,7 +237,7 @@ async function serve_segments_paginated(req, res) {
     try {
         const per_page = req.params.per_page || 10000;
         const page = req.params.page || 1;
-        const readers = (await apihelper.get("reader", { "filter[wordpress_id]": "$exists:1", "sort": "wordpress_id", "limit": per_page, "page": page, "fields": "email,segmentation_id,label_id,wordpress_id,display_name,first_name,last_name,cc_expiry_date,cc_last4_digits" })).data;
+        const readers = (await apihelper.get("reader", { "filter[wordpress_id]": "$exists:1", "sort": "wordpress_id", "limit": per_page, "page": page, "fields": USER_FIELDS })).data;
         await load_cache();
         const result = [];
         for (let reader of readers) {
@@ -277,6 +318,8 @@ async function serve_queue_all_jobs(req, res) {
 exports.get_lists = get_lists;
 exports.get_list = get_list;
 exports.create_list = create_list;
+exports.subscribe_email_to_list = subscribe_email_to_list;
+exports.unsubscribe_email_from_list = unsubscribe_email_from_list;
 exports.serve_segments_test = serve_segments_test;
 exports.serve_update_job_test = serve_update_job_test;
 exports.serve_job_status = serve_job_status;
