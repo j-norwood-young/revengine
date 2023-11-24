@@ -70,7 +70,7 @@ async function sync_readers_missing_in_wordpress() {
             if (config.debug) {
                 console.log(JSON.stringify(api_response, null, 2));
             }
-            const wpuser = api_response.data.pop();
+            const wpuser = api_response.data;
             console.log(wpuser);
         } catch(err) {
             console.error(err);
