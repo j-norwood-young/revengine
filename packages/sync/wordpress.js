@@ -55,7 +55,7 @@ async function sync_subscription(wordpress_user_id) {
 
 async function sync_readers_missing_in_wordpress() {
     console.log("Syncing readers missing in Wordpress");
-    const readers = (await apihelper.get("reader", { "filter[wordpress_id]": "$exists:0", "limit": 100, "fields": "email" })).data;
+    const readers = (await apihelper.get("reader", { "filter[wordpress_id]": "$exists:0", "fields": "email" })).data;
     console.log(`Found ${readers.length} readers missing in Wordpress`);
     for (let reader of readers) {
         const url = `${config.wordpress.revengine_api}/sync_user/${reader._id}`;
