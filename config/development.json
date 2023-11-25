@@ -124,12 +124,12 @@
         "secret": "7Mi06e67Xgcr4ekAmQgw"
     },
     "wordpress": {
-        "server": "http://local.dailymaverick.com",
-        "homepage": "http://local.dailymaverick.com",
+        "server": "https://internal.dailymaverick.co.za",
+        "homepage": "https://internal.dailymaverick.co.za",
         "front_page_admin": "https://www.dailymaverick.co.za/wp-admin/admin.php?page=featured-flagged-post",
         "port": 3019,
         "local_server": "http://wordpress_api.revengine.dailymaverick.co.za:3019",
-        "revengine_api": "http://local.dailymaverick.com/wp-json/revengine/v1"
+        "revengine_api": "https://internal.dailymaverick.co.za/wp-json/revengine/v1"
     },
     "wp_auth": {
         "add_to_tbp_lists": ["5f33f33a15d01e4d0c699131"]
