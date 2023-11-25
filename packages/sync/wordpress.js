@@ -55,26 +55,34 @@ async function sync_subscription(wordpress_user_id) {
 
 async function sync_readers_missing_in_wordpress() {
     console.log("Syncing readers missing in Wordpress");
-    const readers = (await apihelper.get("reader", { "filter[wordpress_id]": "$exists:0", "limit": 10000, "fields": "email" })).data;
-    console.log(`Found ${readers.length} readers missing in Wordpress`);
-    for (let reader of readers) {
-        if (!reader.email) continue;
-        const url = `${config.wordpress.revengine_api}/sync_user/${reader._id}`;
-        console.log(`Syncing ${reader.email}`);
-        try {
-            const api_response = (await axios.get(url, { 
-                headers: { 
-                    Authorization: `Bearer ${process.env.WORDPRESS_KEY}` 
-                },
-                timeout: 10000
-            })).data;
-            if (config.debug) {
-                console.log(JSON.stringify(api_response, null, 2));
+    const count = (await apihelper.count("reader", { "filter[wordpress_id]": "$exists:0" }));
+    console.log(`Found ${count} readers missing in Wordpress`)
+    const limit = 100;
+    const pages = Math.ceil(count / limit);
+    for (let page = 1; page <= pages; page++) {
+        console.log(`Syncing page ${page} of ${pages}`);
+        const readers = (await apihelper.get("reader", { "filter[wordpress_id]": "$exists:0", limit, page, "fields": "email" })).data;
+        console.log(`Found ${readers.length} readers missing in Wordpress`);
+        for (let reader of readers) {
+            if (!reader.email) continue;
+            const url = `${config.wordpress.revengine_api}/sync_user/${reader._id}`;
+            console.log(`Syncing ${reader.email}`);
+            try {
+                const api_response = (await axios.get(url, { 
+                    headers: { 
+                        Authorization: `Bearer ${process.env.WORDPRESS_KEY}` 
+                    },
+                    timeout: 10000
+                })).data;
+                if (config.debug) {
+                    console.log(JSON.stringify(api_response, null, 2));
+                }
+                // const wpuser = api_response.data;
+                // console.log(wpuser);
+            } catch(err) {
+                console.error(err.toString());
+                console.log(err);
             }
-            // const wpuser = api_response.data;
-            // console.log(wpuser);
-        } catch(err) {
-            console.error(err.toString());
         }
     }
 }
