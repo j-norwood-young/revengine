@@ -42,42 +42,52 @@ async function create_list(list_name) {
 }
 
 async function subscribe_email_to_list(email, list_name) {
-    const reader = (await apihelper.get("reader", { "filter[email]": email, "fields": USER_FIELDS })).data.pop();
-    if (!reader) throw "Reader not found";
-    console.log(reader);
-    const vars = map_reader_to_sailthru(reader);
-    return new Promise((resolve, reject) => {
-        const payload = { 
-            id: email, 
-            key: "email",
-            lists: { [list_name]: 1 }, 
-            vars 
-        }
-        // console.log(JSON.stringify(payload, null, 2));
-        sailthru_client.apiPost("user", payload, (err, response) => {
-            if (err) return reject(err);
-            resolve(response);
+    try {
+        const reader = (await apihelper.get("reader", { "filter[email]": email, "fields": USER_FIELDS })).data.pop();
+        if (!reader) throw "Reader not found";
+        console.log(reader);
+        const vars = map_reader_to_sailthru(reader);
+        return new Promise((resolve, reject) => {
+            const payload = { 
+                id: email, 
+                key: "email",
+                lists: { [list_name]: 1 }, 
+                vars 
+            }
+            // console.log(JSON.stringify(payload, null, 2));
+            sailthru_client.apiPost("user", payload, (err, response) => {
+                if (err) return reject(err);
+                resolve(response);
+            });
         });
-    });
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
 }
 
 async function unsubscribe_email_from_list(email, list_name) {
-    const reader = (await apihelper.get("reader", { "filter[email]": email, "fields": USER_FIELDS })).data.pop();
-    if (!reader) throw "Reader not found";
-    const vars = map_reader_to_sailthru(reader);
-    return new Promise((resolve, reject) => {
-        const payload = { 
-            id: email, 
-            key: "email",
-            lists: { [list_name]: 0 }, 
-            vars 
-        }
-        console.log(JSON.stringify(payload, null, 2));
-        sailthru_client.apiPost("user", payload, (err, response) => {
-            if (err) return reject(err);
-            resolve(response);
+    try {
+        const reader = (await apihelper.get("reader", { "filter[email]": email, "fields": USER_FIELDS })).data.pop();
+        if (!reader) throw "Reader not found";
+        const vars = map_reader_to_sailthru(reader);
+        return new Promise((resolve, reject) => {
+            const payload = { 
+                id: email, 
+                key: "email",
+                lists: { [list_name]: 0 }, 
+                vars 
+            }
+            console.log(JSON.stringify(payload, null, 2));
+            sailthru_client.apiPost("user", payload, (err, response) => {
+                if (err) return reject(err);
+                resolve(response);
+            });
         });
-    });
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
 }
 
 async function get_users_in_list(list_id) {
@@ -106,6 +116,9 @@ let labels_cache = [];
 let subscriptions_cache = [];
 
 async function map_reader_to_sailthru(reader) {
+    if (!subscriptions_cache) {
+        await load_cache();
+    }
     const login_token = wordpress_auth.encrypt({
         "wordpress_id": reader.wordpress_id,
         "revengine_id": reader._id,
