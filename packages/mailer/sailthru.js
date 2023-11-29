@@ -45,7 +45,6 @@ async function subscribe_email_to_list(email, list_name) {
     try {
         const reader = (await apihelper.get("reader", { "filter[email]": email, "fields": USER_FIELDS })).data.pop();
         if (!reader) throw "Reader not found";
-        console.log(reader);
         const vars = map_reader_to_sailthru(reader);
         return new Promise((resolve, reject) => {
             const payload = { 
@@ -54,7 +53,7 @@ async function subscribe_email_to_list(email, list_name) {
                 lists: { [list_name]: 1 }, 
                 vars 
             }
-            // console.log(JSON.stringify(payload, null, 2));
+            console.log(JSON.stringify(payload, null, 2));
             sailthru_client.apiPost("user", payload, (err, response) => {
                 if (err) return reject(err);
                 resolve(response);
