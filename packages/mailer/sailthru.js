@@ -159,6 +159,7 @@ async function map_reader_to_sailthru(reader) {
         vars["subscription_payment_method"] = subscription.payment_method;
         vars["subscription_status"] = subscription.status;
         vars["subscription_total"] = subscription.total;
+        vars["subscription_total_avg_per_month"] = subscription.total / (subscription.billing_period == "month" ? 1 : 12);
         vars["subscription_utm_campaign"] = subscription.utm_campaign;
         vars["subscription_utm_medium"] = subscription.utm_medium;
         vars["subscription_utm_source"] = subscription.utm_source;
