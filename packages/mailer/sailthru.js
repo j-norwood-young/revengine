@@ -14,6 +14,16 @@ const log_file = fs.createWriteStream(log_filename, { flags: 'a' });
 
 const USER_FIELDS = "email,segmentation_id,label_id,wordpress_id,display_name,first_name,last_name,cc_expiry_date,cc_last4_digits";
 
+async function preheat_cache() {
+    await load_cache();
+    // Preheat the cache every 30 minutes
+    setInterval(async () => {
+        await load_cache();
+    }, 1000 * 60 * 30);
+}
+
+preheat_cache();
+
 async function get_lists() {
     return new Promise((resolve, reject) => {
         sailthru_client.apiGet("list", { limit: 100 }, (err, response) => {
@@ -45,13 +55,13 @@ async function subscribe_email_to_list(email, list_name) {
     try {
         const reader = (await apihelper.get("reader", { "filter[email]": email, "fields": USER_FIELDS })).data.pop();
         if (!reader) throw "Reader not found";
-        const vars = map_reader_to_sailthru(reader);
+        const record = await map_reader_to_sailthru(reader);
         return new Promise((resolve, reject) => {
             const payload = { 
                 id: email, 
                 key: "email",
                 lists: { [list_name]: 1 }, 
-                vars 
+                vars: record.vars
             }
             console.log(JSON.stringify(payload, null, 2));
             sailthru_client.apiPost("user", payload, (err, response) => {
@@ -187,7 +197,8 @@ function redis_get(key) {
             if (err) return reject(err);
             try {
                 const json = JSON.parse(reply);
-                console.log("Cache hit")
+                if (!json) return resolve(false);
+                // console.log("Cache hit")
                 resolve(json);
             } catch (err) {
                 resolve(false);
@@ -214,7 +225,7 @@ async function load_cache() {
     const subscriptions_cache_ttl = 60 * 60;
     subscriptions_cache = await redis_get(subscriptions_cache_key);
     if (!subscriptions_cache) {
-        console.log("Cache miss")
+        console.log("Subscriptions cache miss")
         subscriptions_cache = (await apihelper.get("woocommerce_subscription", {
             "fields": "customer_id,billing_period,payment_method,status,total,utm_campaign,utm_medium,utm_source,meta_data"
         })).data;
