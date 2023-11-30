@@ -14,7 +14,32 @@ const log_file = fs.createWriteStream(log_filename, { flags: 'a' });
 
 const USER_FIELDS = "email,segmentation_id,label_id,wordpress_id,display_name,first_name,last_name,cc_expiry_date,cc_last4_digits";
 
+let cache_loaded = false;
+
+async function invalidate_cache() {
+    const subscriptions_cache_key = "sailthru_subscriptions_cache";
+    await redis.del(subscriptions_cache_key);
+}
+
+async function load_cache() {
+    segments_cache = (await apihelper.get("segmentation")).data;
+    labels_cache = (await apihelper.get("label")).data;
+    // Check if we have a redis cache for subscriptions. If not, load it from the API and cache it for 1 hour.
+    const subscriptions_cache_key = "sailthru_subscriptions_cache";
+    const subscriptions_cache_ttl = 60 * 60;
+    subscriptions_cache = await redis_get(subscriptions_cache_key);
+    if (!subscriptions_cache) {
+        subscriptions_cache = (await apihelper.get("woocommerce_subscription", {
+            "fields": "customer_id,billing_period,payment_method,status,total,utm_campaign,utm_medium,utm_source,meta_data,date_created,date_modified"
+        })).data;
+        await redis_set(subscriptions_cache_key, subscriptions_cache, subscriptions_cache_ttl);
+        console.log("Subscriptions cache set")
+        cache_loaded = true;
+    }
+}
+
 async function preheat_cache() {
+    await invalidate_cache();
     await load_cache();
     // Preheat the cache every 30 minutes
     setInterval(async () => {
@@ -184,28 +209,36 @@ async function map_reader_to_sailthru(reader, use_cache = true) {
         vars["cc_expiry_date"] = new Date(reader.cc_expiry_date).toISOString().slice(0, 10);
         vars["cc_last4_digits"] = reader.cc_last4_digits;
     }
-    let subscription;
+    let subscriptions;
     if (use_cache) {
-        subscription = subscriptions_cache.find(s => (s.customer_id === reader.wordpress_id));
+        if (!cache_loaded) throw "Cache not loaded";
+        subscriptions = subscriptions_cache.filter(s => (s.customer_id === reader.wordpress_id));
     } else {
-        subscription = (await apihelper.get("woocommerce_subscription", {
+        subscriptions = (await apihelper.get("woocommerce_subscription", {
             "filter[customer_id]": reader.wordpress_id,
-            "fields": "customer_id,billing_period,payment_method,status,total,utm_campaign,utm_medium,utm_source,meta_data"
-        })).data.pop();
+            "fields": "customer_id,billing_period,payment_method,status,total,utm_campaign,utm_medium,utm_source,meta_data,date_created,date_modified"
+        })).data;
     }
-    if (subscription) {
-        vars["subscription_billing_period"] = subscription.billing_period;
-        vars["subscription_payment_method"] = subscription.payment_method;
-        vars["subscription_status"] = subscription.status;
-        vars["subscription_total"] = subscription.total;
-        vars["subscription_total_avg_per_month"] = subscription.total / (subscription.billing_period == "month" ? 1 : 12);
-        vars["subscription_utm_campaign"] = subscription.utm_campaign;
-        vars["subscription_utm_medium"] = subscription.utm_medium;
-        vars["subscription_utm_source"] = subscription.utm_source;
-        let revio_payment_method = subscription.meta_data.find(m => (m.key === "_revio_payment_method"));
-        if (revio_payment_method) {
-            vars["subscription_revio_payment_method"] = revio_payment_method.value;
+    if (subscriptions.length > 0) {
+        const subscription = subscriptions.sort((a, b) => (new Date(b.date_modified) - new Date(a.date_modified))).shift();
+        if (subscription) {
+            vars["subscription_billing_period"] = subscription.billing_period;
+            vars["subscription_payment_method"] = subscription.payment_method;
+            vars["subscription_status"] = subscription.status;
+            vars["subscription_total"] = subscription.total;
+            vars["subscription_total_avg_per_month"] = subscription.total / (subscription.billing_period == "month" ? 1 : 12);
+            vars["subscription_utm_campaign"] = subscription.utm_campaign;
+            vars["subscription_utm_medium"] = subscription.utm_medium;
+            vars["subscription_utm_source"] = subscription.utm_source;
+            let revio_payment_method = subscription.meta_data.find(m => (m.key === "_revio_payment_method"));
+            if (revio_payment_method) {
+                vars["subscription_revio_payment_method"] = revio_payment_method.value;
+            }
+            vars["subscription_created_date"] = new Date(subscription.date_created).toISOString().slice(0, 10);
+            vars["subscription_modified_date"] = new Date(subscription.date_modified).toISOString().slice(0, 10);
         }
+    } else {
+        // console.log(`No subscription found for ${reader.email}`)
     }
     const record = {
         "id": reader.email,
@@ -245,22 +278,6 @@ function redis_set(key, value, ttl) {
             resolve(reply);
         });
     });
-}
-
-async function load_cache() {
-    segments_cache = (await apihelper.get("segmentation")).data;
-    labels_cache = (await apihelper.get("label")).data;
-    // Check if we have a redis cache for subscriptions. If not, load it from the API and cache it for 1 hour.
-    const subscriptions_cache_key = "sailthru_subscriptions_cache";
-    const subscriptions_cache_ttl = 60 * 60;
-    subscriptions_cache = await redis_get(subscriptions_cache_key);
-    if (!subscriptions_cache) {
-        console.log("Subscriptions cache miss")
-        subscriptions_cache = (await apihelper.get("woocommerce_subscription", {
-            "fields": "customer_id,billing_period,payment_method,status,total,utm_campaign,utm_medium,utm_source,meta_data"
-        })).data;
-        await redis_set(subscriptions_cache_key, subscriptions_cache, subscriptions_cache_ttl);
-    }
 }
 
 async function serve_segments_test(req, res) {
