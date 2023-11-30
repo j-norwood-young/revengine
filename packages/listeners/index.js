@@ -321,6 +321,7 @@ protected_server.post("/sailthru/unsubscribe_email_from_list", async (req, res) 
         res.send(500, { error: err.toString() });
     }
 })
+
 protected_server.get("/sailthru/get_lists", async (req, res) => {
     try {
         const lists = await sailthru.get_lists();
@@ -329,6 +330,18 @@ protected_server.get("/sailthru/get_lists", async (req, res) => {
         res.send(500, { error: err.toString() });
     }
 })
+
+protected_server.post("/sailthru/sync_user", async (req, res) => {
+    try {
+        const email = req.body.email;
+        if (!email) throw "No email";
+        const result = await sailthru.sync_user(email);
+        res.send(result);
+    } catch(err) {
+        res.send(500, { error: err.toString() });
+    }
+})
+
 protected_server.get("/wordpress/sync_readers_missing_in_wordpress", async (req, res) => {
     try {
         await sync_wordpress.sync_readers_missing_in_wordpress();

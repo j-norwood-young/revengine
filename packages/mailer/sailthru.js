@@ -51,20 +51,31 @@ async function create_list(list_name) {
     });
 }
 
-async function subscribe_email_to_list(email, list_name) {
+async function sync_user(email) {
     try {
         const reader = (await apihelper.get("reader", { "filter[email]": email, "fields": USER_FIELDS })).data.pop();
         if (!reader) throw "Reader not found";
         const record = await map_reader_to_sailthru(reader);
         return new Promise((resolve, reject) => {
-            const payload = { 
-                id: email, 
-                key: "email",
-                lists: { [list_name]: 1 }, 
-                vars: record.vars
-            }
-            console.log(JSON.stringify(payload, null, 2));
-            sailthru_client.apiPost("user", payload, (err, response) => {
+            sailthru_client.apiPost("user", record, (err, response) => {
+                if (err) return reject(err);
+                resolve(response);
+            });
+        });
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+}
+
+async function subscribe_email_to_list(email, list_name) {
+    try {
+        const reader = (await apihelper.get("reader", { "filter[email]": email, "fields": USER_FIELDS })).data.pop();
+        if (!reader) throw "Reader not found";
+        const record = await map_reader_to_sailthru(reader);
+        record.lists = { [list_name]: 1 };
+        return new Promise((resolve, reject) => {
+            sailthru_client.apiPost("user", record, (err, response) => {
                 if (err) return reject(err);
                 resolve(response);
             });
@@ -79,16 +90,10 @@ async function unsubscribe_email_from_list(email, list_name) {
     try {
         const reader = (await apihelper.get("reader", { "filter[email]": email, "fields": USER_FIELDS })).data.pop();
         if (!reader) throw "Reader not found";
-        const vars = map_reader_to_sailthru(reader);
+        const record = await map_reader_to_sailthru(reader);
+        record.lists = { [list_name]: 0 };
         return new Promise((resolve, reject) => {
-            const payload = { 
-                id: email, 
-                key: "email",
-                lists: { [list_name]: 0 }, 
-                vars 
-            }
-            console.log(JSON.stringify(payload, null, 2));
-            sailthru_client.apiPost("user", payload, (err, response) => {
+            sailthru_client.apiPost("user", record, (err, response) => {
                 if (err) return reject(err);
                 resolve(response);
             });
@@ -349,3 +354,4 @@ exports.serve_update_job_test = serve_update_job_test;
 exports.serve_job_status = serve_job_status;
 exports.serve_segments_paginated = serve_segments_paginated;
 exports.serve_queue_all_jobs = serve_queue_all_jobs;
+exports.sync_user = sync_user;
