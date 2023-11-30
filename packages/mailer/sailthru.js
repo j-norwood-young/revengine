@@ -55,7 +55,7 @@ async function sync_user_by_email(email) {
     try {
         const reader = (await apihelper.get("reader", { "filter[email]": email, "fields": USER_FIELDS })).data.pop();
         if (!reader) throw "Reader not found";
-        const record = await map_reader_to_sailthru(reader);
+        const record = await map_reader_to_sailthru(reader, false);
         return new Promise((resolve, reject) => {
             sailthru_client.apiPost("user", record, (err, response) => {
                 if (err) return reject(err);
@@ -72,7 +72,7 @@ async function sync_user_by_wordpress_id(wordpress_id) {
     try {
         const reader = (await apihelper.get("reader", { "filter[wordpress_id]": wordpress_id, "fields": USER_FIELDS })).data.pop();
         if (!reader) throw "Reader not found";
-        const record = await map_reader_to_sailthru(reader);
+        const record = await map_reader_to_sailthru(reader, false);
         return new Promise((resolve, reject) => {
             sailthru_client.apiPost("user", record, (err, response) => {
                 if (err) return reject(err);
@@ -89,7 +89,7 @@ async function subscribe_email_to_list(email, list_name) {
     try {
         const reader = (await apihelper.get("reader", { "filter[email]": email, "fields": USER_FIELDS })).data.pop();
         if (!reader) throw "Reader not found";
-        const record = await map_reader_to_sailthru(reader);
+        const record = await map_reader_to_sailthru(reader, false);
         record.lists = { [list_name]: 1 };
         return new Promise((resolve, reject) => {
             sailthru_client.apiPost("user", record, (err, response) => {
@@ -107,7 +107,7 @@ async function unsubscribe_email_from_list(email, list_name) {
     try {
         const reader = (await apihelper.get("reader", { "filter[email]": email, "fields": USER_FIELDS })).data.pop();
         if (!reader) throw "Reader not found";
-        const record = await map_reader_to_sailthru(reader);
+        const record = await map_reader_to_sailthru(reader, false);
         record.lists = { [list_name]: 0 };
         return new Promise((resolve, reject) => {
             sailthru_client.apiPost("user", record, (err, response) => {
@@ -146,7 +146,7 @@ let segments_cache = [];
 let labels_cache = [];
 let subscriptions_cache = [];
 
-async function map_reader_to_sailthru(reader) {
+async function map_reader_to_sailthru(reader, use_cache = true) {
     if (!subscriptions_cache) {
         await load_cache();
     }
@@ -184,7 +184,15 @@ async function map_reader_to_sailthru(reader) {
         vars["cc_expiry_date"] = new Date(reader.cc_expiry_date).toISOString().slice(0, 10);
         vars["cc_last4_digits"] = reader.cc_last4_digits;
     }
-    let subscription = subscriptions_cache.find(s => (s.customer_id === reader.wordpress_id));
+    let subscription;
+    if (use_cache) {
+        subscription = subscriptions_cache.find(s => (s.customer_id === reader.wordpress_id));
+    } else {
+        subscription = (await apihelper.get("woocommerce_subscription", {
+            "filter[customer_id]": reader.wordpress_id,
+            "fields": "customer_id,billing_period,payment_method,status,total,utm_campaign,utm_medium,utm_source,meta_data"
+        })).data.pop();
+    }
     if (subscription) {
         vars["subscription_billing_period"] = subscription.billing_period;
         vars["subscription_payment_method"] = subscription.payment_method;
