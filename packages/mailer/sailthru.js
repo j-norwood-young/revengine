@@ -51,9 +51,26 @@ async function create_list(list_name) {
     });
 }
 
-async function sync_user(email) {
+async function sync_user_by_email(email) {
     try {
         const reader = (await apihelper.get("reader", { "filter[email]": email, "fields": USER_FIELDS })).data.pop();
+        if (!reader) throw "Reader not found";
+        const record = await map_reader_to_sailthru(reader);
+        return new Promise((resolve, reject) => {
+            sailthru_client.apiPost("user", record, (err, response) => {
+                if (err) return reject(err);
+                resolve(response);
+            });
+        });
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+}
+
+async function sync_user_by_wordpress_id(wordpress_id) {
+    try {
+        const reader = (await apihelper.get("reader", { "filter[wordpress_id]": wordpress_id, "fields": USER_FIELDS })).data.pop();
         if (!reader) throw "Reader not found";
         const record = await map_reader_to_sailthru(reader);
         return new Promise((resolve, reject) => {
@@ -354,4 +371,5 @@ exports.serve_update_job_test = serve_update_job_test;
 exports.serve_job_status = serve_job_status;
 exports.serve_segments_paginated = serve_segments_paginated;
 exports.serve_queue_all_jobs = serve_queue_all_jobs;
-exports.sync_user = sync_user;
+exports.sync_user_by_email = sync_user_by_email;
+exports.sync_user_by_wordpress_id = sync_user_by_wordpress_id;

@@ -334,8 +334,14 @@ protected_server.get("/sailthru/get_lists", async (req, res) => {
 protected_server.post("/sailthru/sync_user", async (req, res) => {
     try {
         const email = req.body.email;
-        if (!email) throw "No email";
-        const result = await sailthru.sync_user(email);
+        const user_id = req.body.user_id;
+        if (!email && !user_id) throw "No email or user_id";
+        let result;
+        if (email) {
+            result = await sailthru.sync_user_by_email(email);
+        } else {
+            result = await sailthru.sync_user_by_wordpress_id(user_id);
+        }
         res.send(result);
     } catch(err) {
         res.send(500, { error: err.toString() });
