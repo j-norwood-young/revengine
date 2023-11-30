@@ -47,3 +47,45 @@ let pipeline = [
 ]
 db.touchbaseevents.aggregate(pipeline)
 ```
+
+## Merge top articles list with article data
+
+```javascript
+db.getCollection('top_1000_articles_by_hits').aggregate([
+    {
+        $sort: {
+            count: -1
+        }
+    },
+    {
+        $lookup: {
+            from: 'articles',
+            localField: 'post_id',
+            foreignField: 'post_id',
+            as: 'article'
+        }
+    },
+    {
+        $unwind: {
+            path: '$article'
+        }
+    },
+    {
+        $project: {
+            _id: 0,
+            post_id: 1,
+            count: 1,
+            headline: '$article.title',
+            tags: '$article.tags',
+            sections: '$article.sections',
+            terms: '$article.terms',
+            author: '$article.author',
+            date_published: '$article.date_published',
+            urlid: '$article.urlid',
+        }
+    },
+    {
+        $out: 'top_1000_articles_headlines'
+    }
+]);
+```
