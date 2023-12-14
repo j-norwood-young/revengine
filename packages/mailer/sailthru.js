@@ -11,6 +11,8 @@ const fs = require("fs");
 const path = require("path");
 const log_filename = path.join(__dirname, "..", "..", "logs", "sailthru.log");
 const log_file = fs.createWriteStream(log_filename, { flags: 'a' });
+const Cache = require("@revengine/common/cache");
+const cache = new Cache({ prefix: "sailthru", debug: true, ttl: 60*60 });
 
 const USER_FIELDS = "email,segmentation_id,label_id,wordpress_id,display_name,first_name,last_name,cc_expiry_date,cc_last4_digits";
 
@@ -27,19 +29,19 @@ async function load_cache() {
     // Check if we have a redis cache for subscriptions. If not, load it from the API and cache it for 1 hour.
     const subscriptions_cache_key = "sailthru_subscriptions_cache";
     const subscriptions_cache_ttl = 60 * 60;
-    subscriptions_cache = await redis_get(subscriptions_cache_key);
+    subscriptions_cache = await cache.get(subscriptions_cache_key);
     if (!subscriptions_cache) {
         subscriptions_cache = (await apihelper.get("woocommerce_subscription", {
             "fields": "customer_id,billing_period,payment_method,status,total,utm_campaign,utm_medium,utm_source,meta_data,date_created,date_modified"
         })).data;
-        await redis_set(subscriptions_cache_key, subscriptions_cache, subscriptions_cache_ttl);
+        await cache.set(subscriptions_cache_key, subscriptions_cache, subscriptions_cache_ttl);
         console.log("Subscriptions cache set")
         cache_loaded = true;
     }
 }
 
 async function preheat_cache() {
-    await invalidate_cache();
+    await cache.del("sailthru_subscriptions_cache");
     await load_cache();
     // Preheat the cache every 30 minutes
     setInterval(async () => {
@@ -53,7 +55,8 @@ async function get_lists() {
     return new Promise((resolve, reject) => {
         sailthru_client.apiGet("list", { limit: 100 }, (err, response) => {
             if (err) return reject(err);
-            resolve(response);
+            if (!response.lists) return reject("No lists found");
+            resolve(response.lists);
         });
     });
 }
@@ -128,9 +131,60 @@ async function subscribe_email_to_list(email, list_name) {
     }
 }
 
+/**
+ * Subscribes a reader to a specific list.
+ * 
+ * @param {string} reader_id - The ID of the reader.
+ * @param {string} list_name - The name of the list to subscribe the reader to.
+ * @returns {Promise} A promise that resolves with the response from the Sailthru API.
+ * @throws {string} If the reader is not found.
+ */
+async function subscribe_reader_to_list(reader_id, list_name) {
+    try {
+        const reader = (await apihelper.getOne("reader", reader_id, { "fields": USER_FIELDS })).data;
+        if (!reader) throw "Reader not found";
+        const record = await map_reader_to_sailthru(reader, false);
+        record.lists = { [list_name]: 1 };
+        return new Promise((resolve, reject) => {
+            sailthru_client.apiPost("user", record, (err, response) => {
+                if (err) return reject(err);
+                resolve(response);
+            });
+        });
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+}
+
 async function unsubscribe_email_from_list(email, list_name) {
     try {
         const reader = (await apihelper.get("reader", { "filter[email]": email, "fields": USER_FIELDS })).data.pop();
+        if (!reader) throw "Reader not found";
+        const record = await map_reader_to_sailthru(reader, false);
+        record.lists = { [list_name]: 0 };
+        return new Promise((resolve, reject) => {
+            sailthru_client.apiPost("user", record, (err, response) => {
+                if (err) return reject(err);
+                resolve(response);
+            });
+        });
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+}
+
+/**
+ * Unsubscribes a reader from a specific list.
+ * @param {string} reader_id - The ID of the reader.
+ * @param {string} list_name - The name of the list to unsubscribe from.
+ * @returns {Promise} A promise that resolves with the response from the Sailthru API.
+ * @throws {Error} If the reader is not found or an error occurs during the API call.
+ */
+async function unsubscribe_reader_from_list(reader_id, list_name) {
+    try {
+        const reader = (await apihelper.getOne("reader", reader_id, { "fields": USER_FIELDS })).data;
         if (!reader) throw "Reader not found";
         const record = await map_reader_to_sailthru(reader, false);
         record.lists = { [list_name]: 0 };
@@ -152,6 +206,30 @@ async function get_users_in_list(list_id) {
             if (err) return reject(err);
             resolve(response);
         });
+    });
+}
+
+/**
+ * Retrieves user information from Sailthru based on the provided email or ID.
+ * @param {string|number} email_or_id - The email or ID of the user.
+ * @returns {Promise<object>} - A promise that resolves to the user information.
+ */
+async function get_user(email_or_id) {
+    return new Promise((resolve, reject) => {
+        // if number, then id, else email
+        if (typeof email_or_id === "number") {
+            return sailthru_client.apiGet("user", { id: email_or_id, key: "extid" }, (err, response) => {
+                if (err) return reject(err);
+                if (!response) return reject("User not found");
+                resolve(response);
+            });
+        } else {
+            return sailthru_client.apiGet("user", { id: email_or_id }, (err, response) => {
+                if (err) return reject(err);
+                if (!response) return reject("User not found");
+                resolve(response);
+            });
+        }
     });
 }
 
@@ -254,32 +332,6 @@ async function map_reader_to_sailthru(reader, use_cache = true) {
     return record;
 }
 
-function redis_get(key) {
-    return new Promise((resolve, reject) => {
-        redis.get(key, (err, reply) => {
-            if (err) return reject(err);
-            try {
-                const json = JSON.parse(reply);
-                if (!json) return resolve(false);
-                // console.log("Cache hit")
-                resolve(json);
-            } catch (err) {
-                resolve(false);
-            }
-        });
-    });
-}
-
-function redis_set(key, value, ttl) {
-    const json = JSON.stringify(value);
-    return new Promise((resolve, reject) => {
-        redis.set(key, json, "EX", ttl, (err, reply) => {
-            if (err) return reject(err);
-            resolve(reply);
-        });
-    });
-}
-
 async function serve_segments_test(req, res) {
     try {
         const readers = (await apihelper.get("reader", { "limit": 10000, "filter[email]": "$regex:@dailymaverick.co.za", "fields": USER_FIELDS })).data;
@@ -333,7 +385,7 @@ async function serve_update_job_test(req, res) {
     try {
         const url = `${config.listeners.protected_url}/sailthru/segment_update/test?apikey=${process.env.SAILTHRU_REVENGINE_APIKEY}`
         const job = await run_job(url);
-        res.send(job);
+        res.send([job]);
     } catch (err) {
         console.error(err);
         res.send(new errs.InternalServerError(err));
@@ -363,8 +415,8 @@ async function serve_job_status(req, res) {
 async function queue_all_jobs() {
     const user_count = await apihelper.count("reader", { "filter[wordpress_id]": "$exists:1" });
     const per_page = 10000;
-    const pages = Math.ceil(user_count / per_page);
-    // const pages = 10;
+    // const pages = Math.ceil(user_count / per_page);
+    const pages = 10;
     console.log(`Queueing ${pages} jobs`);
     const jobs = [];
     for (let i = 1; i <= pages; i++) {
@@ -386,6 +438,44 @@ async function serve_queue_all_jobs(req, res) {
     }
 }
 
+
+/**
+ * Retrieves templates from Sailthru.
+ * @returns {Promise<Array>} A promise that resolves with an array of templates.
+ */
+function get_templates() {
+    return new Promise((resolve, reject) => {
+        sailthru_client.apiGet("template", { limit: 100 }, (err, response) => {
+            if (err) return reject(err);
+            if (!response.templates) return reject("No templates found");
+            resolve(response.templates);
+        });
+    });
+}
+
+/**
+ * Sends a template to a reader.
+ * @param {string} reader_id - The ID of the reader.
+ * @param {string} template_name - The name of the template to send.
+ * @param {Object} vars - Optional variables to be used in the template.
+ * @returns {Promise<Object>} - A promise that resolves with the response from Sailthru API.
+ * @throws {string} - Throws an error if the reader is not found.
+ */
+async function send_template_to_reader(reader_id, template_name, vars = {}) {
+    const reader = (await apihelper.getOne("reader", reader_id, { "fields": USER_FIELDS })).data;
+    if (!reader) throw "Reader not found";
+    return new Promise((resolve, reject) => {
+        sailthru_client.apiPost("send", {
+            "template": template_name,
+            "email": reader.email,
+            "vars": vars
+        }, (err, response) => {
+            if (err) return reject(err);
+            resolve(response);
+        });
+    });
+}
+
 exports.get_lists = get_lists;
 exports.get_list = get_list;
 exports.create_list = create_list;
@@ -398,3 +488,8 @@ exports.serve_segments_paginated = serve_segments_paginated;
 exports.serve_queue_all_jobs = serve_queue_all_jobs;
 exports.sync_user_by_email = sync_user_by_email;
 exports.sync_user_by_wordpress_id = sync_user_by_wordpress_id;
+exports.get_templates = get_templates;
+exports.get_user = get_user;
+exports.subscribe_reader_to_list = subscribe_reader_to_list;
+exports.unsubscribe_reader_from_list = unsubscribe_reader_from_list;
+exports.send_template_to_reader = send_template_to_reader;

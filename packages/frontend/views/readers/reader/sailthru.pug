@@ -1,0 +1,49 @@
+h2#sailthru Sailthru 
+    .row 
+        .col-sm-6
+            .card
+                .card-body 
+                    h3 Subscribe to List 
+                    form(action=`/reader/sailthru/subscribe/${reader._id}`, method="POST")
+                        .form-group
+                            label List
+                            select#list.form-control(name="list")
+                                option(value="") Select List
+                                each list in sailthru_lists
+                                    if (!sailthru_user_lists.includes(list.name))
+                                        option(value=list.name)= list.name
+                        button.btn.btn-primary(type="submit") Subscribe
+        .col-sm-6
+            .card
+                .card-body 
+                    h3 Unsubscribe from List 
+                    form(action=`/reader/sailthru/unsubscribe/${reader._id}`, method="POST")
+                        .form-group
+                            label List
+                            select#list.form-control(name="list")
+                                option(value="") Select List
+                                each list_name in sailthru_user_lists
+                                    option(value=list_name)= list_name
+                        button.btn.btn-warning(type="submit") Unsubscribe
+    .row
+        .col-sm-12.mt-4 
+            .card 
+                .card-body 
+                    h3 Send Email
+                    form(action=`/reader/sailthru/send/${reader._id}`, method="POST")
+                        .form-group
+                            label Template
+                            select#template.form-control(name="template")
+                                option(value="") Select Template
+                                each template in sailthru_templates
+                                    option(value=template.name)= template.name
+                        button.btn.btn-primary(type="submit") Send
+    .row 
+        .col-sm-12.mt-4 
+            .card
+                .card-body 
+                    h3 Variables 
+                    each val, key in sailthru_user.vars
+                        .form-group
+                            label= key
+                            input.form-control(type="text" name=key value=val)
