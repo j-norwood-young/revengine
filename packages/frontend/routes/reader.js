@@ -83,14 +83,14 @@ const render_reader_view = async (req, res) => {
                     sailthru_user_lists.push(list);
                 }
             }
+            sailthru_user_lists.sort();
         } catch (err) {
             console.error(err);
         }
         const sailthru_templates = await Sailthru.get_templates();
-        // console.log({ sailthru_templates });
+        sailthru_templates.sort((a, b) => a.name.localeCompare(b.name));
         const sailthru_lists = await Sailthru.get_lists();
-        
-        console.log({ sailthru_user })
+        sailthru_lists.sort((a, b) => a.name.localeCompare(b.name));
         res.render("readers/reader", { title: `Reader: ${display_name}`, reader, sailthru_templates, sailthru_lists, sailthru_user, sailthru_user_lists });
     } catch (err) {
         console.error(err);
