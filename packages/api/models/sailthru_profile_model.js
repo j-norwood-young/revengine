@@ -1,8 +1,8 @@
 /* global JXPSchema ObjectId Mixed */
 
-const SailthruUserSchema = new JXPSchema({
-    id: { type: String, unique: true },
-    email: { type: String, unique: true },
+const SailthruProfileSchema = new JXPSchema({
+    id: { type: String, unique: true, index: true, required: true },
+    email: { type: String, unique: true, index: true, required: true },
     lists_signup: { type: Array, default: [] },
     signup_time: Date,
     var_time: Date,
@@ -24,7 +24,8 @@ const SailthruUserSchema = new JXPSchema({
     last_click: Date,
     last_pageview: Date,
     horizon_month: Mixed,
-    horizon_times: Mixed
+    horizon_times: Mixed,
+    sailthru_last_updated: { type: Date, index: true },
 },
 {
     perms: {
@@ -32,5 +33,5 @@ const SailthruUserSchema = new JXPSchema({
     }
 });
 
-const SailthruUser = JXPSchema.model('sailthruuser', SailthruUserSchema);
-module.exports = SailthruUser;
+const SailthruProfile = JXPSchema.model('sailthru_profile', SailthruProfileSchema);
+module.exports = SailthruProfile;
