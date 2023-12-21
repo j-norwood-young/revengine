@@ -53,13 +53,14 @@ async function sync_subscription(wordpress_user_id) {
     return (await apihelper.postput("woocommerce_subscription", "id", subscription)).data;
 }
 
-async function sync_readers_missing_in_wordpress() {
-    console.log("Syncing readers missing in Wordpress");
+async function sync_readers_missing_in_wordpress(parts = 1, part = 0, limit = 100) {
+    console.log(`Syncing readers missing in Wordpress, split into ${parts} parts, starting at part ${part}`);
     const count = (await apihelper.count("reader", { "filter[wordpress_id]": "$exists:0" }));
     console.log(`Found ${count} readers missing in Wordpress`)
-    const limit = 100;
-    const pages = Math.ceil(count / limit);
-    for (let page = 1; page <= pages; page++) {
+    const pages = Math.ceil(count / limit / parts);
+    const start_page = Math.ceil(pages / parts * part);
+    console.log(`Starting at page ${start_page} of ${pages}`)
+    for (let page = start_page; page <= pages + start_page; page++) {
         console.log(`Syncing page ${page} of ${pages}`);
         const readers = (await apihelper.get("reader", { "filter[wordpress_id]": "$exists:0", limit, page, "fields": "email" })).data;
         console.log(`Found ${readers.length} readers missing in Wordpress`);

@@ -8,6 +8,9 @@ const public_server = restify.createServer({
 const protected_server = require("@revengine/http_server");
 protected_server.use(restify.plugins.bodyParser()); 
 const Reports = require("@revengine/reports");
+const Cache = require("@revengine/common/cache");
+
+const hour_cache = new Cache({ ttl: 60 * 60 });
 
 const cors = corsMiddleware({
     origins: ['*'],
@@ -290,8 +293,8 @@ protected_server.get("/report/users_by_segment", async (req, res) => {
     }
 });
 
-protected_server.get("/sailthru/segment_update/test", sailthru.serve_segments_test);
-protected_server.get("/sailthru/update_job/test", sailthru.serve_update_job_test);
+protected_server.get("/sailthru/segment_update/test", hour_cache.restify_cache_middleware.bind(hour_cache), sailthru.serve_segments_test);
+protected_server.get("/sailthru/update_job/test", hour_cache.restify_cache_middleware.bind(hour_cache), sailthru.serve_update_job_test);
 protected_server.get("/sailthru/job_status/:job_id", sailthru.serve_job_status);
 protected_server.get("/sailthru/segment_update/:page", sailthru.serve_segments_paginated);
 protected_server.get("/sailthru/queue_all_jobs", sailthru.serve_queue_all_jobs);
