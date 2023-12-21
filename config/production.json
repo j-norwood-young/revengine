@@ -86,6 +86,10 @@
         "port": 4018,
         "server": "https://pipeline.revengine.dailymaverick.co.za"
     },
+    "sailthru": {
+        "log_prefix": "9943_",
+        "log_dir": "/root/dm-sailthru-data-explorer"
+    },
     "touchbase": {
         "api": "https://emailapi.touchbasepro.com/api/v3.2",
         "transactional_ids": {
