@@ -11,9 +11,7 @@
     "author": "Jason Norwood-Young <jason@10layer.com>",
     "license": "MIT",
     "dependencies": {
-      "@revengine/common": "^0.0.1",
-      "axios": "^0.24.0",
-      "config": "^3.3.1"
+      "@revengine/common": "^0.0.1"
     }
   }
   
