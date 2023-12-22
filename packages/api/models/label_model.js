@@ -37,7 +37,6 @@ const LabelSchema = new JXPSchema({
 const applyLabel = async function (label) {
     const Reader = require("./reader_model");
     try {
-        let query = [];
         if (!label.rules) return;
         if (label.fn) {
             const fn = new Function(label.fn);
@@ -75,11 +74,29 @@ const applyLabel = async function (label) {
             await Reader.bulkWrite(updates);
             // await jxphelper.bulk_postput("reader", "_id", post_data);
         }
-        for (let rule of label.rules) {
-            query = fix_query(JSON.parse(rule));
+        const query = fix_query(JSON.parse(label.rules[0]));
+        const ids_before = (await Reader.find({ "label_id": label._id }).distinct("_id"))?.map(x => x?.toString());
+        const ids_after = (await Reader.find(query).distinct("_id"))?.map(x => x?.toString());
+        const ids_added = ids_after.filter(x => !ids_before.includes(x));
+        const ids_removed = ids_before.filter(x => !ids_after.includes(x));
+        const ids_changed = ids_added.concat(ids_removed);
+        if (ids_changed.length === 0) return {
+            insert_result: { nModified: 0 },
+            delete_result: { nModified: 0 },
+            ids_added_count: 0,
+            ids_removed_count: 0,
+            ids_changed_count: 0
         }
-        await Reader.updateMany({ "label_id": label._id }, { $pull: { "label_id": label._id } });
-        let result = await Reader.updateMany(query, { $push: { "label_id": label._id } });
+        const insert_result = await Reader.updateMany({ _id: { $in: ids_added } }, { $push: { "label_id": label._id }, $set: { "label_update": new Date() } });
+        const delete_result = await Reader.updateMany({ _id: { $in: ids_removed } }, { $pull: { "label_id": label._id }, $set: { "label_update": new Date() } });
+        const result = {
+            insert_result,
+            delete_result,
+            ids_added_count: ids_added.length,
+            ids_removed_count: ids_removed.length,
+            ids_changed_count: ids_changed.length
+        }
+        if (process.env.NODE_ENV !== "production") console.log(result);
         return result
     } catch (err) {
         console.error(err);
@@ -122,7 +139,9 @@ LabelSchema.post('save', async function(doc) {
 });
 
 // Apply labels every hour
-setInterval(apply_labels, 60 * 60 * 1000);
+if (process.env.NODE_ENV === "production") {
+    setInterval(apply_labels, 60 * 60 * 1000);
+}
 
 const Label = JXPSchema.model('Label', LabelSchema);
 module.exports = Label;
