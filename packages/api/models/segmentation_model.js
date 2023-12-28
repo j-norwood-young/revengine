@@ -93,9 +93,9 @@ SegmentSchema.post('save', async function(doc) {
 });
 
 // Apply segments every hour
-if (process.env.NODE_ENV === "production") {
-    setInterval(apply_segments, 60 * 60 * 1000);
-}
+// if (process.env.NODE_ENV === "production") {
+//     setInterval(apply_segments, 60 * 60 * 1000);
+// }
 
 const Segmentation = JXPSchema.model('segmentation', SegmentSchema);
 module.exports = Segmentation;

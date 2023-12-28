@@ -138,14 +138,14 @@ LabelSchema.post('save', async function(doc) {
     await applyLabel(doc);
 });
 
-// Apply labels every hour
-if (process.env.NODE_ENV === "production") {
-    // Offset start by 30 mins
-    setTimeout(() => {
-        apply_labels();
-        setInterval(apply_labels, 60 * 60 * 1000);
-    }, 30 * 60 * 1000);
-}
+// // Apply labels every hour
+// if (process.env.NODE_ENV === "production") {
+//     // Offset start by 30 mins
+//     setTimeout(() => {
+//         apply_labels();
+//         setInterval(apply_labels, 60 * 60 * 1000);
+//     }, 30 * 60 * 1000);
+// }
 
 const Label = JXPSchema.model('Label', LabelSchema);
 module.exports = Label;
