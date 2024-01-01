@@ -415,8 +415,8 @@ async function serve_job_status(req, res) {
 async function queue_all_jobs() {
     const user_count = await apihelper.count("reader", { "filter[wordpress_id]": "$exists:1" });
     const per_page = 10000;
-    // const pages = Math.ceil(user_count / per_page);
-    const pages = 10;
+    const pages = Math.ceil(user_count / per_page);
+    // const pages = 10;
     console.log(`Queueing ${pages} jobs`);
     const jobs = [];
     for (let i = 1; i <= pages; i++) {
