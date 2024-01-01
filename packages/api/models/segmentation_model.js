@@ -70,7 +70,7 @@ const applySegment = async function (segment) {
 
 const apply_segments = async function () {
     try {
-        const segments = await Segmentation.find({ name: { $exists: 1 }});
+        const segments = await Segmentation.find({ name: { $exists: 1 }, _deleted: { $ne: true}}).sort({ name: 1 });
         let results = {};
         for (let segment of segments) {
             console.log(`Applying ${segment.name}`);

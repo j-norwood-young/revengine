@@ -118,7 +118,7 @@ LabelSchema.statics.apply_label = async function(data) {
 
 const apply_labels = async function () {
     try {
-        const labels = await Label.find({ name: { $exists: 1 }});
+        const labels = await Label.find({ name: { $exists: 1 }, _deleted: { $ne: true}}).sort({ name: 1 });
         let results = {};
         for (let label of labels) {
             console.log(`Applying ${label.name}`);
