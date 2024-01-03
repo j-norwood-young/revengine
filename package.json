@@ -55,10 +55,10 @@
   },
   "homepage": "https://github.com/j-norwood-young/revengine#readme",
   "dependencies": {
-    "jxp-helper": "^1.4.3",
+    "axios": "^1.6.2",
+    "commander": "^11.1.0",
     "config": "^3.3.9",
     "dotenv": "^16.3.1",
-    "axios": "^1.6.2",
-    "commander": "^11.1.0"
+    "jxp-helper": "^1.4.3"
   }
 }
