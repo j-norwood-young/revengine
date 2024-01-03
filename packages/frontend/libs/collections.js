@@ -157,10 +157,10 @@ class Collections {
                     { name: "Display on dashboard?", key: "display_on_dashboard", d: data => (data.display_on_dashboard), "view": "checkbox" },
                     {
                         name: "Count", 
+                        key: "last_count",
                         list_view,
                         d: async data => {
-                            const count = (await $.get(`${apiserver}/count/reader?filter[label_id]=${data._id}&limit=0&apikey=${apikey}`)).count;
-                            return formatNumber(count);
+                            return formatNumber(data.last_count);
                         }
                     },
                     { name: "Download", d: data => `<a href="/download/json/label/${data._id}">JSON</a> | <a href="/download/csv/label/${data._id}">CSV</a> | <a href="/download/label/autologins/${data._id}">Autologins</a>`, view: "none", list_view},
@@ -317,11 +317,11 @@ class Collections {
                 fields: [
                     { name: "Name", key: "name", d: data => `<a href="/segmentation/edit/${data._id}">${data.name}</a>`, "view": "text", list_view },
                     {
-                        name: "Count", 
+                        name: "Count",
+                        key: "last_count",
                         list_view,
                         d: async data => {
-                            const count = (await $.get(`${apiserver}/count/reader?filter[segmentation_id]=${data._id}&limit=0&apikey=${apikey}`)).count;
-                            return formatNumber(count);
+                            return formatNumber(data.last_count);
                         },
                         view: "none"
                     },
