@@ -56,7 +56,7 @@ const optimiseBulkUpdate = function (bulk_updates) {
     // Take all the matching updateOnes and merge them into an updateMany
     const update_patterns = {};
     const update_patterns_ids = {};
-    console.log(JSON.stringify(bulk_updates.slice(0, 2), null, 2));
+    // console.log(JSON.stringify(bulk_updates.slice(0, 2), null, 2));
     for (let update of bulk_updates) {
         if (!update.updateOne?.update || Object.keys(update.updateOne.update).length === 0) continue;
         const md5 = objToMd5(update.updateOne.update);
