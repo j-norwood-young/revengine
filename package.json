@@ -35,7 +35,10 @@
     "build": "npm-run-all -p build:*",
     "watch:frontend": "cd packages/frontend && webpack -w",
     "watch:vue": "cd packages/vue && webpack -w",
-    "watch": "npm-run-all -p watch:*"
+    "watch": "npm-run-all -p watch:*",
+    "dev-watch:frontend": "cd packages/frontend && npm run watch",
+    "dev-watch:vue": "cd packages/vue && npm run watch",
+    "dev-watch": "npm-run-all -p dev-watch:*"
   },
   "repository": {
     "type": "git",
