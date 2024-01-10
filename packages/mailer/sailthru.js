@@ -1,7 +1,7 @@
 require("dotenv").config();
 const config = require("config");
 const Apihelper = require("jxp-helper");
-const apihelper = new Apihelper({ server: config.api.server, apikey: process.env.SAILTHRU_REVENGINE_APIKEY });
+const apihelper = new Apihelper({ server: config.api.cluster_server, apikey: process.env.SAILTHRU_REVENGINE_APIKEY });
 const sailthru_client = require("sailthru-client").createSailthruClient(process.env.SAILTHRU_KEY, process.env.SAILTHRU_SECRET);
 const wordpress_auth = require("@revengine/wordpress_auth");
 const Redis = require("redis");
@@ -19,11 +19,19 @@ const USER_FIELDS = "email,segmentation_id,label_id,wordpress_id,display_name,fi
 
 let cache_loaded = false;
 
+/**
+ * Invalidates the cache for sailthru subscriptions.
+ * @returns {Promise<void>} A promise that resolves when the cache is invalidated.
+ */
 async function invalidate_cache() {
     const subscriptions_cache_key = "sailthru_subscriptions_cache";
     await redis.del(subscriptions_cache_key);
 }
 
+/**
+ * Loads the cache for segments, labels, and subscriptions.
+ * @returns {Promise<void>} A promise that resolves once the cache is loaded.
+ */
 async function load_cache() {
     segments_cache = (await apihelper.get("segmentation")).data;
     labels_cache = (await apihelper.get("label")).data;
@@ -41,6 +49,11 @@ async function load_cache() {
     }
 }
 
+/**
+ * Preheats the cache by deleting the "sailthru_subscriptions_cache" key and loading the cache.
+ * The cache is preheated every 30 minutes by calling load_cache function.
+ * @returns {Promise<void>} A promise that resolves when the cache is preheated.
+ */
 async function preheat_cache() {
     await cache.del("sailthru_subscriptions_cache");
     await load_cache();
@@ -52,6 +65,11 @@ async function preheat_cache() {
 
 preheat_cache();
 
+/**
+ * Retrieves a list of mailing lists from Sailthru.
+ * @returns {Promise<Array>} A promise that resolves to an array of lists.
+ * @throws {Error} If an error occurs during the API call or if no lists are found.
+ */
 async function get_lists() {
     return new Promise((resolve, reject) => {
         sailthru_client.apiGet("list", { limit: 100 }, (err, response) => {
@@ -62,6 +80,11 @@ async function get_lists() {
     });
 }
 
+/**
+ * Retrieves a mailing list from Sailthru API.
+ * @param {string} list_id - The ID of the list to retrieve.
+ * @returns {Promise<object>} - A promise that resolves with the response from the Sailthru API.
+ */
 async function get_list(list_id) {
     return new Promise((resolve, reject) => {
         sailthru_client.apiGet("list", { list_id, limit: 100 }, (err, response) => {
@@ -71,6 +94,11 @@ async function get_list(list_id) {
     });
 }
 
+/**
+ * Creates a new Sailthru mailing list with the given name.
+ * @param {string} list_name - The name of the list to be created.
+ * @returns {Promise<Object>} - A promise that resolves to the response object from the Sailthru API.
+ */
 async function create_list(list_name) {
     return new Promise((resolve, reject) => {
         sailthru_client.apiPost("list", { list: list_name }, (err, response) => {
@@ -80,6 +108,12 @@ async function create_list(list_name) {
     });
 }
 
+/**
+ * Synchronizes a user by email with Sailthru.
+ * @param {string} email - The email of the user to synchronize.
+ * @returns {Promise<Object>} - A promise that resolves with the response from Sailthru API.
+ * @throws {string} - Throws an error if the reader is not found.
+ */
 async function sync_user_by_email(email) {
     try {
         const reader = (await apihelper.get("reader", { "filter[email]": email, "fields": USER_FIELDS })).data.pop();
@@ -97,6 +131,12 @@ async function sync_user_by_email(email) {
     }
 }
 
+/**
+ * Synchronizes a user by their WordPress ID with Sailthru.
+ * @param {string} wordpress_id - The WordPress ID of the user.
+ * @returns {Promise<object>} - A promise that resolves to the response from Sailthru API.
+ * @throws {string} - Throws an error if the reader is not found.
+ */
 async function sync_user_by_wordpress_id(wordpress_id) {
     try {
         const reader = (await apihelper.get("reader", { "filter[wordpress_id]": wordpress_id, "fields": USER_FIELDS })).data.pop();
@@ -114,6 +154,13 @@ async function sync_user_by_wordpress_id(wordpress_id) {
     }
 }
 
+/**
+ * Subscribes an email to a specified list in Sailthru.
+ * @param {string} email - The email address to subscribe.
+ * @param {string} list_name - The name of the list to subscribe the email to.
+ * @returns {Promise} A promise that resolves with the response from Sailthru API.
+ * @throws {string} If the reader is not found or an error occurs during the subscription process.
+ */
 async function subscribe_email_to_list(email, list_name) {
     try {
         const reader = (await apihelper.get("reader", { "filter[email]": email, "fields": USER_FIELDS })).data.pop();
@@ -158,6 +205,13 @@ async function subscribe_reader_to_list(reader_id, list_name) {
     }
 }
 
+/**
+ * Unsubscribes an email from a specific list.
+ * @param {string} email - The email address to unsubscribe.
+ * @param {string} list_name - The name of the list to unsubscribe from.
+ * @returns {Promise} A promise that resolves with the response from the Sailthru API.
+ * @throws {Error} If the reader is not found or an error occurs during the API call.
+ */
 async function unsubscribe_email_from_list(email, list_name) {
     try {
         const reader = (await apihelper.get("reader", { "filter[email]": email, "fields": USER_FIELDS })).data.pop();
@@ -201,6 +255,11 @@ async function unsubscribe_reader_from_list(reader_id, list_name) {
     }
 }
 
+/**
+ * Retrieves users in a given Sailthru mailing list.
+ * @param {string} list_id - The ID of the list.
+ * @returns {Promise<Object>} - A promise that resolves with the response object containing the users in the list.
+ */
 async function get_users_in_list(list_id) {
     return new Promise((resolve, reject) => {
         sailthru_client.apiGet("list", { list_id, limit: 100 }, (err, response) => {
@@ -234,6 +293,11 @@ async function get_user(email_or_id) {
     });
 }
 
+/**
+ * Instructs Sailthru to retrieve the URL and update users in Sailthru based on the content.
+ * @param {string} url - The URL.
+ * @returns {Promise<any>} - A promise that resolves with the response from the Sailthru client.
+ */
 async function run_job(url) {
     return new Promise((resolve, reject) => {
         sailthru_client.processJob("update", {
@@ -250,6 +314,12 @@ let segments_cache = [];
 let labels_cache = [];
 let subscriptions_cache = [];
 
+/**
+ * Maps a reader object to the Sailthru format.
+ * @param {Object} reader - The reader object to be mapped.
+ * @param {boolean} [use_cache=true] - Indicates whether to use the cache for retrieving data.
+ * @returns {Object} - The mapped Sailthru record.
+ */
 async function map_reader_to_sailthru(reader, use_cache = true) {
     if (!subscriptions_cache) {
         await load_cache();
@@ -335,30 +405,16 @@ async function map_reader_to_sailthru(reader, use_cache = true) {
     return record;
 }
 
-async function serve_segments_test(req, res) {
-    try {
-        const readers = (await apihelper.get("reader", { "limit": 10000, "filter[email]": "$regex:@dailymaverick.co.za", "fields": USER_FIELDS })).data;
-        // const readers = (await apihelper.get("reader", { "filter[email]": "jason@10layer.com", "sort": "wordpress_id", "limit": 10000, "fields": USER_FIELDS })).data;
-        // We only want to generate segmenst and labels once
-        await load_cache();
-        const result = [];
-        for (let reader of readers) {
-            const record = await map_reader_to_sailthru(reader);
-            result.push(record);
-        }
-        console.log(`Generate Sailthru user list. ${result.length} records.`)
-        let s = "";
-        for (let record of result) {
-            s = JSON.stringify(record, null, "") + "\n";
-            res.write(s);
-        }
-        res.end();
-    } catch (err) {
-        console.error(err);
-        res.send(new errs.InternalServerError(err));
-    }
-}
-
+/**
+ * Serves a page to Sailthru including enriched reader data to update the users in Sailthru.
+ * 
+ * @param {Object} req - The request object.
+ * @param {String} req.params.uid - The unique identifier of the cache.
+ * @param {String} req.params.page - The page number.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} - A promise that resolves when the push request is served.
+ * @throws {Error} - If an error occurs while serving the push request.
+ */
 async function serve_push(req, res) {
     try {
         const uid = req.params.uid;
@@ -385,17 +441,11 @@ async function serve_push(req, res) {
     }
 }
 
-async function serve_update_job_test(req, res) {
-    try {
-        const url = `${config.listeners.protected_url}/sailthru/segment_update/test?apikey=${process.env.SAILTHRU_REVENGINE_APIKEY}`
-        const job = await run_job(url);
-        res.send([job]);
-    } catch (err) {
-        console.error(err);
-        res.send(new errs.InternalServerError(err));
-    }
-}
-
+/**
+ * Retrieves the status of a Sailthru job using the provided job ID.
+ * @param {string} job_id - The ID of the job to retrieve the status for.
+ * @returns {Promise<object>} - A promise that resolves with the response containing the job status.
+ */
 async function get_job_status(job_id) {
     return new Promise((resolve, reject) => {
         sailthru_client.apiGet("job", { job_id }, (err, response) => {
@@ -405,6 +455,13 @@ async function get_job_status(job_id) {
     });
 }
 
+/**
+ * Serves the status of a job.
+ * @param {Object} req - The request object.
+ * @param {string} req.params.job_id - The ID of the job to retrieve the status for.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} - A promise that resolves when the job status is served.
+ */
 async function serve_job_status(req, res) {
     try {
         const job_id = req.params.job_id;
@@ -416,6 +473,10 @@ async function serve_job_status(req, res) {
     }
 }
 
+/**
+ * Syncs readers that have had their segments or labels chagned, or have been created recently, with Sailthru through a number of jobs. Waits for the results, checks for errors, and adds the errors along with the offending reader to the results.
+ * @returns {Promise<Array>} An array of job results.
+ */
 async function queue() {
     const uid = `sailthru-${new Date().getTime()}`;
     const start_date = {
@@ -497,6 +558,12 @@ async function queue() {
     return job_results;
 }
 
+/**
+ * Retrieves an error report from a specified URL and associates each error with its corresponding reader.
+ * @param {string} url - The URL to fetch the error report from.
+ * @param {string} uid_page - The unique identifier of the cache and page.
+ * @returns {Promise<Array<Object>>} - A promise that resolves to an array of error objects, each containing the parsed error information and its associated reader.
+ */
 async function get_error_report(url, uid_page) {
     const readers = await cache.get(uid_page);
     const response = await fetch(url);
@@ -514,12 +581,19 @@ async function get_error_report(url, uid_page) {
             result.push(json);
         } catch (err) {
             // Don't do anything
-            console.log(err);
+            // console.log(err);
         }
     }
     return result;
 }
 
+/**
+ * Asynchronously waits for the completion of a job and returns the job result.
+ * @param {string} job_id - The ID of the job to await.
+ * @param {string} uid_page - The UID and page associated with the job.
+ * @returns {Promise<Object>} - A promise that resolves to the job result.
+ * @throws {string} - Throws an error if the job times out or fails.
+ */
 async function await_job_result(job_id, uid_page) {
     let job = await get_job_status(job_id);
     const max_tries = 60;
@@ -538,6 +612,12 @@ async function await_job_result(job_id, uid_page) {
     return job;
 }
 
+/**
+ * Serves the queue of jobs.
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} - A promise that resolves when the queue is served.
+ */
 async function serve_queue(req, res) {
     try {
         const jobs = await queue();
@@ -591,8 +671,6 @@ exports.get_list = get_list;
 exports.create_list = create_list;
 exports.subscribe_email_to_list = subscribe_email_to_list;
 exports.unsubscribe_email_from_list = unsubscribe_email_from_list;
-exports.serve_segments_test = serve_segments_test;
-exports.serve_update_job_test = serve_update_job_test;
 exports.serve_job_status = serve_job_status;
 exports.serve_push = serve_push;
 exports.serve_queue = serve_queue;

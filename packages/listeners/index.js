@@ -293,8 +293,6 @@ protected_server.get("/report/users_by_segment", async (req, res) => {
     }
 });
 
-protected_server.get("/sailthru/segment_update/test", hour_cache.restify_cache_middleware.bind(hour_cache), sailthru.serve_segments_test);
-protected_server.get("/sailthru/update_job/test", hour_cache.restify_cache_middleware.bind(hour_cache), sailthru.serve_update_job_test);
 protected_server.get("/sailthru/job_status/:job_id", sailthru.serve_job_status);
 protected_server.get("/sailthru/push/:uid/:page", sailthru.serve_push);
 protected_server.get("/sailthru/queue", sailthru.serve_queue);

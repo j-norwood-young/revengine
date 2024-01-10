@@ -8,6 +8,7 @@
     "api": {
         "port": 3002,
         "server": "http://revengine.dailymaverick.co.za:3002",
+        "cluster_server": "http://revengine.dailymaverick.co.za:3002",
         "mongo": {
             "connection_string": "mongodb://rfvengine1,rfvengine3,rfvengine4/revengine-prod?replicaSet=rs1&readPreference=secondaryPreferred",
             "options": {}
