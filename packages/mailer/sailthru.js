@@ -362,7 +362,8 @@ async function serve_segments_test(req, res) {
 async function serve_push(req, res) {
     try {
         const uid = req.params.uid;
-        const readers = await cache.get(uid);
+        const page = parseInt(req.params.page);
+        const readers = await cache.get(`${uid}-${page}`);
         if (!readers) throw "Cache not found";
         await load_cache();
         const result = [];
@@ -371,7 +372,7 @@ async function serve_push(req, res) {
             result.push(record);
             // await log_file.write(`${reader.email}\n`);
         }
-        console.log(`Generate Sailthru user list. ${result.length} records.`)
+        console.log(`Generate Sailthru user list for page ${page}. ${result.length} records.`)
         let s = "";
         for (let record of result) {
             s = JSON.stringify(record, null, "") + "\n";
@@ -442,7 +443,23 @@ async function queue() {
                         start_date
                     ]
                 }
-            }
+            },
+            { 
+                "$expr": {
+                    "$gte": [
+                        "$createdAt",
+                        start_date
+                    ]
+                }
+            },
+            // { 
+            //     "$expr": {
+            //         "$gte": [
+            //             "$updatedAt",
+            //             start_date
+            //         ]
+            //     }
+            // }
         ]
     };
     const query = [
@@ -464,28 +481,24 @@ async function queue() {
         }
     ];
     const result = await apihelper.aggregate("reader", query);
-    // const per_page = 10000;
-    // const pages = Math.ceil(result.length / per_page);
-    cache.set(uid, result.data, 60 * 60);
-    // const reader_filename = path.join(__dirname, "..", "..", "logs", "sailthru_readers.log");
-    // const reader_file = fs.createWriteStream(reader_filename, { flags: 'w' });
-    // // Write the readers to a file with line numbers
-    // for (let i = 0; i < result.data.length; i++) {
-    //     const reader = result.data[i];
-    //     await reader_file.write(`${i}\t${reader._id}\t${reader.email}\t${reader.wordpress_id}\n`);
-    // }
-    // reader_file.end();
-    const url = `${config.listeners.protected_url}/sailthru/push/${uid}?apikey=${process.env.SAILTHRU_REVENGINE_APIKEY}`
-    const job = await run_job(url);
-    // console.log(job);
-    const job_id = job.job_id;
-    const job_result = await await_job_result(job_id, uid);
-    // const count = result.data.pop().count;
-    return [job_result];
+    const per_page = 10000;
+    const pages = Math.ceil(result.data.length / per_page);
+    const job_results = [];
+    console.log(`Queueing ${pages} jobs`);
+    for (let page = 0; page < pages; page++) {
+        const readers = result.data.slice(page * per_page, (page + 1) * per_page);
+        cache.set(`${uid}-${page}`, readers, 60 * 60);
+        const url = `${config.listeners.protected_url}/sailthru/push/${uid}/${page}?apikey=${process.env.SAILTHRU_REVENGINE_APIKEY}`
+        const job = await run_job(url);
+        const job_id = job.job_id;
+        const job_result = await await_job_result(job_id, `${uid}-${page}`);
+        job_results.push(job_result);
+    }
+    return job_results;
 }
 
-async function get_error_report(url, uid) {
-    const readers = await cache.get(uid);
+async function get_error_report(url, uid_page) {
+    const readers = await cache.get(uid_page);
     const response = await fetch(url);
     const text = await response.text();
     const lines = text.split("\n");
@@ -507,7 +520,7 @@ async function get_error_report(url, uid) {
     return result;
 }
 
-async function await_job_result(job_id, uid) {
+async function await_job_result(job_id, uid_page) {
     let job = await get_job_status(job_id);
     const max_tries = 60;
     let tries = 0;
@@ -520,7 +533,7 @@ async function await_job_result(job_id, uid) {
     if (job.status === "pending") throw "Job timed out";
     if (job.status !== "completed") throw "Job failed";
     if (job.error_report_url) {
-        job.errors = await get_error_report(job.error_report_url, uid);
+        job.errors = await get_error_report(job.error_report_url, uid_page);
     }
     return job;
 }
