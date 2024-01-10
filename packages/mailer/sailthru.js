@@ -13,6 +13,7 @@ const log_filename = path.join(__dirname, "..", "..", "logs", "sailthru.log");
 const log_file = fs.createWriteStream(log_filename, { flags: 'a' });
 const Cache = require("@revengine/common/cache");
 const cache = new Cache({ prefix: "sailthru", debug: true, ttl: 60*60 });
+const fetch = require("node-fetch");
 
 const USER_FIELDS = "email,segmentation_id,label_id,wordpress_id,display_name,first_name,last_name,cc_expiry_date,cc_last4_digits";
 
@@ -259,6 +260,7 @@ async function map_reader_to_sailthru(reader, use_cache = true) {
         "email": reader.email
     });
     const segments = [];
+    if (!reader.segmentation_id) reader.segmentation_id = [];
     for (let segmentation_id of reader.segmentation_id) {
         const segmentation = segments_cache.find(s => (s.id === segmentation_id));
         if (segmentation) {
@@ -266,6 +268,7 @@ async function map_reader_to_sailthru(reader, use_cache = true) {
         }
     }
     const labels = [];
+    if (!reader.label_id) reader.label_id = [];
     for (let label_id of reader.label_id) {
         const label = labels_cache.find(l => (l.id === label_id));
         if (label) {
@@ -356,17 +359,17 @@ async function serve_segments_test(req, res) {
     }
 }
 
-async function serve_segments_paginated(req, res) {
+async function serve_push(req, res) {
     try {
-        const per_page = req.params.per_page || 10000;
-        const page = req.params.page || 1;
-        const readers = (await apihelper.get("reader", { "filter[wordpress_id]": "$exists:1", "sort": "wordpress_id", "limit": per_page, "page": page, "fields": USER_FIELDS })).data;
+        const uid = req.params.uid;
+        const readers = await cache.get(uid);
+        if (!readers) throw "Cache not found";
         await load_cache();
         const result = [];
         for (let reader of readers) {
             const record = await map_reader_to_sailthru(reader);
             result.push(record);
-            await log_file.write(`${reader.email}\n`);
+            // await log_file.write(`${reader.email}\n`);
         }
         console.log(`Generate Sailthru user list. ${result.length} records.`)
         let s = "";
@@ -412,25 +415,119 @@ async function serve_job_status(req, res) {
     }
 }
 
-async function queue_all_jobs() {
-    const user_count = await apihelper.count("reader", { "filter[wordpress_id]": "$exists:1" });
-    const per_page = 10000;
-    const pages = Math.ceil(user_count / per_page);
-    // const pages = 10;
-    console.log(`Queueing ${pages} jobs`);
-    const jobs = [];
-    for (let i = 1; i <= pages; i++) {
-        const url = `${config.listeners.protected_url}/sailthru/segment_update/${i}?apikey=${process.env.SAILTHRU_REVENGINE_APIKEY}`
-        const job = await run_job(url);
-        console.log(`Queued job ${job.job_id}`);
-        jobs.push(job);
+async function queue() {
+    const uid = `sailthru-${new Date().getTime()}`;
+    const start_date = {
+        $dateSubtract: {
+            startDate: "$$NOW",
+            unit: "day",
+            amount: 2
+        }
     }
-    return jobs;
+    const match = { 
+        "wordpress_id": { $exists: true },
+        "$or": [
+            {
+                "$expr": {
+                    "$gte": [
+                        "$segment_update",
+                        start_date
+                    ]
+                }
+            },
+            { 
+                "$expr": {
+                    "$gte": [
+                        "$label_update",
+                        start_date
+                    ]
+                }
+            }
+        ]
+    };
+    const query = [
+        { $match: match },
+        { 
+            $project: {
+                _id: 1,
+                email: 1,
+                label_id: 1,
+                segmentation_id: 1,
+                first_name: 1,
+                last_name: 1,
+                cc_expiry_date: 1,
+                cc_last4_digits: 1,
+                wordpress_id: 1,
+                segment_update: 1,
+                label_update: 1,
+            }
+        }
+    ];
+    const result = await apihelper.aggregate("reader", query);
+    // const per_page = 10000;
+    // const pages = Math.ceil(result.length / per_page);
+    cache.set(uid, result.data, 60 * 60);
+    // const reader_filename = path.join(__dirname, "..", "..", "logs", "sailthru_readers.log");
+    // const reader_file = fs.createWriteStream(reader_filename, { flags: 'w' });
+    // // Write the readers to a file with line numbers
+    // for (let i = 0; i < result.data.length; i++) {
+    //     const reader = result.data[i];
+    //     await reader_file.write(`${i}\t${reader._id}\t${reader.email}\t${reader.wordpress_id}\n`);
+    // }
+    // reader_file.end();
+    const url = `${config.listeners.protected_url}/sailthru/push/${uid}?apikey=${process.env.SAILTHRU_REVENGINE_APIKEY}`
+    const job = await run_job(url);
+    // console.log(job);
+    const job_id = job.job_id;
+    const job_result = await await_job_result(job_id, uid);
+    // const count = result.data.pop().count;
+    return [job_result];
 }
 
-async function serve_queue_all_jobs(req, res) {
+async function get_error_report(url, uid) {
+    const readers = await cache.get(uid);
+    const response = await fetch(url);
+    const text = await response.text();
+    const lines = text.split("\n");
+    const result = [];
+    // console.log(readers);
+    for (let line of lines) {
+        try {
+            const json = JSON.parse(line);
+            const line_number = parseInt(json.lineNumber);
+            const reader = readers[line_number - 1];
+            // console.log({ line_number, reader })
+            json.reader = reader;
+            result.push(json);
+        } catch (err) {
+            // Don't do anything
+            console.log(err);
+        }
+    }
+    return result;
+}
+
+async function await_job_result(job_id, uid) {
+    let job = await get_job_status(job_id);
+    const max_tries = 60;
+    let tries = 0;
+    while (job.status === "pending" && tries < max_tries) {
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        job = await get_job_status(job_id);
+        tries++;
+    }
+    console.log(job);
+    if (job.status === "pending") throw "Job timed out";
+    if (job.status !== "completed") throw "Job failed";
+    if (job.error_report_url) {
+        job.errors = await get_error_report(job.error_report_url, uid);
+    }
+    return job;
+}
+
+async function serve_queue(req, res) {
     try {
-        const jobs = await queue_all_jobs();
+        const jobs = await queue();
         res.send(jobs);
     } catch (err) {
         console.error(err);
@@ -484,8 +581,8 @@ exports.unsubscribe_email_from_list = unsubscribe_email_from_list;
 exports.serve_segments_test = serve_segments_test;
 exports.serve_update_job_test = serve_update_job_test;
 exports.serve_job_status = serve_job_status;
-exports.serve_segments_paginated = serve_segments_paginated;
-exports.serve_queue_all_jobs = serve_queue_all_jobs;
+exports.serve_push = serve_push;
+exports.serve_queue = serve_queue;
 exports.sync_user_by_email = sync_user_by_email;
 exports.sync_user_by_wordpress_id = sync_user_by_wordpress_id;
 exports.get_templates = get_templates;
