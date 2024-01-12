@@ -14,7 +14,7 @@ import fs from "fs";
 import path from "path";
 // const JXPHelper = require("jxp-helper");
 import JXPHelper from "jxp-helper";
-const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY, hideErrors: true });
+const apihelper = new JXPHelper({ server: config.api.cluster_server, apikey: process.env.APIKEY, hideErrors: true });
 
 const SAILTHRU_LOGS_MAP = {
     "blast": {
@@ -107,7 +107,7 @@ export class SailthruLogImporter extends EventEmitter {
             await this._write_lines(lines, sailthru_logs_type.collection);
             linecount += lines.length;
             // console.log(`Imported ${linecount} lines`);
-            this.emit('progress', { linecount, progress, fsize });
+            this.emit('progress', { linecount, progress: fsize, fsize });
             this.emit('done');
         });
     }
