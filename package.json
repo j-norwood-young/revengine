@@ -19,6 +19,8 @@
     "prod-fork:listeners": "env NODE_ENV=production node packages/listeners",
     "dev-track:consolidator": "env NODE_ENV=development nodemon packages/consolidator",
     "dev-track:tracker": "env NODE_ENV=development nodemon packages/tracker",
+    "dev-track:crosswords": "env NODE_ENV=development env TRACKER_KAFKA_TOPIC=crosswords INDEX=crosswords env PORT=3015 nodemon packages/tracker/event_tracker.ts",
+    "dev-track-test:event_tracker": "env NODE_ENV=development env TRACKER_NAME=event_tracker_test env TRACKER_KAFKA_TOPIC=event_tracker_test INDEX=event_tracker_test env PORT=3015 jest packages/tracker/test/event_tracker.test.ts",
     "dev:api": "env NODE_ENV=development env NODE_OPTIONS=--max-old-space-size=8192 nodemon --inspect --verbose --watch packages/api packages/api",
     "dev:content": "env NODE_ENV=development nodemon packages/content",
     "dev:pipeline": "env NODE_ENV=development nodemon packages/pipeline",
@@ -60,5 +62,9 @@
     "config": "^3.3.9",
     "dotenv": "^16.3.1",
     "jxp-helper": "^1.4.3"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.11",
+    "jest": "^29.7.0"
   }
 }

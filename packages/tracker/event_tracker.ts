@@ -1,6 +1,6 @@
 const config = require("config");
 const http = require("http");
-const kafka = require("kafka-node");
+const KafkaProducer = require("@revengine/common/kafka").KafkaProducer;
 const parse_user_agent = require("./user_agent").parse_user_agent;
 const geolocate_ip = require("./geolocate_ip").geolocate_ip;
 const parse_referer = require("./referer").parse_referer;
@@ -29,13 +29,6 @@ const headers = {
 };
 const index = process.env.INDEX || config.debug ? "pageviews_test" : "pageviews";
 
-const Producer = kafka.Producer;
-
-const client = new kafka.KafkaClient({
-    kafkaHost: kafka_server
-});
-const producer = new Producer(client);
-
 // Process for all hits
 // 1. Get hit
 // 1.1 Check cache and skip to 3 if hit is in cache
@@ -48,32 +41,7 @@ const producer = new Producer(client);
 // 8. Get post data
 // 9. Sent to kafka queue
 
-if (config.debug) {
-    console.log({
-        topic,
-        server: kafka_server,
-        partitions: kafka_partitions,
-        replicationFactor: kafka_replication_factor
-    });
-}
-// Ensure we have the topic created
-client.createTopics(
-    [
-        {
-            topic,
-            partitions: kafka_partitions,
-            replicationFactor: kafka_replication_factor,
-        },
-    ],
-    (err, result) => {
-        if (config.debug) console.log("createTopics", err, result);
-        if (err) {
-            console.error("Error creating topic");
-            console.error(err);
-            return process.exit(1);
-        }
-    }
-);
+const producer = new KafkaProducer({ kafka_server, topic, partitions: kafka_partitions, replication_factor: kafka_replication_factor });
 
 const set_esdata = async (data) => {
     if (data.user_id === "0") {
@@ -112,7 +80,7 @@ const send_to_kafka = async (data) => {
             [
                 {
                     topic,
-                    messages: JSON.stringify(data),
+                    message: JSON.stringify(data),
                 },
             ],
             (err, result) => {
@@ -200,13 +168,13 @@ const get_hit = async (req, res) => {
 console.log(`===${tracker_name} Tracker Started===`);
 if (config.debug) console.log("Debug mode on");
 
-http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
     if (req.url == "/favicon.ico") return;
     if (config.debug) {
         console.log({ headers: req.headers });
     }
     if (req.method === "GET") {
-        get_hit(req, res);
+        await get_hit(req, res);
     } else {
         res.writeHead(404, headers);
         res.write(JSON.stringify({ status: "error", error: "You lost?" }));
@@ -218,3 +186,5 @@ http.createServer((req, res) => {
         console.log(`RevEngine Tracker listening ${host}:${port}`);
     }
 });
+
+module.exports = server;

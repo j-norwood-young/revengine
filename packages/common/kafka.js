@@ -21,7 +21,18 @@ server  config.kafka.server || "localhost:9092"
 partitions  config.kafka.partitions || 1
 replication_factor config.kafka.replication_factor || 1
 */
+
+
 class KafkaProducer {
+    /**
+     * Constructs a Kafka producer instance.
+     * @param {Object} opts - The options for the Kafka producer.
+     * @param {string} opts.topic - The topic to produce messages to.
+     * @param {boolean} [opts.debug=false] - Whether to enable debug mode.
+     * @param {string} [opts.server] - The Kafka server address. If not provided, it will use the default server address from the configuration.
+     * @param {number} [opts.partitions] - The number of partitions for the topic. If not provided, it will use the default number of partitions from the configuration.
+     * @param {number} [opts.replication_factor] - The replication factor for the topic. If not provided, it will use the default replication factor from the configuration.
+     */
     constructor(opts) {
         if (!opts.topic) throw "Topic required";
         this.debug = opts.debug || false;
@@ -49,6 +60,11 @@ class KafkaProducer {
         if (this.debug) console.log(`Kafka Producer created for topic ${this.topic} on server ${this.server}`);
     }
 
+    /**
+     * Sends data to Kafka topic.
+     * @param {Object} data - The data to be sent.
+     * @returns {Promise} A promise that resolves with the result data if successful, or rejects with an error if unsuccessful.
+     */
     send(data) {
         return new Promise((resolve, reject) => {
             this.producer.send(
@@ -88,6 +104,16 @@ group   config.kafka.group
 const EventEmitter = require('events');
 
 class KafkaConsumer extends EventEmitter {
+    /**
+     * Creates a new instance of the Kafka consumer.
+     * @param {Object} opts - The options for the Kafka consumer.
+     * @param {string} opts.topic - The topic to consume messages from.
+     * @param {boolean} [opts.debug=false] - Whether to enable debug mode.
+     * @param {string} [opts.server="localhost:9092"] - The Kafka server to connect to.
+     * @param {string} [opts.group] - The consumer group ID.
+     * @param {Object} [opts.options] - Additional options for the Kafka consumer.
+     * @throws {string} Throws an error if the topic is not provided.
+     */
     constructor(opts) {
         try {
             super();
@@ -115,6 +141,11 @@ class KafkaConsumer extends EventEmitter {
         }
     }
 
+    /**
+     * Handles the incoming message from Kafka.
+     * @param {object} message - The Kafka message.
+     * @returns {void}
+     */
     onMessage(message) {
         try {
             if (!message.value) return;
@@ -130,19 +161,37 @@ class KafkaConsumer extends EventEmitter {
         }
     }
 
+    /**
+     * Handles the error event.
+     * @param {Error} err - The error object.
+     * @returns {void}
+     */
     onError(err) {
         if (this.debug) console.error(err);
         this.emit("error", err);
     }
 
+    /**
+     * Pauses the Kafka consumer.
+     * @returns {void}
+     */
     pause() {
         return this.consumer.pause();
     }
 
+    /**
+     * Resumes the Kafka consumer.
+     * @returns {void}
+     */
     resume() {
         return this.consumer.resume();
     }
 
+    /**
+     * Closes the Kafka consumer.
+     * @param {boolean} force - Whether to force close the consumer.
+     * @returns {Promise<any>} A promise that resolves when the consumer is closed.
+     */
     async close(force) {
         return new Promise((resolve, reject) => {
             this.consumer.close(force, (err, result) => {
