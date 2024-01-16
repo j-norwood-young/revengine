@@ -43,6 +43,11 @@ pre {
     padding-right: 10px;
 }
 
+.overflow-y {
+  overflow-y: scroll;
+  max-height: 80vh;
+}
+
 svg {
     shape-rendering: crispEdges;
 }

@@ -1,8 +1,9 @@
 {
-  "name": "@revengine/exporter",
+  "name": "@revengine/imports",
   "version": "0.0.1",
-  "description": "RevEngine Exporter, which exports data to external data stores",
+  "description": "RevEngine Imports, which imports data from external data stores",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -13,7 +14,6 @@
   "dependencies": {
     "@google-cloud/bigquery": "^5.0.0",
     "@revengine/common": "^0.0.1",
-    "mysql": "2.18.1",
     "cli-progress": "3.8.2",
     "mongoose-legacy-pluralize": "^1.0.2"
   }

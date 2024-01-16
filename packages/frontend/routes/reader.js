@@ -8,6 +8,7 @@ const moment = require("moment");
 const recency = require("@revengine/reports/libs/recency");
 const frequency = require("@revengine/reports/libs/frequency");
 const value = require("@revengine/reports/libs/value");
+const Sailthru = require("@revengine/mailer/sailthru");
 
 function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
@@ -48,16 +49,17 @@ router.get("/ammalgamate/:email", async(req, res) => {
     }
 })
 
-router.get("/view/:reader_id", async (req, res) => {
+const render_reader_view = async (req, res) => {
     try {
+        console.log("Getting reader", req.params.reader_id);
         const d = {};
         d["populate[labels]"] = "name";
         const reader = (await req.apihelper.getOne("reader", req.params.reader_id, d)).data;
         const labels = (await req.apihelper.get("label", { "sort[name]": 1, "fields": "name" })).data;
         reader.labels = labels.filter(label => reader.label_id.includes(label._id)).map(label => label.name);
-        const segmentations = (await req.apihelper.get("segmentation", { "sort[name]": 1, "fields": "name" })).data;
-        reader.segmentations = segmentations.filter(segmentation => reader.segmentation_id.includes(segmentation._id)).map(segmentation => segmentation.name);
-        reader.touchbase_subscriber = (await req.apihelper.get("touchbasesubscriber", { "filter[email]": `$regex:/${reader.email}/i`, "populate": "touchbaselist" })).data;
+        const segments = (await req.apihelper.get("segmentation", { "sort[name]": 1, "fields": "name" })).data;
+        reader.segments = segments.filter(segment => reader.segmentation_id.includes(segment._id)).map(segment => segment.name);
+        // reader.touchbase_subscriber = (await req.apihelper.get("touchbasesubscriber", { "filter[email]": `$regex:/${reader.email}/i`, "populate": "touchbaselist" })).data;
         if (reader.wordpress_id) {
             reader.woocommerce_membership = (await req.apihelper.get("woocommerce_membership", { "filter[customer_id]": reader.wordpress_id, "sort[date_modified]": -1 })).data;
             reader.woocommerce_order = (await req.apihelper.get("woocommerce_order", { "filter[customer_id]": reader.wordpress_id, "sort[date_created]": -1 })).data;
@@ -66,18 +68,37 @@ router.get("/view/:reader_id", async (req, res) => {
             reader.frequency = await frequency(reader._id);
             reader.value = await value(reader._id);
         }
-        reader.vouchers = (await req.apihelper.get("voucher", { "filter[reader_id]": reader._id, "sort[createdAt]": -1, "populate[vouchertype]": "name" })).data;
+        // reader.vouchers = (await req.apihelper.get("voucher", { "filter[reader_id]": reader._id, "sort[createdAt]": -1, "populate[vouchertype]": "name" })).data;
         let display_name = reader.email;
         if (reader.first_name || reader.last_name) display_name = `${reader.first_name || ""} ${reader.last_name || ""}`.trim();
         reader.display_name = display_name;
         reader.email_hash = crypto.createHash('md5').update(reader.email.trim().toLowerCase()).digest("hex")
         reader.rfv = (await req.apihelper.get("rfv", { "filter[reader_id]": reader._id, "sort[date]": -1, "limit": 1 })).data.pop();
-        res.render("readers/reader", { title: `Reader: ${display_name}`, reader });
+        let sailthru_user = null;
+        let sailthru_user_lists = [];
+        try {
+            sailthru_user = await Sailthru.get_user(reader.wordpress_id);
+            if (sailthru_user.lists) {
+                for (let list in sailthru_user.lists) {
+                    sailthru_user_lists.push(list);
+                }
+            }
+            sailthru_user_lists.sort();
+        } catch (err) {
+            console.error(err);
+        }
+        const sailthru_templates = await Sailthru.get_templates();
+        sailthru_templates.sort((a, b) => a.name.localeCompare(b.name));
+        const sailthru_lists = await Sailthru.get_lists();
+        sailthru_lists.sort((a, b) => a.name.localeCompare(b.name));
+        res.render("readers/reader", { title: `Reader: ${display_name}`, reader, sailthru_templates, sailthru_lists, sailthru_user, sailthru_user_lists });
     } catch (err) {
         console.error(err);
         res.render("error", err);
     }
-})
+}
+
+router.get("/view/:reader_id", render_reader_view)
 
 router.get("/activities/:reader_id", async (req, res) => {
     try {
@@ -471,5 +492,82 @@ router.post("/bulk_update", async (req, res) => {
         res.status(500).send({ error: err });
     }
 })
+
+router.post("/sailthru/subscribe/:reader_id", async (req, res, next) => {
+    try {
+        const reader_id = req.params.reader_id;
+        const list = req.body.list;
+        if (!list) throw("No list specified");
+        const result = await Sailthru.subscribe_reader_to_list(reader_id, list);
+        if (result.ok === true) {
+            res.locals.message = {
+                type: "success",
+                msg: `Subscribed to ${list}`,
+            }
+            next();
+        } else {
+            res.locals.message = {
+                type: "danger",
+                msg: result,
+            }
+            next();
+        }
+    } catch (err) {
+        res.locals.message = {
+            type: "danger",
+            msg: err,
+        }
+        next();
+    }
+}, render_reader_view);
+
+router.post("/sailthru/unsubscribe/:reader_id", async (req, res, next) => {
+    try {
+        const reader_id = req.params.reader_id;
+        const list = req.body.list;
+        if (!list) throw("No list specified");
+        const result = await Sailthru.unsubscribe_reader_from_list(reader_id, list);
+        if (result.ok === true) {
+            res.locals.message = {
+                type: "success",
+                msg: `Unsubscribed from ${list}`,
+            }
+            next();
+        } else {
+            res.locals.message = {
+                type: "danger",
+                msg: result,
+            }
+            next();
+        }
+    } catch (err) {
+        res.locals.message = {
+            type: "danger",
+            msg: err,
+        }
+        next();
+    }
+}, render_reader_view);
+
+router.post("/sailthru/send/:reader_id", async (req, res, next) => {
+    try {
+        const reader_id = req.params.reader_id;
+        const template = req.body.template;
+        if (!template) throw("No template specified");
+        const result = await Sailthru.send_template_to_reader(reader_id, template);
+        console.log(result);
+        res.locals.message = {
+            type: "success",
+            msg: `Email sent using template ${template}. Send ID ${result.send_id}`,
+        }
+        next();
+    } catch (err) {
+        res.locals.message = {
+            type: "danger",
+            msg: err,
+        }
+        next();
+    }
+}, render_reader_view);
 
 module.exports = router;

@@ -2,13 +2,12 @@ extends ../layout
 
 block content
     .container
-        
         .row.mb-2 
             .col-sm-12 
                 div
                     strong.mr-1 Segments
-                    each segmentation in reader.segmentations 
-                        .badge.badge-secondary.badge-pill.mr-1= segmentation
+                    each segment in reader.segments 
+                        .badge.badge-secondary.badge-pill.mr-1= segment
                 div
                     strong.mr-1 Labels
                     each label in reader.labels 
@@ -37,44 +36,7 @@ block content
                                 strong Wordpress ID: 
                                 | #{reader.wordpress_id}
             if (reader.rfv)
-                .col-sm-6.col-md-4
-                    .card
-                        .card-body
-                            h3.card-title RFV
-                            if (reader.rfv.recency)
-                                h4.card-title Recency
-                                p.card-text
-                                    strong Rank 
-                                    | #{ Math.round(reader.rfv.recency_quantile_rank * 100) }% 
-                                if (reader.recency)
-                                    p.card-text
-                                        strong Last visit 
-                                        | #{ moment(reader.recency.timestamp).format("YYYY-MM-DD HH:mm:ss") } (#{ reader.rfv.recency.from_now } ago)
-                                    p.card-text
-                                        strong Score 
-                                        | #{ reader.recency.score }
-                            if (reader.rfv.frequency)
-                                h4.card-title Frequency
-                                p.card-text
-                                    strong Rank 
-                                    | #{ Math.round(reader.rfv.frequency_quantile_rank * 100) }% 
-                                p.card-text
-                                    strong Count 
-                                    | #{ reader.rfv.frequency }
-                                p.card-text
-                                    strong Score 
-                                    | #{ reader.rfv.frequency_score } 
-                            if (reader.rfv.volume)
-                                h4.card-title Volume
-                                p.card-text
-                                    strong Rank 
-                                    | #{ Math.round(reader.rfv.volume_quantile_rank * 100) }% 
-                                p.card-text
-                                    strong Volume 
-                                    | #{ reader.rfv.volume }
-                                p.card-text
-                                    strong Score 
-                                    | #{ reader.rfv.volume_score } 
+                include ./reader/rfv.pug
             .col-sm-6.col-md-4
                 .card
                     .card-body
@@ -88,190 +50,11 @@ block content
                         .form-group 
                             a.btn.btn-danger.confirm(href=`/reader/expunge/${reader._id}`) Expunge User from System
         hr
-        if (reader.woocommerce_subscription && reader.woocommerce_subscription[0])
-            .row
-                .col-sm-12.mb-4
-                    h2 Subscriptions and Memberships
-                .col-sm-6.col-md-4
-                    .card
-                        img.card-img-top.bg-light.p-3(src="https://upload.wikimedia.org/wikipedia/commons/2/2a/WooCommerce_logo.svg" alt="WooCommerce")
-                        .card-body
-                            h4.card-title WooCommerce Subscription
-                            p.card-text 
-                                strong Status 
-                                | #{ reader.woocommerce_subscription[0].status }
-                            if (reader.woocommerce_subscription[0].customer_note)
-                                p.card-text 
-                                    strong Customer Note 
-                                    | #{ reader.woocommerce_subscription[0].customer_note }
-                            p.card-text 
-                                strong Total Value 
-                                | #{ reader.woocommerce_subscription[0].total }
-                            p.card-text 
-                                strong Billing Interval 
-                                | #{ reader.woocommerce_subscription[0].billing_interval } #{ reader.woocommerce_subscription[0].billing_period }
-                            if schedule_next_payment
-                                p.card-text 
-                                    strong Schedule Next Payment 
-                                    | #{ reader.woocommerce_subscription[0].schedule_next_payment }
-                            p.card-text 
-                                strong Date Created 
-                                | #{ reader.woocommerce_subscription[0].date_created }
-                            p.card-text 
-                                strong Date Modified 
-                                | #{ reader.woocommerce_subscription[0].date_modified }
-                            if (reader.woocommerce_subscription[0].payment_method)
-                                p.card-text 
-                                    strong Payment Method 
-                                    | #{ reader.woocommerce_subscription[0].payment_method }
-                            if (reader.woocommerce_subscription[0].products.length)
-                                each product in reader.woocommerce_subscription[0].products
-                                    p.card-text 
-                                        strong Product 
-                                        | #{ product.name } x #{ product.quantity } = #{ product.total }
-                            p.card-text 
-                                a.btn.btn-primary(href=`https://www.dailymaverick.co.za/wp-admin/post.php?post=${reader.woocommerce_subscription[0].id}&action=edit`, target="_blank") Open in Wordpress
-                if (reader.woocommerce_membership[0])
-                    .col-sm-6.col-md-4
-                        .card
-                            .card-body
-                                h4.card-title WooCommerce Membership
-                                p.card-text 
-                                    strong Status 
-                                    | #{ reader.woocommerce_membership[0].status }
-                                p.card-text 
-                                    strong Start Date 
-                                    | #{ moment(reader.woocommerce_membership[0].start_date).format("YYYY-MM-DD") }
-                                if (reader.woocommerce_membership[0].cancelled_date)
-                                    p.card-text 
-                                        strong Start Date 
-                                        | #{ moment(reader.woocommerce_membership[0].cancelled_date).format("YYYY-MM-DD") }
-                                if (reader.woocommerce_membership[0].paused_intervals && reader.woocommerce_membership[0].paused_intervals.length)
-                                    p.card-text 
-                                        h5 Paused Intervals
-                                    for paused_interval in reader.woocommerce_membership[0].paused_intervals
-                                        if (moment(paused_interval.start).diff(moment(paused_interval.end), days) > 1)
-                                            if (paused_interval.end)
-                                                p.card-text #{moment(paused_interval.start).format("YYYY-MM-DD")} - #{moment(paused_interval.end).format("YYYY-MM-DD")}
-                                            else 
-                                                p.card-text #{moment(paused_interval.start).format("YYYY-MM-DD")} (Currently Paused)
-                .col-sm-6.col-md-4
-                    .card
-                        .card-body 
-                            h4 Orders
-                            for order in reader.woocommerce_order 
-                                p.card-text 
-                                    strong= moment(order.date_created).format("YYYY-MM-DD")
-                                    |  R#{order.total} #{order.payment_method}
-                                    if (order.date_paid)
-                                        span.badge.badge-success.ml-1 Paid
-                if (reader.cc_expiry_date)
-                    .col-sm-6.col-md-4.mt-4
-                        .card
-                            .card-body 
-                                h4 Credit Card
-                                p.card-text 
-                                    | xxxx-xxxx-xxxx-#{reader.cc_last4_digits}
-                                p.card-text 
-                                    strong Expires 
-                                    = moment(reader.cc_expiry_date).format("MM/YY")
-
-
-            hr
-        
-        .row 
-            .col-sm-12.mb-4 
-                h2 Vouchers
-        .row 
-            .col.mb-4
-                a.btn.btn-info.confirm(href=`/reader/assign_vouchers/${reader._id}`) Assign Vouchers
-        if (reader.vouchers.length)
-            .row
-                for voucher in reader.vouchers
-                    .col-sm-6.col-md-4.mb-4
-                        .card
-                            .card-body
-                                p.card-text
-                                    strong Type 
-                                    = voucher.vouchertype.name 
-                                p.card-text
-                                    strong Valid From 
-                                    = moment(voucher.valid_from).format("YYYY-MM-DD")
-                                p.card-text
-                                    strong Valid To 
-                                    = moment(voucher.valid_to).format("YYYY-MM-DD")
-                                p.card-text
-                                    strong Code 
-                                    = voucher.code
+        include ./reader/sailthru.pug
         hr
-        if (reader.touchbase_subscriber[0])
-            .row
-                .col-sm-12.mb-4 
-                    h2 Newsletters
-                .col-sm-6.col-md-4
-                    .card.mb-4
-                        img.card-img-top.bg-light.p-3(src="https://www.touchbasepro.com/Content/Images/TouchBasePro_Logo.svg" alt="Touchbase Pro")
-                        .card-body
-                            h4.card-title Touchbase Pro
-                            p.card-text
-                                strong Name 
-                                | #{ reader.touchbase_subscriber[0].name }
-                            p.card-text
-                                strong State 
-                                | #{ reader.touchbase_subscriber[0].state }
-                            p.card-text
-                                strong Email Client 
-                                | #{ reader.touchbase_subscriber[0].email_client }
-                for touchbase_subscriber in reader.touchbase_subscriber
-                    .col-sm-6.col-md-4.mb-4
-                        .card
-                            .card-body
-                                h4.card-title= touchbase_subscriber.touchbaselist.name
-                                each data in touchbase_subscriber.data
-                                    p.card-text
-                                        strong #{ data.Key } 
-                                        | #{ data.Value }
-                hr
-        //- .row
-        //-     .col-sm-7
-        //-         p
-        //-             - if (labels.length)
-        //-                 != `${ reader.display_name } is a ${ labels.join(", ") }.`
-        //-         p
-        //-             - if (reader.newsletters.length)
-        //-                 != `${ reader.display_name } subscribes to <strong>${ reader.newsletters.length }</strong> newsletter${ reader.newsletters.length > 1 ? "s" : "" }.`
-        //-         p
-        //-             - if (reader.visit_count)
-        //-                 != `${ reader.display_name } has visited Daily Maverick's site <strong>${ reader.visit_count }</strong> time${ reader.visit_count > 1 ? "s" : "" }.`
-        //-         p
-        //-             - if (reader.membership_product)
-        //-                 != `They have an <strong>${reader.membership_status} ${reader.membership_product}</strong> subscription. This  subscription is worth <strong>ZAR${ reader.membership_value }</strong> per <strong>${ reader.membership_period }</strong>.`
-        //-         p
-        //-             - if (reader.browser)
-        //-                 != `${ reader.first_name } uses <strong>${ reader.browser }</strong> on <strong>${ reader.operating_system }</strong> on a <strong>${ reader.device.toLowerCase() }</strong> set to ${ reader.width }x${ reader.height }px. `
-        //-             - if (reader.email_client)
-        //-                 != `They use <strong>${ reader.email_client }</strong> to read email.`
-                canvas#beamTimespentAvg.histogram
-                canvas#beamArticleProgress.histogram
-            //- .col-sm-3
-            //-     .card.mt-2
-            //-         .card-body
-            //-             h2 Newsletters
-            //-             for newsletter in reader.newsletters
-            //-                 .custom-control.custom-checkbox
-            //-                     input.custom-control-input.list-checkbox-filter(type="checkbox" id=`newsletter-${newsletter}` value=newsletter checked="checked" readonly="readonly")
-            //-                     label.custom-control-label(for=`newsletter-${newsletter}`)= newsletter
-        
-        //- #activitiesD3.mb-4
-        //- pre(style="height: 100vh; overflow-y: scroll")= JSON.stringify(reader, null, "\t")
-    //- script.
-    //-     const activities_d3 = new ActivitiesD3("#{reader._id}");
-    //-     document.addEventListener("DOMContentLoaded", async (event) => {
-    //-         const beam = new Beam();
-    //-         let beamdata = await beam.getReader("#{reader._id}");
-    //-         const charts = new Charts();
-    //-         beam.drawCharts(beamdata);
-    //-     })
+        if (reader.woocommerce_subscription && reader.woocommerce_subscription[0])
+            include ./reader/woocommerce.pug
+        hr
 block scripts
     script.
         const reader_id = "#{reader._id}";

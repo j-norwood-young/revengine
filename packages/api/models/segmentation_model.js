@@ -1,10 +1,13 @@
 /* global JXPSchema ObjectId Mixed */
 
-const SegmentationSchema = new JXPSchema({
+const SegmentSchema = new JXPSchema({
     name: {type: String, unique: true, required: true },
     code: {type: String, unique: true, required: true },
     labels_and_id: [{ type: ObjectId, link: "label", map_to: "labels_and" }],
     labels_not_id: [{ type: ObjectId, link: "label", map_to: "labels_not" }],
+    last_count: Number,
+    last_count_date: Date,
+    dirty: { type: Boolean, default: true },
 },
 {
     perms: {
@@ -35,12 +38,58 @@ const generateQuery = (labels_and, labels_not) => {
     return query;
 }
 
-const applySegmentation = async function (segmentation) {
+const updateSegmentStats = async function (segment) {
+    const Reader = require("./reader_model");
+    const count = await Reader.countDocuments({ "segmentation_id": segment._id });
+    await Segment.findOneAndUpdate({ _id: segment._id }, { last_count: count, last_count_date: new Date(), dirty: false });
+    if (process.env.NODE_ENV !== "production") console.log(`Segment ${segment.name} has ${count} readers`);
+}
+
+const applySegment = async function (segment) {
     const Reader = require("./reader_model");
     try {
-        const query = generateQuery(segmentation.labels_and_id, segmentation.labels_not_id);
-        await Reader.updateMany({ "segmentation_id": segmentation._id }, { $pull: { "segmentation_id": segmentation._id } });
-        let result = await Reader.updateMany(query, { $push: { "segmentation_id": segmentation._id } });
+        const query = generateQuery(segment.labels_and_id, segment.labels_not_id);
+        const ids_before = (await Reader.find({ "segmentation_id": segment._id }).distinct("_id"))?.map(x => x?.toString());
+        const ids_after = (await Reader.find(query).distinct("_id"))?.map(x => x?.toString());
+        const ids_before_set = new Set(ids_before);
+        const ids_after_set = new Set(ids_after);
+
+        const ids_added = [...ids_after_set].filter(x => !ids_before_set.has(x));
+        const ids_removed = [...ids_before_set].filter(x => !ids_after_set.has(x));
+        const ids_changed = [...ids_added, ...ids_removed];
+
+        if (ids_changed.length === 0) {
+            await updateSegmentStats(segment);
+            return {
+                insert_result: { nModified: 0 },
+                delete_result: { nModified: 0 },
+                ids_added_count: 0,
+                ids_removed_count: 0,
+                ids_changed_count: 0
+            }
+        }
+        const per_page = 10000;
+        const insert_pages = Math.ceil(ids_added.length / per_page);
+        const insert_result = [];
+        for (let i = 0; i < insert_pages; i++) {
+            const ids_added_page = ids_added.slice(i * per_page, (i + 1) * per_page);
+            insert_result.push(await Reader.updateMany({ _id: { $in: ids_added_page } }, { $push: { "segmentation_id": segment._id }, $set: { "segment_update": new Date() } }));
+        }
+        const delete_pages = Math.ceil(ids_removed.length / per_page);
+        const delete_result = [];
+        for (let i = 0; i < delete_pages; i++) {
+            const ids_removed_page = ids_removed.slice(i * per_page, (i + 1) * per_page);
+            delete_result.push(await Reader.updateMany({ _id: { $in: ids_removed_page } }, { $pull: { "segmentation_id": segment._id }, $set: { "segment_update": new Date() } }));
+        }
+        const result = {
+            insert_result,
+            delete_result,
+            ids_added_count: ids_added.length,
+            ids_removed_count: ids_removed.length,
+            ids_changed_count: ids_changed.length
+        }
+        if (process.env.NODE_ENV !== "production") console.log(result);
+        await updateSegmentStats(segment);
         return result
     } catch (err) {
         console.error(err);
@@ -48,14 +97,18 @@ const applySegmentation = async function (segmentation) {
     }
 }
 
-const apply_segmentations = async function () {
+const apply_segments = async function () {
     try {
-        const segmentations = await Segmentation.find({ name: { $exists: 1 }});
+        console.time("apply_segments");
+        if (process.env.NODE_ENV !== "production") console.log("Applying segments");
+        const segments = await Segment.find({ name: { $exists: 1 }, _deleted: { $ne: true}}).sort({ dirty: -1, last_count_date: -1 });
         let results = {};
-        for (let segmentation of segmentations) {
-            console.log(`Applying ${segmentation.name}`);
-            results[segmentation.name] = await applySegmentation(segmentation).catch(err => `Error applying segmentation: ${err.toString()}`);
+        for (let segment of segments) {
+            if (process.env.NODE_ENV !== "production") console.log(`Applying ${segment.name}`);
+            results[segment.name] = await applySegment(segment).catch(err => `Error applying segment: ${err.toString()}`);
         }
+        if (process.env.NODE_ENV !== "production") console.log("Done applying segments");
+        console.timeEnd("apply_segments");
         return results;
     } catch (err) {
         console.error(err);
@@ -63,15 +116,20 @@ const apply_segmentations = async function () {
     }
 }
 
-SegmentationSchema.statics.apply_segmentations = apply_segmentations;
+// Deprecated
+SegmentSchema.statics.apply_segmentations = apply_segments;
+SegmentSchema.statics.apply_segments = apply_segments;
 
-SegmentationSchema.post('save', async function(doc) {
-    console.log(`Applying ${doc.name}`);
-    await applySegmentation(doc);
+SegmentSchema.post('save', async function(doc) {
+    if (process.env.NODE_ENV !== "production") console.log(`Applying segment ${doc.name}`);
+    await applySegment(doc);
+    if (process.env.NODE_ENV !== "production") console.log(`Done applying segment ${doc.name}`);
 });
 
-// Apply labels every half-hour
-setInterval(apply_segmentations, 30 * 60 * 1000);
+// Apply segments every hour
+// if (process.env.NODE_ENV === "production") {
+//     setInterval(apply_segments, 60 * 60 * 1000);
+// }
 
-const Segmentation = JXPSchema.model('segmentation', SegmentationSchema);
-module.exports = Segmentation;
+const Segment = JXPSchema.model('segmentation', SegmentSchema);
+module.exports = Segment;

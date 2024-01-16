@@ -1,5 +1,6 @@
 const config = require("config");
 const restify = require("restify");
+const errs = require('restify-errors');
 const corsMiddleware = require('restify-cors-middleware2')
 const public_server = restify.createServer({
     name: config.api_name
@@ -7,6 +8,9 @@ const public_server = restify.createServer({
 const protected_server = require("@revengine/http_server");
 protected_server.use(restify.plugins.bodyParser()); 
 const Reports = require("@revengine/reports");
+const Cache = require("@revengine/common/cache");
+
+const hour_cache = new Cache({ ttl: 60 * 60 });
 
 const cors = corsMiddleware({
     origins: ['*'],
@@ -17,6 +21,7 @@ public_server.use(restify.plugins.queryParser());
 public_server.use(cors.preflight);
 public_server.use(cors.actual);
 const touchbase = require("@revengine/mailer/touchbase");
+const sailthru = require("@revengine/mailer/sailthru");
 const sync_wordpress = require("@revengine/sync/wordpress");
 const ml = require("@revengine/ml");
 const wordpress_auth = require("@revengine/wordpress_auth");
@@ -285,6 +290,72 @@ protected_server.get("/report/users_by_segment", async (req, res) => {
         res.send(result);
     } catch(err) {
         res.send(500, { error: err.toString() });
+    }
+});
+
+protected_server.get("/sailthru/job_status/:job_id", sailthru.serve_job_status);
+protected_server.get("/sailthru/push/:uid/:page", sailthru.serve_push);
+protected_server.get("/sailthru/queue", sailthru.serve_queue);
+protected_server.post("/sailthru/subscribe_email_to_list", async (req, res) => {
+    try {
+        const email = req.body.email;
+        const list_name = req.body.list_name;
+        if (!email) throw "No email";
+        if (!list_name) throw "No list_name";
+        const result = await sailthru.subscribe_email_to_list(email, list_name);
+        res.send(result);
+        // res.send({ status: "ok" });
+    } catch(err) {
+        res.send(500, { error: err.toString() });
+    }
+})
+protected_server.post("/sailthru/unsubscribe_email_from_list", async (req, res) => {
+    try {
+        const email = req.body.email;
+        const list_name = req.body.list_name;
+        if (!email) throw "No email";
+        if (!list_name) throw "No list_name";
+        const result = await sailthru.unsubscribe_email_from_list(email, list_name);
+        res.send(result);
+        // res.send({ status: "ok" });
+    } catch(err) {
+        res.send(500, { error: err.toString() });
+    }
+})
+
+protected_server.get("/sailthru/get_lists", async (req, res) => {
+    try {
+        const lists = await sailthru.get_lists();
+        res.send({ lists });
+    } catch(err) {
+        res.send(500, { error: err.toString() });
+    }
+})
+
+protected_server.post("/sailthru/sync_user", async (req, res) => {
+    try {
+        const email = req.body.email;
+        const user_id = req.body.user_id;
+        if (!email && !user_id) throw "No email or user_id";
+        let result;
+        if (email) {
+            result = await sailthru.sync_user_by_email(email);
+        } else {
+            result = await sailthru.sync_user_by_wordpress_id(user_id);
+        }
+        res.send(result);
+    } catch(err) {
+        res.send(500, { error: err.toString() });
+    }
+})
+
+protected_server.get("/wordpress/sync_readers_missing_in_wordpress", async (req, res) => {
+    try {
+        await sync_wordpress.sync_readers_missing_in_wordpress();
+        res.send({ status: "ok" });
+    } catch(err) {
+        console.error(err);
+        res.send(new errs.InternalServerError(err));
     }
 });
 

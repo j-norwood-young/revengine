@@ -1,0 +1,87 @@
+.row
+    .col-sm-12.mb-4
+        h2 Subscriptions and Memberships
+    .col-sm-6.col-md-4
+        .card
+            img.card-img-top.bg-light.p-3(src="https://upload.wikimedia.org/wikipedia/commons/2/2a/WooCommerce_logo.svg" alt="WooCommerce")
+            .card-body
+                h4.card-title WooCommerce Subscription
+                p.card-text 
+                    strong Status 
+                    | #{ reader.woocommerce_subscription[0].status }
+                if (reader.woocommerce_subscription[0].customer_note)
+                    p.card-text 
+                        strong Customer Note 
+                        | #{ reader.woocommerce_subscription[0].customer_note }
+                p.card-text 
+                    strong Total Value 
+                    | #{ reader.woocommerce_subscription[0].total }
+                p.card-text 
+                    strong Billing Interval 
+                    | #{ reader.woocommerce_subscription[0].billing_interval } #{ reader.woocommerce_subscription[0].billing_period }
+                if schedule_next_payment
+                    p.card-text 
+                        strong Schedule Next Payment 
+                        | #{ reader.woocommerce_subscription[0].schedule_next_payment }
+                p.card-text 
+                    strong Date Created 
+                    | #{ reader.woocommerce_subscription[0].date_created }
+                p.card-text 
+                    strong Date Modified 
+                    | #{ reader.woocommerce_subscription[0].date_modified }
+                if (reader.woocommerce_subscription[0].payment_method)
+                    p.card-text 
+                        strong Payment Method 
+                        | #{ reader.woocommerce_subscription[0].payment_method }
+                if (reader.woocommerce_subscription[0].products.length)
+                    each product in reader.woocommerce_subscription[0].products
+                        p.card-text 
+                            strong Product 
+                            | #{ product.name } x #{ product.quantity } = #{ product.total }
+                p.card-text 
+                    a.btn.btn-primary(href=`https://www.dailymaverick.co.za/wp-admin/post.php?post=${reader.woocommerce_subscription[0].id}&action=edit`, target="_blank") Open in Wordpress
+    if (reader.woocommerce_membership[0])
+        .col-sm-6.col-md-4
+            .card
+                .card-body
+                    h4.card-title WooCommerce Membership
+                    p.card-text 
+                        strong Status 
+                        | #{ reader.woocommerce_membership[0].status }
+                    p.card-text 
+                        strong Start Date 
+                        | #{ moment(reader.woocommerce_membership[0].start_date).format("YYYY-MM-DD") }
+                    if (reader.woocommerce_membership[0].cancelled_date)
+                        p.card-text 
+                            strong Start Date 
+                            | #{ moment(reader.woocommerce_membership[0].cancelled_date).format("YYYY-MM-DD") }
+                    if (reader.woocommerce_membership[0].paused_intervals && reader.woocommerce_membership[0].paused_intervals.length)
+                        p.card-text 
+                            h5 Paused Intervals
+                        for paused_interval in reader.woocommerce_membership[0].paused_intervals
+                            if (moment(paused_interval.start).diff(moment(paused_interval.end), days) > 1)
+                                if (paused_interval.end)
+                                    p.card-text #{moment(paused_interval.start).format("YYYY-MM-DD")} - #{moment(paused_interval.end).format("YYYY-MM-DD")}
+                                else 
+                                    p.card-text #{moment(paused_interval.start).format("YYYY-MM-DD")} (Currently Paused)
+    .col-sm-6.col-md-4
+        .card
+            .card-body.overflow-y 
+                h4 Orders
+                for order in reader.woocommerce_order 
+                    p.card-text 
+                        strong= moment(order.date_created).format("YYYY-MM-DD")
+                        |  R#{order.total} #{order.payment_method}
+                        if (order.date_paid)
+                            span.badge.badge-success.ml-1 Paid
+    if (reader.cc_expiry_date)
+        .col-sm-6.col-md-4.mt-4
+            .card
+                .card-body 
+                    h4 Credit Card
+                    p.card-text 
+                        | xxxx-xxxx-xxxx-#{reader.cc_last4_digits}
+                    p.card-text 
+                        strong Expires 
+                        = moment(reader.cc_expiry_date).format("MM/YY")
+

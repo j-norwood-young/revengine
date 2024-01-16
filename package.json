@@ -11,15 +11,15 @@
     "test": "lerna run test --stream",
     "prod:consolidator": "env NODE_ENV=production node packages/consolidator",
     "prod:tracker": "env NODE_ENV=production node packages/tracker",
-    "prod:api": "env NODE_ENV=production node packages/api",
+    "prod-fork:api": "env NODE_ENV=production env NODE_OPTIONS=--max-old-space-size=8192 node packages/api",
     "prod:frontend": "env NODE_ENV=production node packages/frontend/bin/www",
     "prod:pipeline": "env NODE_ENV=production node packages/pipeline",
     "prod:wordpress_api": "env NODE_ENV=production node packages/wordpress_api",
     "prod:mailer": "env NODE_ENV=production node packages/mailer",
-    "prod:listeners": "env NODE_ENV=production node packages/listeners",
+    "prod-fork:listeners": "env NODE_ENV=production node packages/listeners",
     "dev-track:consolidator": "env NODE_ENV=development nodemon packages/consolidator",
     "dev-track:tracker": "env NODE_ENV=development nodemon packages/tracker",
-    "dev:api": "env NODE_ENV=development nodemon --inspect --verbose --watch packages/api packages/api",
+    "dev:api": "env NODE_ENV=development env NODE_OPTIONS=--max-old-space-size=8192 nodemon --inspect --verbose --watch packages/api packages/api",
     "dev:content": "env NODE_ENV=development nodemon packages/content",
     "dev:pipeline": "env NODE_ENV=development nodemon packages/pipeline",
     "dev:frontend": "env NODE_ENV=development nodemon --config packages/frontend/nodemon.json packages/frontend/bin/www",
@@ -35,7 +35,10 @@
     "build": "npm-run-all -p build:*",
     "watch:frontend": "cd packages/frontend && webpack -w",
     "watch:vue": "cd packages/vue && webpack -w",
-    "watch": "npm-run-all -p watch:*"
+    "watch": "npm-run-all -p watch:*",
+    "dev-watch:frontend": "cd packages/frontend && npm run watch",
+    "dev-watch:vue": "cd packages/vue && npm run watch",
+    "dev-watch": "npm-run-all -p dev-watch:*"
   },
   "repository": {
     "type": "git",
@@ -50,5 +53,12 @@
   "bugs": {
     "url": "https://github.com/j-norwood-young/revengine/issues"
   },
-  "homepage": "https://github.com/j-norwood-young/revengine#readme"
+  "homepage": "https://github.com/j-norwood-young/revengine#readme",
+  "dependencies": {
+    "axios": "^1.6.2",
+    "commander": "^11.1.0",
+    "config": "^3.3.9",
+    "dotenv": "^16.3.1",
+    "jxp-helper": "^1.4.3"
+  }
 }

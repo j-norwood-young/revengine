@@ -8,6 +8,7 @@
     "api": {
         "port": 4001,
         "server": "https://api.revengine.dailymaverick.co.za",
+        "cluster_server": "https://api-cluster.revengine.dailymaverick.co.za",
         "mongo": {
             "connection_string": "mongodb://rfvengine1,rfvengine3,rfvengine4/revengine-prod?replicaSet=rs1&readPreference=secondaryPreferred",
             "options": {}
@@ -63,20 +64,19 @@
     },
     "listeners": {
         "public_port": 4020,
-        "protected_port": 4021
+        "protected_port": 4021,
+        "public_url": "https://listeners.revengine.dailymaverick.co.za",
+        "protected_url": "https://protected.revengine.dailymaverick.co.za"
     },
     "mailer": {
         "port": 4017,
         "from": "Revengine <revengine@dailymaverick.co.za>",
         "to": "Recipient <recipient@dailymaverick.co.za>",
         "smtp": {
-            "host": "smtp.api.createsend.com",
-            "port": 587,
-            "secure": false,
-            "tls": {
-                "rejectUnauthorized": false
-            },
-            "sendmail": false
+            "host": "smtp.sendgrid.net",
+            "port": 465,
+            "sendmail": false,
+            "path": null
         }
     },
     "mysql": {
@@ -86,6 +86,10 @@
     "pipeline": {
         "port": 4018,
         "server": "https://pipeline.revengine.dailymaverick.co.za"
+    },
+    "sailthru": {
+        "log_prefix": "9943_",
+        "log_dir": "/root/dm-sailthru-data-explorer"
     },
     "touchbase": {
         "api": "https://emailapi.touchbasepro.com/api/v3.2",

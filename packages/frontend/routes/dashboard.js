@@ -6,11 +6,7 @@ const Reports = require("@revengine/reports");
 router.get("/", async (req, res) => {
     try {
         const labels = (await req.apihelper.get("label", { "filter[display_on_dashboard]": true })).data;
-        for (let label of labels) {
-            const result = (await req.apihelper.aggregate("reader", [{ "$match": { "label_id": `ObjectId(\"${label._id}\")` } }, { "$count": "count" } ])).data.pop();
-            label.length = result ? result.count : 0;
-        }
-        labels.sort((a, b) => b.length - a.length);
+        labels.sort((a, b) => b.last_count - a.last_count);
         res.render("dashboard", { title: "Dashboard", labels, pg: "dashboard" });
     } catch(err) {
         console.error(err);

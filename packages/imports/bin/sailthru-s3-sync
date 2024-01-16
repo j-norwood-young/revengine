@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Get yesterday's date in the format YYYYMMDD
+current_date=$(date -d "yesterday 13:00" '+%Y%m%d')
+
+# types
+types="blast message_blast message_blast_updates message_transactional message_transactional_updates profile"
+
+# Get the data from S3
+for type in $types
+do
+    aws s3 cp s3://dm-sailthru-data-explorer/9943_${type}.${current_date}.json.gz /root/dm-sailthru-data-explorer/.
+done
+
+cd /root/dm-sailthru-data-explorer
+gunzip -f *.gz
+
+cd /root/dev/revengine
+
+# Run the import
+for type in $types
+do
+    node packages/imports -p sailthru -t $type
+done

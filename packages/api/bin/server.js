@@ -49,9 +49,6 @@ mongoose.Promise = Promise;
 if (!apiconfig.mongo.options) apiconfig.mongo.options = {};
 const mongo_options = Object.assign({}, apiconfig.mongo.options, {
 	promiseLibrary: global.Promise,
-	useNewUrlParser: true,
-	useCreateIndex: true,
-	useUnifiedTopology: true,
 });
 
 // mongodb connection
