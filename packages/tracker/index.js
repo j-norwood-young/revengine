@@ -24,8 +24,9 @@ const cookie_name = process.env.TRACKER_COOKIE_NAME || config.tracker.cookie_nam
 const allow_origin = process.env.TRACKER_ALLOWED_ORIGINS || config.tracker.allow_origin || "*";
 
 const headers = {
-    "Content-Type": "application/json",
+    "Content-Type": "text/html",
     "Content-Disposition": "inline",
+    "Access-Control-Allow-Origin": allow_origin,
     "X-Powered-By": `${name}`,
 };
 const index = process.env.INDEX || config.debug ? "pageviews_test" : "pageviews";
@@ -139,10 +140,10 @@ const post_hit = async (req, res) => {
                     throw "Error parsing json";
                 }
                 if (!data) throw `No data`;
-                if (config.debug) console.log(data);
                 // Check required fields
                 const required_fields = [
-                    "referer",
+                    "user_agent",
+                    "url",
                     "action",
                 ];
                 const check_result = required_fields.every((f) =>
@@ -279,20 +280,16 @@ if (config.debug) console.log("Debug mode on");
 
 http.createServer((req, res) => {
     if (req.url == "/favicon.ico") return;
-    console.log(req.method, req.url);
-    if (req.method === "OPTIONS") {
-        console.log("Preflight...");
-        res.writeHead(204, {
-            "Access-Control-Allow-Origin": allow_origin,
-            "Access-Control-Allow-Credentials": "true",
-            "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization, Content-Length, X-Requested-With",
-        });
-        res.end();
-    } else if (req.method === "POST") {
-        console.log("Here");
+    if (config.debug) {
+        console.log({ headers: req.headers });
+    }
+    if (
+        req.method === "POST" &&
+        req.headers["content-type"] === "application/json"
+    ) {
         post_hit(req, res);
-    } else if (req.method === "GET") {
+    }
+    else if (req.method === "GET") {
         get_hit(req, res);
     } else {
         res.writeHead(404, headers);
