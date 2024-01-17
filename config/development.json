@@ -89,6 +89,9 @@
         "port": 3018,
         "server": "http://api.revengine.dailymaverick.co.za:3018"
     },
+    "redis": {
+        "url": "redis://localhost:6379"
+    },
     "rfv": {
         "days": 30,
         "regex_url": "dailymaverick.co.za"

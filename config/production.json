@@ -87,6 +87,9 @@
         "port": 4018,
         "server": "https://pipeline.revengine.dailymaverick.co.za"
     },
+    "redis": {
+        "url": "redis://localhost:6379"
+    },
     "sailthru": {
         "log_prefix": "9943_",
         "log_dir": "/root/dm-sailthru-data-explorer"

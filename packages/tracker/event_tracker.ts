@@ -16,17 +16,15 @@
 // 14. Get a message through queue_2 (topic-2)
 // 15. Save to ElasticSearch
 
-import { KafkaConsumer } from "@revengine/common/kafka";
-const config = require("config");
-const http = require("http");
-const KafkaProducer = require("@revengine/common/kafka").KafkaProducer;
-const { enrich_tracker } = require("./enrich_tracker");
-const get_user_data = require("./user").get_user_data;
-const qs = require("qs");
-const cookie = require("cookie");
-const Redis = require("redis");
-const redis = Redis.createClient();
-const myCrypto = require("crypto");
+import { KafkaConsumer, KafkaProducer } from "@revengine/common/kafka";
+import config from "config";
+import http from "http";
+import { enrich_tracker } from "./enrich_tracker";
+import { get_user_data } from "./user";
+import qs from "qs";
+import cookie from "cookie";
+import { createClient } from "redis";
+import myCrypto from "crypto";
 
 const tracker_name = process.env.TRACKER_NAME || config.name || "revengine";
 const port = process.env.PORT || config.tracker.port || 3012;
@@ -43,6 +41,10 @@ const headers = {
     "X-Powered-By": `${tracker_name}`,
 };
 const index = process.env.INDEX || config.debug ? "pageviews_test" : "pageviews";
+const redis_url = process.env.REDIS_URL || config.redis.url || "redis://localhost:6379";
+const redis_password = process.env.REDIS_PASSWORD || config.redis.password || undefined;
+
+const redis = createClient({ url: redis_url, password: redis_password });
 
 const queue_1 = new KafkaProducer({ kafka_server, topic: `${topic}-1`, partitions: kafka_partitions, replication_factor: kafka_replication_factor, debug: true });
 const queue_2 = new KafkaProducer({ kafka_server, topic: `${topic}-2`, partitions: kafka_partitions, replication_factor: kafka_replication_factor });
@@ -98,7 +100,7 @@ const handle_hit = async (req, res) => {
             let { user_labels, user_segments } = await get_user_data(data.user_id);
             data.user_labels = user_labels || {};
             data.user_segments = user_segments || {};
-            await redis.set(cache_id, JSON.stringify({user_labels, user_segments}), 'EX', 60 * 60);
+            await redis.set(cache_id, JSON.stringify({user_labels, user_segments}), { EX: 60 * 60 });
         }
     } catch (err) {
         console.error(err);
@@ -116,7 +118,10 @@ const handle_hit = async (req, res) => {
         if (!data) throw `No data ${url}`;
         if (!data.action) throw `No action ${url}`;
         const referer = req.headers.referer; // Our tracker is embedded as an iframe or image or similar, so it should always have a referer.
-        if (!data.referer) return; // This is common with bots or noreferrer policy, we can't track it anyway, so don't worry about throwing an error
+        if (!referer) {
+            if (config.debug) console.log("No referer", { referer, url });
+            return; // This is common with bots or noreferrer policy, we can't track it anyway, so don't worry about throwing an error
+        }
         data.url = referer;
         data.browser_id = browser_id;
         await queue_1.send(data);
