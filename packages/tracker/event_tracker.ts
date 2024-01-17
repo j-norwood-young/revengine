@@ -131,13 +131,12 @@ const parse_url = (url) => {
     return qs.parse(parts[1]);
 };
 
-const handle_hit = async (req, res) => {
+const handle_hit = async (data: EventTrackerMessage, req, res) => {
+    // console.log({data})
     let browser_id = null;
     const url = req.url;
     let cache_id = null;
-    let data: EventTrackerMessage = undefined;
     try {
-        data = parse_url(url);
         data.user_ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || null;
         data.user_agent = req.headers["user-agent"];
         data.test_id = data.test_id || null;
@@ -185,7 +184,7 @@ const handle_hit = async (req, res) => {
         if (!data.action) throw `No action ${url}`;
         const referer = req.headers.referer; // Our tracker is embedded as an iframe or image or similar, so it should always have a referer.
         if (!referer) {
-            if (config.debug) console.log("No referer", { referer, url });
+            if (config.debug) console.log("No referer", { status: "error", message: "no referer" });
             return; // This is common with bots or noreferrer policy, we can't track it anyway, so don't worry about throwing an error
         }
         data.url = referer;
@@ -201,7 +200,38 @@ export const app = http.createServer(async (req, res) => {
     if (req.url == "/favicon.ico") return;
     if (config.debug) console.log({ headers: req.headers });
     if (req.method === "GET") {
-        await handle_hit(req, res);
+        const url = req.url;
+        try {
+            const data: EventTrackerMessage = parse_url(url);
+            await handle_hit(data, req, res);
+        } catch (err) {
+            console.error(err);
+            res.writeHead(400, headers);
+            res.write(JSON.stringify({ status: "error", error: err }));
+            res.end();
+        }
+    } else if (req.method === "POST") {
+        try {
+            const data: EventTrackerMessage = await new Promise((res, rej) => {
+                let body = "";
+                req.on("data", chunk => {
+                    body += chunk.toString();
+                });
+                req.on("end", () => {
+                    try {
+                        res(JSON.parse(body));
+                    } catch (err) {
+                        rej(err);
+                    }
+                });
+            });
+            await handle_hit(data, req, res);
+        } catch (err) {
+            console.error(err);
+            res.writeHead(400, headers);
+            res.write(JSON.stringify({ status: "error", error: err }));
+            res.end();
+        }
     } else {
         res.writeHead(404, headers);
         res.write(JSON.stringify({ status: "error", error: "You lost?" }));

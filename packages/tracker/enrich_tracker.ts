@@ -25,6 +25,7 @@ export async function enrich_tracker(message: EventTrackerMessage) {
             user_labels: message.user_labels,
             user_segments: message.user_segments,
             test_id: message.test_id,
+            data: message.data,
         },
         parse_user_agent(message.user_agent),
         await geolocate_ip(message.user_ip),
