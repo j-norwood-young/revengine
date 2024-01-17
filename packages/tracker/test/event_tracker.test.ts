@@ -31,6 +31,7 @@ describe("Kafka Consumer", () => {
             consumer.on("message", message => {
                 console.log({message});
                 res(message);
+                consumer.close();
             })
         });
         
