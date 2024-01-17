@@ -78,7 +78,7 @@ class KafkaProducer {
                     if (err) return reject(err);
                     if (this.debug) {
                         console.log(`Sent Kafka data to ${this.topic}`);
-                        console.log(result_data);
+                        // console.log(result_data);
                     }
                     return resolve(result_data);
                 }
