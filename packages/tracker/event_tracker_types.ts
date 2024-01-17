@@ -23,4 +23,6 @@ export interface EventTrackerMessage {
     tags?: string;
     date_published?: string;
     author_id?: string;
+    data?: any;
+    test_id?: string;
 }

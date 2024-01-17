@@ -16,6 +16,9 @@
 // 14. Get a message through queue_2 (topic-2)
 // 15. Save to ElasticSearch
 
+
+// Imports
+import { EventTrackerMessage } from "./event_tracker_types";
 import { KafkaConsumer, KafkaProducer } from "@revengine/common/kafka";
 import config from "config";
 import http from "http";
@@ -25,7 +28,9 @@ import qs from "qs";
 import cookie from "cookie";
 import { createClient } from "redis";
 import myCrypto from "crypto";
+import esclient from "@revengine/common/esclient";
 
+// Constants
 const tracker_name = process.env.TRACKER_NAME || config.name || "revengine";
 const port = process.env.PORT || config.tracker.port || 3012;
 const kafka_server = process.env.KAFKA_SERVER || config.kafka.server || "localhost:9092";
@@ -40,25 +45,85 @@ const headers = {
     "Access-Control-Allow-Origin": "*",
     "X-Powered-By": `${tracker_name}`,
 };
-const index = process.env.INDEX || config.debug ? "pageviews_test" : "pageviews";
+const index = process.env.INDEX || (config.debug ? "pageviews_test" : "pageviews");
 const redis_url = process.env.REDIS_URL || config.redis.url || "redis://localhost:6379";
 const redis_password = process.env.REDIS_PASSWORD || config.redis.password || undefined;
 
+// Setup
 const redis = createClient({ url: redis_url, password: redis_password });
 
 const queue_1 = new KafkaProducer({ kafka_server, topic: `${topic}-1`, partitions: kafka_partitions, replication_factor: kafka_replication_factor, debug: true });
 const queue_2 = new KafkaProducer({ kafka_server, topic: `${topic}-2`, partitions: kafka_partitions, replication_factor: kafka_replication_factor });
+const queue_test = new KafkaProducer({ kafka_server, topic: `${topic}-test`, partitions: kafka_partitions, replication_factor: kafka_replication_factor, debug: true });
 
 const consumer_1 = new KafkaConsumer({ kafka_server, topic: `${topic}-1` });
-consumer_1.on("message", async (message) => {
+const consumer_2 = new KafkaConsumer({ kafka_server, topic: `${topic}-2` });
+
+// Check esclient index
+const ensure_index = async () => await esclient.ensure_index(index, {
+    action: { type: "keyword" },
+    article_id: { type: "keyword" },
+    author_id: { type: "keyword" },
+    browser_id: { type: "keyword" },
+    content_type: { type: "keyword" },
+    derived_referer_medium: { type: "keyword" },
+    derived_referer_source: { type: "keyword" },
+    derived_ua_browser: { type: "keyword" },
+    derived_ua_browser_version: { type: "keyword" },
+    derived_ua_device: { type: "keyword" },
+    derived_ua_os: { type: "keyword" },
+    index: { type: "keyword" },
+    post_id: { type: "keyword" },
+    post_type: { type: "keyword" },
+    referer: { type: "keyword" },
+    sections: { type: "keyword" },
+    tags: { type: "keyword" },
+    test_id: { type: "keyword" },
+    time: { type: "date" },
+    url: { type: "keyword" },
+    user_agent: { type: "keyword" },
+    user_id: { type: "integer" },
+    user_ip: { type: "ip" },
+    signed_in: { type: "boolean" },
+    user_labels: { type: "keyword" },
+    user_segments: { type: "keyword" },
+    date_published: { type: "date" },
+    data: { type: "object" },
+});
+
+// Queue listeners
+
+// Enrichment
+consumer_1.on("message", async (message: EventTrackerMessage) => {
     try {
         const esdata = await enrich_tracker(message);
+        // For testing, we don't want to send the test message to the next queue
+        if (message.action === "test") {
+            await queue_test.send(esdata);
+            return;
+        }
         await queue_2.send(esdata);
     } catch (err) {
         console.error(err);
     }
 });
 
+// ElasticSearch
+consumer_2.on("message", async (message: EventTrackerMessage) => {
+    try {
+        const data = {
+            index,
+            document: message
+        };
+        // console.log(data);
+        const result = await esclient.index(data);
+        if (config.debug) console.log(result);
+    } catch (err) {
+        console.error(err);
+    }
+});
+
+// Functions
 const parse_url = (url) => {
     if (!url) throw "No url";
     let parts = url.split("?");
@@ -70,11 +135,12 @@ const handle_hit = async (req, res) => {
     let browser_id = null;
     const url = req.url;
     let cache_id = null;
-    let data = undefined;
+    let data: EventTrackerMessage = undefined;
     try {
         data = parse_url(url);
         data.user_ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || null;
         data.user_agent = req.headers["user-agent"];
+        data.test_id = data.test_id || null;
         const cookies = cookie.parse(req.headers.cookie || "");
         if (cookies[cookie_name]) {
             browser_id = cookies[cookie_name]
@@ -130,9 +196,7 @@ const handle_hit = async (req, res) => {
     }
 };
 
-console.log(`===${tracker_name} Tracker Started===`);
-if (config.debug) console.log("Debug mode on");
-
+// Server
 export const app = http.createServer(async (req, res) => {
     if (req.url == "/favicon.ico") return;
     if (config.debug) console.log({ headers: req.headers });
@@ -145,5 +209,9 @@ export const app = http.createServer(async (req, res) => {
     }
 }).listen(port, host, async () => {
     await redis.connect();
+    await ensure_index();
     if (config.debug) console.log(`RevEngine Tracker listening ${host}:${port}`);
 });
+
+console.log(`===${tracker_name} Tracker Started===`);
+if (config.debug) console.log("Debug mode on");

@@ -3,13 +3,15 @@ import { app } from "../event_tracker";
 import { KafkaConsumer } from "@revengine/common/kafka";
 import { config } from "dotenv";
 import { EventTrackerMessage } from "../event_tracker_types";
+import esclient from "@revengine/common/esclient";
+
 config();
 
 
-describe("Event Tracker", () => {
-    it("should respond with ok", async () => {
+describe("Event Tracker - Stage 1 and 2", () => {
+    it("should send a hit", async () => {
         const res = await request(app)
-            .get("/?action=test")
+            .get(`/?action=test`)
             .set("Accept", "application/json")
             .set("Referer", "https://www.google.com/")
             .set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0")
@@ -20,13 +22,10 @@ describe("Event Tracker", () => {
         expect(json).toHaveProperty("user_labels");
         expect(json).toHaveProperty("user_segments");
     });
-});
-
-describe("Kafka Consumer", () => {
-    it("should consume messages", async () => {
+    it("should enrich data", async () => {
         const kafka_server = process.env.KAFKA_SERVER;
         const topic = process.env.TRACKER_KAFKA_TOPIC;
-        const consumer = new KafkaConsumer({ kafka_server, topic: `${topic}-2`  });
+        const consumer = new KafkaConsumer({ kafka_server, topic: `${topic}-test`  });
         const message: EventTrackerMessage = await new Promise(res => {
             consumer.on("message", message => {
                 console.log({message});
@@ -34,7 +33,6 @@ describe("Kafka Consumer", () => {
                 consumer.close();
             })
         });
-        
         expect(message).toHaveProperty("action");
         expect(message.action).toEqual("test");
         expect(message).toHaveProperty("url");
@@ -68,4 +66,39 @@ describe("Kafka Consumer", () => {
         expect(message.author_id).toEqual(null);
         expect(message).toHaveProperty("user_ip");
     }, 20000);
+});
+
+describe("Event Tracker - Stage 3", () => {
+    const test_id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    it("should send a hit", async () => {
+        const res = await request(app)
+            .get(`/?action=estest&test_id=${test_id}`)
+            .set("Accept", "application/json")
+            .set("Referer", "https://www.google.com/")
+            .set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0")
+        expect(res.statusCode).toEqual(200);
+        const json = JSON.parse(res.text);
+        expect(json).toHaveProperty("status");
+        expect(json.status).toEqual("ok");
+        expect(json).toHaveProperty("user_labels");
+        expect(json).toHaveProperty("user_segments");
+    });
+    it("should write to ElasticSearch", async () => {
+        await new Promise(res => setTimeout(res, 1000));
+        const query = {
+            index: process.env.INDEX,
+            query: {
+                match: {
+                    test_id
+                }
+            }
+        }
+        // console.log(JSON.stringify(query, null, 2));
+        const result = await esclient.search(query)
+        // console.log(result.hits.hits[0]);
+        expect(result.hits.total.value).toEqual(1);
+        expect(result.hits.hits[0]._source).toHaveProperty("test_id");
+        expect(result.hits.hits[0]._source.test_id).toEqual(test_id);
+        expect(result.hits.hits[0]._source.url).toEqual("https://www.google.com/");
+    }, 10000);
 });

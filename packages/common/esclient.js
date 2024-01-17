@@ -11,4 +11,26 @@ const es_config = Object.assign(config.elasticsearch, {
 });
 const esclient = new elasticsearch.Client(es_config);
 
+/**
+ * Checks if an index exists in Elasticsearch and creates it if it doesn't exist.
+ *
+ * @param {string} index_name - The name of the index to check.
+ * @param {Object} index_mapping - The mapping of the index to create if it doesn't exist.
+ * @returns {Promise<boolean>} - Result of the operation, or "null" if the index already exists.
+ */
+esclient.ensure_index = async function (index_name, index_mapping) {
+    const exists = await this.indices.exists({ index: index_name });
+    if (!exists) {
+        return await this.indices.create({
+            index: index_name,
+            body: {
+                mappings: {
+                    properties: index_mapping
+                }
+            }
+        });
+    }
+    return null;
+}
+
 module.exports = esclient;
