@@ -1,12 +1,13 @@
-const config = require("config");
-const JXPHelper = require("jxp-helper");
-require("dotenv").config();
+import config from "config";
+import JXPHelper from "jxp-helper";
+import dotenv from "dotenv";
+dotenv.config();
 const jxphelper = new JXPHelper({
     server: config.api.server,
     apikey: process.env.APIKEY,
 });
 
-module.exports.get_user_data = async function (user_id) {
+export const get_user_data = async function (user_id): Promise<{ user_labels: string[], user_segments: string[] }> {
     if (!user_id) return { user_labels: [], user_segments: [] };
     let user_labels = [];
     let user_segments = [];
@@ -52,15 +53,15 @@ module.exports.get_user_data = async function (user_id) {
     return { user_labels, user_segments };
 }
 
-module.exports.get_user_data_test = async function () {
+export const get_user_data_test = async function () {
     const user_id = 1;
     const expected = {
         user_labels: ['wordpress-users','no-email-interaction-30-days','paying-customer'],
         user_segments: [],
     };
-    const actual = await module.exports.get_user_data(user_id);
+    const actual = await get_user_data(user_id);
     console.log(actual);
     console.assert(JSON.stringify(actual) === JSON.stringify(expected));
 }
 
-// module.exports.get_user_data_test();
+// get_user_data_test();

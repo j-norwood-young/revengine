@@ -1,6 +1,6 @@
-const Referer = require("referer-parser");
+import Referer from "referer-parser";
 
-module.exports.parse_referer = function (referer, url) {
+export const parse_referer = function (referer, url) {
     let derived_referer_medium = "direct";
     let derived_referer_source = "";
     if (referer) {
@@ -16,16 +16,16 @@ module.exports.parse_referer = function (referer, url) {
     }
 }
 
-module.exports.parse_referer_test = function () {
+export const parse_referer_test = function () {
     const url = "https://www.example.com/";
     const referer = "https://www.google.com/";
     const expected = {
         derived_referer_medium: "search",
         derived_referer_source: "Google",
     }
-    const actual = module.exports.parse_referer(referer, url);
+    const actual = parse_referer(referer, url);
     console.log(actual);
     console.assert(JSON.stringify(actual) === JSON.stringify(expected));
 }
 
-// module.exports.parse_referer_test();
+// parse_referer_test();

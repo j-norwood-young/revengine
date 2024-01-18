@@ -1,16 +1,16 @@
-const config = require("config");
-const http = require("http");
-const kafka = require("kafka-node");
-const parse_user_agent = require("./user_agent").parse_user_agent;
-const geolocate_ip = require("./geolocate_ip").geolocate_ip;
-const parse_referer = require("./referer").parse_referer;
-const parse_utm = require("./utm").parse_utm;
-const get_article_data = require("./article").get_article_data;
-const get_user_data = require("./user").get_user_data;
-const qs = require("qs");
-const cookie = require("cookie");
-const crypto = require("crypto");
-const Redis = require("redis");
+import config from "config";
+import http from "http";
+import kafka from "kafka-node";
+import { parse_user_agent } from "./user_agent";
+import { geolocate_ip } from "./geolocate_ip";
+import { parse_referer } from "./referer";
+import { parse_utm } from "./utm";
+import { get_article_data } from "./article";
+import { get_user_data } from "./user";
+import qs from "qs";
+import cookie from "cookie";
+import crypto from "crypto";
+import Redis from "redis";
 const redis = Redis.createClient();
 
 const name = process.env.TRACKER_NAME || config.name || "revengine";
@@ -244,7 +244,7 @@ const get_hit = async (req, res) => {
             let { user_labels, user_segments } = await get_user_data(data.user_id);
             data.user_labels = user_labels || {};
             data.user_segments = user_segments || {};
-            await redis.set(cache_id, JSON.stringify({user_labels, user_segments}), 'EX', 60 * 60);
+            await redis.set(cache_id, JSON.stringify({user_labels, user_segments}), { 'EX': 60 * 60 });
         }
     } catch (err) {
         console.error(err.toString());

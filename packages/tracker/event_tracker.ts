@@ -158,13 +158,13 @@ const handle_hit = async (data: EventTrackerMessage, req, res) => {
         }
         if (cached_user_data) {
             if (config.debug) console.log("Cache hit", cached_user_data);
-            data.user_labels = cached_user_data.user_labels;
-            data.user_segments = cached_user_data.user_segments;
+            data.user_labels = cached_user_data.user_labels || [];
+            data.user_segments = cached_user_data.user_segments || [];
         } else {
             if (config.debug) console.log("Cache miss");
             let { user_labels, user_segments } = await get_user_data(data.user_id);
-            data.user_labels = user_labels || {};
-            data.user_segments = user_segments || {};
+            data.user_labels = user_labels || [];
+            data.user_segments = user_segments || [];
             await redis.set(cache_id, JSON.stringify({user_labels, user_segments}), { EX: 60 * 60 });
         }
     } catch (err) {

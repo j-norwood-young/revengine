@@ -1,12 +1,13 @@
-const config = require("config");
-const JXPHelper = require("jxp-helper");
-require("dotenv").config();
+import config from "config";
+import JXPHelper from "jxp-helper";
+import dotenv from "dotenv";
+dotenv.config();
 const jxphelper = new JXPHelper({
     server: config.api.server,
     apikey: process.env.APIKEY,
 });
 
-module.exports.get_article_data = async function (post_id) {
+export const get_article_data = async function (post_id) {
     let sections = null;
     let tags = null;
     let date_published = null;
@@ -28,7 +29,7 @@ module.exports.get_article_data = async function (post_id) {
     return { sections, tags, date_published, author_id };
 }
 
-module.exports.get_article_data_test = async function () {
+export const get_article_data_test = async function () {
     const post_id = 674329;
     const expected = {
         sections: ["COVID-19", "Newsdeck", "South Africa"],
@@ -36,9 +37,9 @@ module.exports.get_article_data_test = async function () {
         date_published: "2020-07-21T11:35:11.000Z",
         author_id: "News24",
     };
-    const actual = await module.exports.get_article_data(post_id);
+    const actual = await get_article_data(post_id);
     console.log(actual);
     console.assert(JSON.stringify(actual) === JSON.stringify(expected));
 }
 
-// module.exports.get_article_data_test();
+// get_article_data_test();

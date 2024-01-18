@@ -1,9 +1,9 @@
 import { EventTrackerMessage } from "./event_tracker_types";
-const parse_user_agent = require("./user_agent").parse_user_agent;
-const geolocate_ip = require("./geolocate_ip").geolocate_ip;
-const parse_referer = require("./referer").parse_referer;
-const parse_utm = require("./utm").parse_utm;
-const get_article_data = require("./article").get_article_data;
+import { parse_user_agent } from "./user_agent";
+import { geolocate_ip } from "./geolocate_ip";
+import { parse_referer } from "./referer";
+import { parse_utm } from "./utm";
+import { get_article_data } from "./article";
 
 export async function enrich_tracker(message: EventTrackerMessage) {
     if (message.user_id === 0) {

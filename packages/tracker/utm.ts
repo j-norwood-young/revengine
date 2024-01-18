@@ -1,7 +1,7 @@
-const utmExtractor = require("utm-extractor").Utm;
+import { Utm as utmExtractor } from "utm-extractor";
 
-module.exports.parse_utm = function (url) {
-    let utm = {};
+export const parse_utm = function (url) {
+    let utm: any = {};
     try {
         utm = new utmExtractor(url).get();
     } catch (err) {
@@ -23,7 +23,7 @@ module.exports.parse_utm = function (url) {
     }
 }
 
-module.exports.parse_utm_test = function () {
+export const parse_utm_test = function () {
     const url = "https://www.example.com/?utm_medium=email&utm_campaign=welcome&utm_content=button&utm_source=mailchimp&utm_term=click";
     const expected = {
         derived_utm_campaign: "welcome",
@@ -32,9 +32,9 @@ module.exports.parse_utm_test = function () {
         derived_utm_source: "mailchimp",
         derived_utm_term: "click",
     }
-    const actual = module.exports.parse_utm(url);
+    const actual = parse_utm(url);
     console.log(actual);
     console.assert(JSON.stringify(actual) === JSON.stringify(expected));
 }
 
-// module.exports.parse_utm_test();
+// parse_utm_test();
