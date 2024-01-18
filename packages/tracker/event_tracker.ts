@@ -6,15 +6,11 @@
 // 4. Send to kafka queue_1 (topic-1)
 // 5. Listen to kafka queue_1 (topic-1)
 // 6. Get a message through queue_1
-// 7. Parse user agent
-// 8. Get geolocation for user
-// 9. Parse referrer
-// 10. Parse utm params
-// 11. Get post data
-// 12. Sent to kafka queue_2 (topic-2)
-// 13. Listen to kafka queue_2 (topic-2)
-// 14. Get a message through queue_2 (topic-2)
-// 15. Save to ElasticSearch
+// 7. Enrich message
+// 8. Sent to kafka queue_2 (topic-2)
+// 9. Listen to kafka queue_2 (topic-2)
+// 10. Get a message through queue_2 (topic-2)
+// 11. Save to ElasticSearch
 
 
 // Imports
@@ -40,7 +36,7 @@ const kafka_partitions = process.env.KAFKA_PARTITIONS || config.kafka.partitions
 const kafka_replication_factor = process.env.KAFKA_REPLICATION_FACTOR || config.kafka.replication_factor || 1;
 const cookie_name = process.env.TRACKER_COOKIE_NAME || config.tracker.cookie_name || "revengine_browser_id"
 const headers = {
-    "Content-Type": "text/html",
+    "Content-Type": "text/json",
     "Content-Disposition": "inline",
     "Access-Control-Allow-Origin": "*",
     "X-Powered-By": `${tracker_name}`,
