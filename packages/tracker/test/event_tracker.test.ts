@@ -7,9 +7,12 @@ import esclient from "@revengine/common/esclient";
 
 config();
 
+function generateTestId() {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+}
 
 describe("Event Tracker - Stage 1 and 2", () => {
-    const test_id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const test_id = generateTestId();
     it("should send a hit", async () => {
         const res = await request(app)
             .get(`/?action=test&test_id=${test_id}`)
@@ -71,7 +74,7 @@ describe("Event Tracker - Stage 1 and 2", () => {
 });
 
 describe("Event Tracker - Stage 3", () => {
-    const test_id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const test_id = generateTestId();
     it("should send a hit", async () => {
         const res = await request(app)
             .get(`/?action=estest&test_id=${test_id}`)
@@ -106,7 +109,7 @@ describe("Event Tracker - Stage 3", () => {
 });
 
 describe("Event Tracker - POST Data", () => {
-    const test_id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const test_id = generateTestId();
     it("should send a hit", async () => {
         const res = await request(app)
             .post(`/`)
@@ -177,7 +180,7 @@ describe("Event Tracker - POST Data", () => {
 });
 
 describe("Event Tracker - POST Data - Stage 3", () => {
-    const test_id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const test_id = generateTestId();
     it("should send a hit", async () => {
         const res = await request(app)
             .post(`/`)
