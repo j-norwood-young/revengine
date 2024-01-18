@@ -69,7 +69,7 @@ const ensure_index = async () => await esclient.ensure_index(index, {
     derived_ua_device: { type: "keyword" },
     derived_ua_os: { type: "keyword" },
     index: { type: "keyword" },
-    post_id: { type: "keyword" },
+    post_id: { type: "integer" },
     post_type: { type: "keyword" },
     referer: { type: "keyword" },
     sections: { type: "keyword" },
