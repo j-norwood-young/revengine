@@ -1,6 +1,6 @@
 /* global JXPSchema */
 
-const QuicketSchema = new JXPSchema({
+const QuicketTicketSchema = new JXPSchema({
     reader_id: { type: ObjectId, link: "reader", index: true },
     email: { type: String, index: true },
     cellphone: { type: String, index: true },
@@ -35,5 +35,5 @@ const QuicketSchema = new JXPSchema({
     }
 });
 
-const Quicket = JXPSchema.model('quicket', QuicketSchema);
-module.exports = Quicket;
+const QuicketTicket = JXPSchema.model('quicket_ticket', QuicketTicketSchema);
+module.exports = QuicketTicket;
