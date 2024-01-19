@@ -27,6 +27,7 @@ const ReaderSchema = new JXPSchema({
     last_login: Date,
     last_update: Date,
     first_login: Date,
+    cellphone: String,
     paying_customer: Boolean,
 
     wordpress_id: { type: Number, index: true, unique: true },
