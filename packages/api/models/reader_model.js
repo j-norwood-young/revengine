@@ -10,6 +10,7 @@ const ReaderSchema = new JXPSchema({
     display_name: String,
     first_name: { type: String, trim: true },
     last_name: { type: String, trim: true },
+    cellphone: { type: String, trim: true },
 
     // Links to related collections
     // touchbasesubscriber_id: [{ type: ObjectId, link: "touchbasesubscriber" }],
@@ -27,7 +28,6 @@ const ReaderSchema = new JXPSchema({
     last_login: Date,
     last_update: Date,
     first_login: Date,
-    cellphone: String,
     paying_customer: Boolean,
 
     wordpress_id: { type: Number, index: true, unique: true },
