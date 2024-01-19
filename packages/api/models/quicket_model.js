@@ -35,5 +35,5 @@ const QuicketSchema = new JXPSchema({
     }
 });
 
-const Quicket = JXPSchema.model('Quicket', QuicketSchema);
+const Quicket = JXPSchema.model('quicket', QuicketSchema);
 module.exports = Quicket;
