@@ -7,7 +7,7 @@ const QuicketSchema = new JXPSchema({
     first_name: String,
     surname: String,
     order_id: { type: Number, index: true },
-    ticket_id: { type: Number, index: true },
+    ticket_id: { type: Number, index: true, unique: true },
     barcode: { type: Number, index: true },
     date_added: { type: Date, index: true },
     ticket_type: String,
