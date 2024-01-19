@@ -31,7 +31,7 @@ const QuicketSchema = new JXPSchema({
     perms: {
         admin: "crud",
         owner: "crud",
-        user: "r"
+        user: "cr"
     }
 });
 
