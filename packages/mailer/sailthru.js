@@ -13,6 +13,7 @@ const log_filename = path.join(__dirname, "..", "..", "logs", "sailthru.log");
 const log_file = fs.createWriteStream(log_filename, { flags: 'a' });
 const Cache = require("@revengine/common/cache");
 const cache = new Cache({ prefix: "sailthru", debug: true, ttl: 60*60 });
+const { fetch_csv } = require("@revengine/common/csv");
 const fetch = require("node-fetch");
 
 const USER_FIELDS = "email,segmentation_id,label_id,wordpress_id,display_name,first_name,last_name,cc_expiry_date,cc_last4_digits";
@@ -284,12 +285,26 @@ async function unsubscribe_reader_from_list(reader_id, list_name) {
  * @returns {Promise<Object>} - A promise that resolves with the response object containing the users in the list.
  */
 async function get_users_in_list(list_id) {
-    return new Promise((resolve, reject) => {
-        sailthru_client.apiGet("list", { list_id, limit: 100 }, (err, response) => {
+    const job = await new Promise((resolve, reject) => {
+        sailthru_client.processJob("export_list_data", {
+            "job": "export_list_data",
+            list: `${list_id}`,
+        }, (err, response) => {
             if (err) return reject(err);
             resolve(response);
         });
     });
+    const job_id = job.job_id;
+    const job_result = await await_job_result(job_id);
+    const url = job_result.export_url;
+    const data = await fetch_csv(url);
+    const user_ids = data.map(u => (u["Profile Id"]));
+    let users = [];
+    for (let user_id of user_ids) {
+        const user = await get_user_by_sid(user_id);
+        users.push(user);
+    }
+    return users;
 }
 
 /**
@@ -313,6 +328,16 @@ async function get_user(email_or_id) {
                 resolve(response);
             });
         }
+    });
+}
+
+async function get_user_by_sid(sid) {
+    return new Promise((resolve, reject) => {
+        return sailthru_client.apiGet("user", { id: sid, key: "sid" }, (err, response) => {
+            if (err) return reject(err);
+            if (!response) return reject("User not found");
+            resolve(response);
+        });
     });
 }
 
@@ -617,7 +642,7 @@ async function get_error_report(url, uid_page) {
  * @returns {Promise<Object>} - A promise that resolves to the job result.
  * @throws {string} - Throws an error if the job times out or fails.
  */
-async function await_job_result(job_id, uid_page) {
+async function await_job_result(job_id, uid_page = null) {
     let job = await get_job_status(job_id);
     const max_tries = 60;
     let tries = 0;
@@ -629,7 +654,7 @@ async function await_job_result(job_id, uid_page) {
     console.log(job);
     if (job.status === "pending") throw "Job timed out";
     if (job.status !== "completed") throw "Job failed";
-    if (job.error_report_url) {
+    if (job.error_report_url && uid_page) {
         job.errors = await get_error_report(job.error_report_url, uid_page);
     }
     return job;
@@ -691,6 +716,7 @@ async function send_template_to_reader(reader_id, template_name, vars = {}) {
 
 exports.get_lists = get_lists;
 exports.get_list = get_list;
+exports.get_users_in_list = get_users_in_list;
 exports.create_list = create_list;
 exports.subscribe_email_to_list = subscribe_email_to_list;
 exports.unsubscribe_email_from_list = unsubscribe_email_from_list;

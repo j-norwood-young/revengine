@@ -372,6 +372,18 @@ protected_server.get("/sailthru/get_lists", async (req, res) => {
     }
 })
 
+protected_server.get("/sailthru/get_users_in_list", async (req, res) => {
+    try {
+        const list = req.query.list;
+        if (!list) throw "No list";
+        const users = await sailthru.get_users_in_list(list);
+        res.send({ users });
+    } catch(err) {
+        console.error(err);
+        res.send(500, { error: err.toString() });
+    }
+})
+
 protected_server.post("/sailthru/sync_user", async (req, res) => {
     try {
         const email = req.body.email;
