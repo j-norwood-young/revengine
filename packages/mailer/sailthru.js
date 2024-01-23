@@ -299,8 +299,9 @@ async function get_users_in_list(list_id) {
     const url = job_result.export_url;
     const data = await fetch_csv(url);
     const user_ids = data.map(u => (u["Profile Id"]));
+    console.log(`Found ${user_ids.length} users in list ${list_id}`);
     let users = [];
-    for (let user_id of user_ids) {
+    for (let user_id of user_ids.slice(0, 100)) {
         const user = await get_user_by_sid(user_id);
         users.push(user);
     }
