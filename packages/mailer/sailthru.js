@@ -155,6 +155,29 @@ async function sync_user_by_wordpress_id(wordpress_id) {
 }
 
 /**
+ * Synchronizes a user by their reader ID with Sailthru.
+ * @param {string} reader_id - The ID of the reader.
+ * @returns {Promise<object>} - A promise that resolves to the response from Sailthru.
+ * @throws {string} - If the reader is not found.
+ */
+async function sync_user_by_reader_id(reader_id) {
+    try {
+        const reader = (await apihelper.getOne("reader", reader_id, { "fields": USER_FIELDS })).data;
+        if (!reader) throw "Reader not found";
+        const record = await map_reader_to_sailthru(reader, false);
+        return new Promise((resolve, reject) => {
+            sailthru_client.apiPost("user", record, (err, response) => {
+                if (err) return reject(err);
+                resolve(response);
+            });
+        });
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+}
+
+/**
  * Subscribes an email to a specified list in Sailthru.
  * @param {string} email - The email address to subscribe.
  * @param {string} list_name - The name of the list to subscribe the email to.
@@ -681,3 +704,4 @@ exports.get_user = get_user;
 exports.subscribe_reader_to_list = subscribe_reader_to_list;
 exports.unsubscribe_reader_from_list = unsubscribe_reader_from_list;
 exports.send_template_to_reader = send_template_to_reader;
+exports.sync_user_by_reader_id = sync_user_by_reader_id;

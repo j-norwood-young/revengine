@@ -309,6 +309,26 @@ protected_server.post("/sailthru/subscribe_email_to_list", async (req, res) => {
         res.send(500, { error: err.toString() });
     }
 })
+protected_server.post("/sailthru/subscribe_to_list", async (req, res) => {
+    try {
+        const email = req.body.email;
+        const reader_id = req.body.reader_id;
+        const list_name = req.body.list_name;
+        let result;
+        if (!list_name) throw "No list_name";
+        if (email) {
+            result = await sailthru.subscribe_email_to_list(email, list_name);
+        } else if (reader_id) {
+            result = await sailthru.subscribe_reader_to_list(reader_id, list_name);
+        } else {
+            throw "No email or reader_id";
+        }
+        res.send(result);
+        // res.send({ status: "ok" });
+    } catch(err) {
+        res.send(500, { error: err.toString() });
+    }
+})
 protected_server.post("/sailthru/unsubscribe_email_from_list", async (req, res) => {
     try {
         const email = req.body.email;
@@ -316,6 +336,26 @@ protected_server.post("/sailthru/unsubscribe_email_from_list", async (req, res) 
         if (!email) throw "No email";
         if (!list_name) throw "No list_name";
         const result = await sailthru.unsubscribe_email_from_list(email, list_name);
+        res.send(result);
+        // res.send({ status: "ok" });
+    } catch(err) {
+        res.send(500, { error: err.toString() });
+    }
+})
+protected_server.post("/sailthru/unsubscribe_from_list", async (req, res) => {
+    try {
+        const email = req.body.email;
+        const reader_id = req.body.reader_id;
+        const list_name = req.body.list_name;
+        let result;
+        if (!list_name) throw "No list_name";
+        if (email) {
+            result = await sailthru.unsubscribe_email_from_list(email, list_name);
+        } else if (reader_id) {
+            result = await sailthru.unsubscribe_reader_from_list(reader_id, list_name);
+        } else {
+            throw "No email or reader_id";
+        }
         res.send(result);
         // res.send({ status: "ok" });
     } catch(err) {
@@ -336,12 +376,17 @@ protected_server.post("/sailthru/sync_user", async (req, res) => {
     try {
         const email = req.body.email;
         const user_id = req.body.user_id;
-        if (!email && !user_id) throw "No email or user_id";
+        const reader_id = req.body.reader_id;
+        // if (!email && !user_id) throw "No email or user_id";
         let result;
         if (email) {
             result = await sailthru.sync_user_by_email(email);
-        } else {
+        } else if (user_id) {
             result = await sailthru.sync_user_by_wordpress_id(user_id);
+        } else if (reader_id) {
+            result = await sailthru.sync_user_by_reader_id(reader_id);
+        } else {
+            throw "No email, user_id or reader_id";
         }
         res.send(result);
     } catch(err) {
