@@ -19,7 +19,7 @@ const ReaderSchema = new JXPSchema({
     wordpressuser_id: { type: ObjectId, link: "wordpressuser", index: true },
 
     // Segments and labels
-    label_id: [ { type: ObjectId, link: "label" } ],
+    label_id: [ { type: ObjectId, link: "Label", map_to: "label" } ],
     label_update: Date,
     segmentation_id: [{ type: ObjectId, link: "segmentation", map_to: "segment" }],
     segment_update: Date,

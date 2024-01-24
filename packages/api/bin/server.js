@@ -45,11 +45,10 @@ apiconfig.pre_hooks = {
 
 //DB connection
 // ES6 promises
-mongoose.Promise = Promise;
+// mongoose.Promise = Promise;
+mongoose.set('strictQuery', true);
 if (!apiconfig.mongo.options) apiconfig.mongo.options = {};
-const mongo_options = Object.assign({}, apiconfig.mongo.options, {
-	promiseLibrary: global.Promise,
-});
+const mongo_options = Object.assign({}, apiconfig.mongo.options);
 
 // mongodb connection
 mongoose.connect(apiconfig.mongo.connection_string, mongo_options);
@@ -68,6 +67,7 @@ var server = new JXP(apiconfig);
 
 server.listen(apiconfig.port || 4001, function () {
 	console.log('%s listening at %s', server.name, server.url);
+	console.log(`Mongoose version ${mongoose.version}`)
 });
 
 module.exports = server; // For testing

@@ -53,7 +53,7 @@ const render_reader_view = async (req, res) => {
     try {
         console.log("Getting reader", req.params.reader_id);
         const d = {};
-        d["populate[labels]"] = "name";
+        d["populate[label]"] = "name";
         const reader = (await req.apihelper.getOne("reader", req.params.reader_id, d)).data;
         const labels = (await req.apihelper.get("label", { "sort[name]": 1, "fields": "name" })).data;
         reader.labels = labels.filter(label => reader.label_id.includes(label._id)).map(label => label.name);
