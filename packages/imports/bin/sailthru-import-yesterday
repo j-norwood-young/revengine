@@ -1,0 +1,74 @@
+#!/bin/bash
+
+# This script imports all the Sailthru logs into MongoDB
+# The following collections are used:
+# filename | collection | indexes
+# blast | sailthru_blast | id
+# message_blast | sailthru_message_blast | blast_id,profile_id
+# message_blast_updates - sailthru_message_blast | blast_id,profile_id
+# message_transactional - sailthru_message_transactional | id,profile_id
+# message_transactional_updates - sailthru_message_transactional | id,profile_id
+# profile - sailthru_profile | id
+
+# Vars
+DIR=/root/dm-sailthru-data-explorer
+SID=9943
+CURRENT_DATE=$(date -d "yesterday 13:00" '+%Y%m%d')
+DB=revengine-prod
+# Calculate running time
+start=$(date +%s.%N)
+
+# File eg: 
+# 9943_blast.20231130.json 
+# 9943_message_blast.20231229.json
+# 9943_message_blast_updates.20231229.json
+# 9943_message_transactional.20231229.json
+# 9943_message_transactional_updates.20231229.json
+# 9943_profile.20231229.json
+
+# Process for blast
+for file in "${DIR}/${SID}_blast.${CURRENT_DATE}.json"
+do
+    echo "Importing $file"
+    mongoimport --host=rs1/rfvengine1,rfvengine2,rfvengine3,rfvengine4 --db=${DB} --collection=sailthru_blast --file=$file --quiet
+done
+
+# Process for message_blast
+for file in "${DIR}/${SID}_message_blast.${CURRENT_DATE}.json"
+do
+    echo "Importing $file"
+    mongoimport --host=rs1/rfvengine1,rfvengine2,rfvengine3,rfvengine4 --db=${DB} --collection=sailthru_message_blast --file=$file --quiet
+done
+
+# Process for message_blast_updates
+for file in "${DIR}/${SID}_message_blast_updates.${CURRENT_DATE}.json"
+do
+    echo "Importing $file"
+    mongoimport --host=rs1/rfvengine1,rfvengine2,rfvengine3,rfvengine4 --db=${DB} --collection=sailthru_message_blast --file=$file --quiet
+done
+
+# Process for message_transactional
+for file in "${DIR}/${SID}_message_transactional.${CURRENT_DATE}.json"
+do
+    echo "Importing $file"
+    mongoimport --host=rs1/rfvengine1,rfvengine2,rfvengine3,rfvengine4 --db=${DB} --collection=sailthru_message_transactional --file=$file --quiet
+done
+
+# Process for message_transactional_updates
+for file in "${DIR}/${SID}_message_transactional_updates.${CURRENT_DATE}.json"
+do
+    echo "Importing $file"
+    mongoimport --host=rs1/rfvengine1,rfvengine2,rfvengine3,rfvengine4 --db=${DB} --collection=sailthru_message_transactional --file=$file --quiet
+done
+
+# Process for profile
+for file in "${DIR}/${SID}_profile.${CURRENT_DATE}.json"
+do
+    echo "Importing $file"
+    mongoimport --host=rs1/rfvengine1,rfvengine2,rfvengine3,rfvengine4 --db=${DB} --collection=sailthru_profile --file=$file --quiet
+done
+
+# Calculate running time
+end=$(date +%s.%N)
+runtime=$(python -c "print(${end} - ${start})")
+echo "Runtime was $runtime"
