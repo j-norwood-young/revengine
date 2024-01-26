@@ -15,6 +15,7 @@ DIR=/root/dm-sailthru-data-explorer
 SID=9943
 CURRENT_DATE=$(date -d "yesterday 13:00" '+%Y%m%d')
 DB=revengine-prod
+HOSTS=rs1/rfvengine1,rfvengine2,rfvengine3,rfvengine4
 # Calculate running time
 start=$(date +%s.%N)
 
@@ -30,43 +31,52 @@ start=$(date +%s.%N)
 for file in "${DIR}/${SID}_blast.${CURRENT_DATE}.json"
 do
     echo "Importing $file"
-    mongoimport --host=rs1/rfvengine1,rfvengine2,rfvengine3,rfvengine4 --db=${DB} --collection=sailthru_blast --file=$file --quiet
+    mongoimport --host=${HOSTS} --db=${DB} --collection=sailthru_blast --file=$file --quiet
 done
 
 # Process for message_blast
 for file in "${DIR}/${SID}_message_blast.${CURRENT_DATE}.json"
 do
     echo "Importing $file"
-    mongoimport --host=rs1/rfvengine1,rfvengine2,rfvengine3,rfvengine4 --db=${DB} --collection=sailthru_message_blast --file=$file --quiet
+    mongoimport --host=${HOSTS} --db=${DB} --collection=sailthru_message_blast --file=$file --quiet
 done
 
 # Process for message_blast_updates
 for file in "${DIR}/${SID}_message_blast_updates.${CURRENT_DATE}.json"
 do
     echo "Importing $file"
-    mongoimport --host=rs1/rfvengine1,rfvengine2,rfvengine3,rfvengine4 --db=${DB} --collection=sailthru_message_blast --file=$file --quiet
+    mongoimport --host=${HOSTS} --db=${DB} --collection=sailthru_message_blast --file=$file --quiet
 done
+
+# Fix date types
+mongo --host=${HOSTS} --eval 'db.sailthru_message_blast.updateMany( {send_time: { $type: "string" } }, [ { $set: { send_time: { $dateFromString: { dateString: "$send_time" } }, open_time: { $dateFromString: { dateString: "$open_time" } }, click_time: { $dateFromString: { dateString: "$click_time" } }, } } ] )' ${DB}
 
 # Process for message_transactional
 for file in "${DIR}/${SID}_message_transactional.${CURRENT_DATE}.json"
 do
     echo "Importing $file"
-    mongoimport --host=rs1/rfvengine1,rfvengine2,rfvengine3,rfvengine4 --db=${DB} --collection=sailthru_message_transactional --file=$file --quiet
+    mongoimport --host=${HOSTS} --db=${DB} --collection=sailthru_message_transactional --file=$file --quiet
 done
 
 # Process for message_transactional_updates
 for file in "${DIR}/${SID}_message_transactional_updates.${CURRENT_DATE}.json"
 do
     echo "Importing $file"
-    mongoimport --host=rs1/rfvengine1,rfvengine2,rfvengine3,rfvengine4 --db=${DB} --collection=sailthru_message_transactional --file=$file --quiet
+    mongoimport --host=${HOSTS} --db=${DB} --collection=sailthru_message_transactional --file=$file --quiet
 done
+
+# Fix date types
+mongo --host=${HOSTS} --eval 'db.sailthru_message_transactional.updateMany( {send_time: { $type: "string" } }, [ { $set: { send_time: { $dateFromString: { dateString: "$send_time" } }, open_time: { $dateFromString: { dateString: "$open_time" } }, click_time: { $dateFromString: { dateString: "$click_time" } }, } } ] )' ${DB}
 
 # Process for profile
 for file in "${DIR}/${SID}_profile.${CURRENT_DATE}.json"
 do
     echo "Importing $file"
-    mongoimport --host=rs1/rfvengine1,rfvengine2,rfvengine3,rfvengine4 --db=${DB} --collection=sailthru_profile --file=$file --quiet
+    mongoimport --host=${HOSTS} --db=${DB} --collection=sailthru_profile --file=$file --quiet
 done
+
+# Fix date types
+mongo --host=${HOSTS} --eval 'db.sailthru_profile.updateMany({ create_date: { $type: "string" } }, [{ $set: { create_date: { $dateFromString: { dateString: "$create_date" } }, last_open: { $dateFromString: { dateString: "$last_open" } },last_click: { $dateFromString: { dateString: "$last_click" } },last_pageview: { $dateFromString: { dateString: "$last_pageview" } },signup_time: { $dateFromString: { dateString: "$signup_time" } },var_time: { $dateFromString: { dateString: "$var_time" } }, } }])' ${DB}
 
 # Calculate running time
 end=$(date +%s.%N)
