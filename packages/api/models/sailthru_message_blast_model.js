@@ -1,6 +1,6 @@
 /* global JXPSchema ObjectId Mixed */
 
-const SailthruMessageSchema = new JXPSchema({
+const SailthruMessageBlastSchema = new JXPSchema({
     id: { type: String, unique: true, index: true, required: true },
     profile_id: { type: String, required: true, index: true },
     send_time: { type: Date, required: true, index: true },
@@ -15,13 +15,13 @@ const SailthruMessageSchema = new JXPSchema({
     delivery_status: { type: String },
     optout_time: { type: Date },
     is_real_open: { type: Boolean },
-    sailthru_last_updated: { type: Date, index: true },
 },
 {
+    collection: "sailthru_message_blast",
     perms: {
         admin: "crud",
     }
 });
 
-const SailthruMessage = JXPSchema.model('sailthru_message', SailthruMessageSchema);
-module.exports = SailthruMessage;
+const SailthruMessageBlast = JXPSchema.model('sailthru_message_blast', SailthruMessageBlastSchema);
+module.exports = SailthruMessageBlast;

@@ -25,9 +25,9 @@ const SailthruProfileSchema = new JXPSchema({
     last_pageview: Date,
     horizon_month: Mixed,
     horizon_times: Mixed,
-    sailthru_last_updated: { type: Date, index: true },
 },
 {
+    collection: "sailthru_profile",
     perms: {
         admin: "crud",
     }

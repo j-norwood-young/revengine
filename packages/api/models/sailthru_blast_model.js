@@ -6,10 +6,10 @@ const SailthruBlastSchema = new JXPSchema({
     template: { type: String, required: true },
     list_name: { type: String, required: true },
     day: { type: Date, required: true },
-    link_params: { type: Mixed, required: true },
-    sailthru_last_updated: { type: Date, index: true },
+    link_params: { type: Mixed, required: true }
 },
 {
+    collection: "sailthru_blast",
     perms: {
         admin: "crud",
     }
