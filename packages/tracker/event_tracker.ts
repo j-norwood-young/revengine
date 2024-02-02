@@ -85,6 +85,7 @@ const ensure_index = async () => await esclient.ensure_index(index, {
     user_segments: { type: "keyword" },
     date_published: { type: "date" },
     data: { type: "object" },
+    title: { type: "text" },
 });
 
 // Queue listeners

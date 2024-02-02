@@ -3,6 +3,7 @@ export interface EventTrackerMessage {
     action: string;
     time: string;
     url: string;
+    title: string;
     referer?: string;
     signed_in: boolean;
     user_agent: string;

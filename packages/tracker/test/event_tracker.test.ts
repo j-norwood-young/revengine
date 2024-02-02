@@ -221,3 +221,46 @@ describe("Event Tracker - POST Data - Stage 3", () => {
         expect(result.hits.hits[0]._source.data).toHaveProperty("test");
     }, 10000);
 });
+
+describe("Event Tracker - Missing Post", () => {
+    const test_id = generateTestId();
+    it("should send a hit", async () => {
+        const res = await request(app)
+            .post(`/`)
+            .set("Accept", "application/json")
+            .set("Referer", "https://www.google.com/")
+            .set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:85.0) Gecko/20100101 Firefox/85.0")
+            .send({
+                action: "test",
+                test_id,
+                post_id: 1994238,
+                data: {
+                    test: "test",
+                }
+            })
+        expect(res.statusCode).toEqual(200);
+        const json = JSON.parse(res.text);
+        expect(json).toHaveProperty("status");
+        expect(json.status).toEqual("ok");
+        expect(json).toHaveProperty("user_labels");
+        expect(json).toHaveProperty("user_segments");
+    });
+    it("should enrich data with missing article title", async () => {
+        const kafka_server = process.env.KAFKA_SERVER;
+        const topic = process.env.TRACKER_KAFKA_TOPIC;
+        const consumer = new KafkaConsumer({ kafka_server, topic: `${topic}-test`  });
+        const message: EventTrackerMessage = await new Promise(res => {
+            consumer.on("message", message => {
+                if (message.test_id === test_id) {
+                    res(message);
+                    consumer.close();
+                }
+            })
+        });
+        console.log(message);
+        expect(message).toHaveProperty("action");
+        expect(message.action).toEqual("test");
+        expect(message).toHaveProperty("title");
+        expect(message.title).toBeTruthy();
+    }, 20000);
+});
