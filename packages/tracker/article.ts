@@ -27,7 +27,6 @@ export const get_article_data = async function (post_id) {
             if (wpdata === null) return {};
             if (wpdata?.data && wpdata.data.post_id === post_id) {
                 const wparticle = wpdata.data;
-                console.log("Found article", wpdata);
                 tags = wparticle.tags;
                 sections = wparticle.sections;
                 date_published = wparticle.date_published;
