@@ -11,7 +11,9 @@ import qs from "qs";
 import cookie from "cookie";
 import crypto from "crypto";
 import Redis from "redis";
-const redis = Redis.createClient();
+const redis = Redis.createClient({
+    url: config.redis.url,
+});
 
 const name = process.env.TRACKER_NAME || config.name || "revengine";
 const port = process.env.PORT || config.tracker.port || 3012;

@@ -5,12 +5,10 @@ const apihelper = new Apihelper({ server: config.api.cluster_server, apikey: pro
 const sailthru_client = require("sailthru-client").createSailthruClient(process.env.SAILTHRU_KEY, process.env.SAILTHRU_SECRET);
 const wordpress_auth = require("@revengine/wordpress_auth");
 const Redis = require("redis");
-const redis = Redis.createClient();
+const redis = Redis.createClient({
+    url: config.redis.url
+});
 const errs = require('restify-errors');
-const fs = require("fs");
-const path = require("path");
-const log_filename = path.join(__dirname, "..", "..", "logs", "sailthru.log");
-const log_file = fs.createWriteStream(log_filename, { flags: 'a' });
 const Cache = require("@revengine/common/cache");
 const cache = new Cache({ prefix: "sailthru", debug: true, ttl: 60*60 });
 const { fetch_csv } = require("@revengine/common/csv");

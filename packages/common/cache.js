@@ -1,6 +1,9 @@
+const config = require("config");
 const Redis = require("redis")
 const { promisify } = require("util");
-const redis = Redis.createClient();
+const redis = Redis.createClient({
+    url: config.redis.url
+});
 const errs = require('restify-errors');
 const crypto = require("crypto");
 

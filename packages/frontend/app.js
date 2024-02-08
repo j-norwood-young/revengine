@@ -1,11 +1,13 @@
+const config = require("config");
 const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const redis = require("redis");
-const client = redis.createClient();
-const config = require("config");
+const client = redis.createClient({
+	url: config.redis.url
+});
 
 const indexRouter = require('./routes/index');
 
