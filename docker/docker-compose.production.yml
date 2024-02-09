@@ -1,0 +1,10 @@
+version: '3'
+services:
+  api:
+    restart: unless-stopped
+    ports:
+      - 4001:4001
+    env_file:
+      - ../.env-prod
+    environment:
+      - NODE_ENV=production

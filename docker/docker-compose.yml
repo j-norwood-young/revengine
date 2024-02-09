@@ -1,0 +1,21 @@
+version: '3'
+services:
+  api:
+    build:
+      context: ../.
+      dockerfile: ./docker/api/Dockerfile
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+  frontend:
+    build:
+      context: ../.
+      dockerfile: ./docker/frontend/Dockerfile
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+  redis:
+    image: redis:alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
