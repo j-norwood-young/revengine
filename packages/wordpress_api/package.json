@@ -10,7 +10,7 @@
   "author": "Jason Norwood-Young <jason@10layer.com>",
   "license": "MIT",
   "dependencies": {
-    "moment-timezone": "0.5.32",
+    "moment-timezone": "0.5.45",
     "apicache": "^1.6.3",
     "restify-cors-middleware": "^1.1.1"
   }

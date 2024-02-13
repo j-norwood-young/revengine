@@ -88,7 +88,7 @@
         "server": "https://pipeline.revengine.dailymaverick.co.za"
     },
     "redis": {
-        "url": "redis://localhost:6379"
+        "url": "redis://redis:6379"
     },
     "sailthru": {
         "log_prefix": "9943_",

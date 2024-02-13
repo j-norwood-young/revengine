@@ -15,10 +15,5 @@ done
 cd /root/dm-sailthru-data-explorer
 gunzip -f *.gz
 
-# cd /root/dev/revengine
-
-# Run the import
-# for type in $types
-# do
-#     node packages/imports -p sailthru -t $type
-# done
+# Delete older files
+find /root/dm-sailthru-data-explorer -type f -mtime +7 -exec rm {} \;

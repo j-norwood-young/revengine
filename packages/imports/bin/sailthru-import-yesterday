@@ -49,7 +49,7 @@ do
 done
 
 # Fix date types
-mongo --host=${HOSTS} --eval 'db.sailthru_message_blast.updateMany( {send_time: { $type: "string" } }, [ { $set: { send_time: { $dateFromString: { dateString: "$send_time" } }, open_time: { $dateFromString: { dateString: "$open_time" } }, click_time: { $dateFromString: { dateString: "$click_time" } }, } } ] )' ${DB}
+mongosh --host=${HOSTS} --eval 'db.sailthru_message_blast.updateMany( {send_time: { $type: "string" } }, [ { $set: { send_time: { $dateFromString: { dateString: "$send_time" } }, open_time: { $dateFromString: { dateString: "$open_time" } }, click_time: { $dateFromString: { dateString: "$click_time" } }, } } ] )' ${DB}
 
 # Process for message_transactional
 for file in "${DIR}/${SID}_message_transactional.${CURRENT_DATE}.json"
@@ -66,7 +66,7 @@ do
 done
 
 # Fix date types
-mongo --host=${HOSTS} --eval 'db.sailthru_message_transactional.updateMany( {send_time: { $type: "string" } }, [ { $set: { send_time: { $dateFromString: { dateString: "$send_time" } }, open_time: { $dateFromString: { dateString: "$open_time" } }, click_time: { $dateFromString: { dateString: "$click_time" } }, } } ] )' ${DB}
+mongosh --host=${HOSTS} --eval 'db.sailthru_message_transactional.updateMany( {send_time: { $type: "string" } }, [ { $set: { send_time: { $dateFromString: { dateString: "$send_time" } }, open_time: { $dateFromString: { dateString: "$open_time" } }, click_time: { $dateFromString: { dateString: "$click_time" } }, } } ] )' ${DB}
 
 # Process for profile
 for file in "${DIR}/${SID}_profile.${CURRENT_DATE}.json"
@@ -76,9 +76,12 @@ do
 done
 
 # Fix date types
-mongo --host=${HOSTS} --eval 'db.sailthru_profile.updateMany({ create_date: { $type: "string" } }, [{ $set: { create_date: { $dateFromString: { dateString: "$create_date" } }, last_open: { $dateFromString: { dateString: "$last_open" } },last_click: { $dateFromString: { dateString: "$last_click" } },last_pageview: { $dateFromString: { dateString: "$last_pageview" } },signup_time: { $dateFromString: { dateString: "$signup_time" } },var_time: { $dateFromString: { dateString: "$var_time" } }, } }])' ${DB}
+mongosh --host=${HOSTS} --eval 'db.sailthru_profile.updateMany({ create_date: { $type: "string" } }, [{ $set: { create_date: { $dateFromString: { dateString: "$create_date" } }, last_open: { $dateFromString: { dateString: "$last_open" } },last_click: { $dateFromString: { dateString: "$last_click" } },last_pageview: { $dateFromString: { dateString: "$last_pageview" } },signup_time: { $dateFromString: { dateString: "$signup_time" } },var_time: { $dateFromString: { dateString: "$var_time" } }, } }])' ${DB}
 
 # Calculate running time
 end=$(date +%s.%N)
 runtime=$(python -c "print(${end} - ${start})")
 echo "Runtime was $runtime"
+
+# Aggregate count by day
+# mongosh --host=${HOSTS} --eval 'db.sailthru_message_blast.aggregate([{ $match: { send_time: { $gte: new Date("2024-01-04")}} }, { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$send_time" } }, count: { $sum: 1 } } } ])' ${DB}

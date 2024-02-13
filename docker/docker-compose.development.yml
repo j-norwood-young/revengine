@@ -1,0 +1,18 @@
+version: '3'
+services:
+  api:
+    ports:
+      - 3002:3002
+    env_file:
+      - ../.env-dev
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+  frontend:
+    ports:
+      - 3014:3014
+    env_file:
+      - ../.env-dev
+    environment:
+      - NODE_ENV=development
+      - PORT=3014
