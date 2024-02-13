@@ -7,8 +7,8 @@
     "cors_origins": ["https://dev.dailymaverick.co.za", "https://dailymaverick.co.za", "https://www.dailymaverick.co.za", "http://local.dailymaverick.com"],
     "api": {
         "port": 3002,
-        "server": "http://revengine.dailymaverick.co.za:3002",
-        "cluster_server": "http://revengine.dailymaverick.co.za:3002",
+        "server": "http://api:3002",
+        "cluster_server": "http://api:3002",
         "mongo": {
             "connection_string": "mongodb://rfvengine1,rfvengine3,rfvengine4/revengine-prod?replicaSet=rs1&readPreference=secondaryPreferred",
             "options": {}
@@ -90,7 +90,7 @@
         "server": "http://api.revengine.dailymaverick.co.za:3018"
     },
     "redis": {
-        "url": "redis://localhost:6379"
+        "url": "redis://redis:6379"
     },
     "rfv": {
         "days": 30,
