@@ -225,17 +225,11 @@ const sync_subscription = async user_id => {
     return (await apihelper.postput("woocommerce_subscription", "id", subscription)).data;
 }
 
-exports.woocommerce_subscriptions_callback = async (req, res, next) => {
+exports.woocommerce_subscriptions_callback = async (req, res) => {
     try {
         const subscription = req.body.subscription;
         await sync_user(subscription.customer_id);
         await sync_subscription(subscription.customer_id);
-        // await get_woocommerce_user(data.user_id);
-        // data.reader = await get_reader(data);
-        // const group = check_group(data);
-        // const group_action = group_actions(group);
-        // await group_action[group](data);
-        if (next) next();
     } catch(err) {
         console.error(err);
         res.send(500, { status: "error" });

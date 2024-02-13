@@ -6,7 +6,7 @@ const public_server = restify.createServer({
     name: config.api_name
 });
 const protected_server = require("@revengine/http_server");
-protected_server.use(restify.plugins.bodyParser()); 
+protected_server.use(restify.plugins.bodyParser());
 const Reports = require("@revengine/reports");
 const Cache = require("@revengine/common/cache");
 
@@ -199,7 +199,7 @@ protected_server.get("/wp/readers/labels", async(req, res) => {
     }
 });
 
-public_server.post("/wp/test", (req, res) => {
+public_server.post("/wp/test", async (req, res) => {
     console.log({ request: req.body });
     res.send({ status: "ok" });
 });
