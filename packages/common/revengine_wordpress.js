@@ -62,7 +62,7 @@ const get_post = async (post_id) => {
         const url = `${config.wordpress.revengine_api}/post?id=${post_id}`
         const wpresponse = await fetch(url, { headers })
         if (wpresponse.status !== 200) {
-            throw `Error fetching article ${wpurl}: ${wpresponse.status} ${wpresponse.statusText}`;
+            throw `Error fetching article ${url}: ${wpresponse.status} ${wpresponse.statusText}`;
         }
         const json = await wpresponse.json()
         return json
