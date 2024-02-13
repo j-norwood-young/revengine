@@ -93,9 +93,11 @@ db.getCollection('top_1000_articles_by_hits').aggregate([
 ## Check that we are saving Sailthru events for each day
 
 ```javascript
+var d = new Date();
+d.setDate(d.getDate()-7);
 db.sailthru_message_blast.aggregate([
     { 
-        $match: { send_time: { $gte: new Date("2024-02-04")}} 
+        $match: { send_time: { $gte: d}} 
     }, { 
         $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$send_time" } }, count: { $sum: 1 } } 
     }, {
