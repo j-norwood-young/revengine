@@ -105,3 +105,45 @@ db.sailthru_message_blast.aggregate([
     } 
 ])
 ```
+
+## Find readers in sailthru who are missing in readers, and add them
+
+```javascript
+db.sailthru_profile.aggregate([
+    {
+        $lookup: {
+            from: "readers",
+            localField: "email",
+            foreignField: "email",
+            as: "matchedDocs"
+        }
+    },
+    {
+        $match: {
+            matchedDocs: { $size: 0 }
+        }
+    },
+    {
+        $project: {
+            _id: 0,
+            email: 1,
+            "vars.first_name": 1,
+            "vars.last_name": 1,
+        }
+    },
+    {
+        $project: {
+            email: 1,
+            first_name: "$vars.first_name",
+            last_name: "$vars.last_name"
+        }
+    },
+    {
+        $out: "missing_readers"
+    }
+])
+
+db.missing_readers.find().forEach(function(doc) {
+    db.readers.insertOne(doc);
+});
+```
