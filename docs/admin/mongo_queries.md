@@ -147,3 +147,39 @@ db.missing_readers.find().forEach(function(doc) {
     db.readers.insertOne(doc);
 });
 ```
+
+### Fix dates in sailthru_message_blast
+
+```javascript
+var cursor = db.sailthru_message_blast.find({ _processed: { $ne: true } }).limit(1000000);
+var upserts = [];
+cursor.forEach(function(doc) {
+    var new_doc = {};
+    new_doc.send_time = new Date(doc.send_time);
+    if (doc.opens) {
+        doc.opens.forEach(function(open) {
+            doc.ts = new Date(open.ts);
+        });
+        new_doc.opens = doc.opens;
+        new_doc.open_count = doc.opens.length;
+        new_doc.open_time = doc.opens[0].ts;
+    }
+    if (doc.clicks) {
+        doc.clicks.forEach(function(click) {
+            click.ts = new Date(click.ts);
+        });
+        new_doc.clicks = doc.clicks;
+        new_doc.click_count = doc.clicks.length;
+        new_doc.click_time = doc.clicks[0].ts;
+    }
+    new_doc._processed = true;
+    upserts.push({
+        updateOne: {
+            filter: { _id: doc._id },
+            update: { $set: new_doc }
+        }
+    });
+});
+db.sailthru_message_blast.bulkWrite(upserts);
+db.sailthru_message_blast.find({ _processed: { $ne: true } }).count();
+```
