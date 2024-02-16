@@ -49,7 +49,36 @@ do
 done
 
 # Fix date types
-mongosh --host=${HOSTS} --eval 'db.sailthru_message_blast.updateMany( {send_time: { $type: "string" } }, [ { $set: { send_time: { $dateFromString: { dateString: "$send_time" } }, open_time: { $dateFromString: { dateString: "$open_time" } }, click_time: { $dateFromString: { dateString: "$click_time" } }, } } ] )' ${DB}
+mongosh --host=${HOSTS} --eval 'var cursor = db.sailthru_message_blast.find({ _processed: { $ne: true } }).limit(1000000);
+var upserts = [];
+cursor.forEach(function(doc) {
+    var new_doc = {};
+    new_doc.send_time = new Date(doc.send_time);
+    if (doc.opens) {
+        doc.opens.forEach(function(open) {
+            doc.ts = new Date(open.ts);
+        });
+        new_doc.opens = doc.opens;
+        new_doc.open_count = doc.opens.length;
+        new_doc.open_time = doc.opens[0].ts;
+    }
+    if (doc.clicks) {
+        doc.clicks.forEach(function(click) {
+            click.ts = new Date(click.ts);
+        });
+        new_doc.clicks = doc.clicks;
+        new_doc.click_count = doc.clicks.length;
+        new_doc.click_time = doc.clicks[0].ts;
+    }
+    new_doc._processed = true;
+    upserts.push({
+        updateOne: {
+            filter: { _id: doc._id },
+            update: { $set: new_doc }
+        }
+    });
+});
+db.sailthru_message_blast.bulkWrite(upserts);' ${DB}
 
 # Process for message_transactional
 for file in "${DIR}/${SID}_message_transactional.${CURRENT_DATE}.json"
@@ -84,4 +113,14 @@ runtime=$(python -c "print(${end} - ${start})")
 echo "Runtime was $runtime"
 
 # Aggregate count by day
-# mongosh --host=${HOSTS} --eval 'db.sailthru_message_blast.aggregate([{ $match: { send_time: { $gte: new Date("2024-01-04")}} }, { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$send_time" } }, count: { $sum: 1 } } } ])' ${DB}
+mongosh --host=${HOSTS} --eval 'var d = new Date();
+d.setDate(d.getDate()-7);
+db.sailthru_message_blast.aggregate([
+    { 
+        $match: { send_time: { $gte: d}} 
+    }, { 
+        $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$send_time" } }, count: { $sum: 1 } } 
+    }, {
+        $sort: { _id: 1 }
+    } 
+])' ${DB}
