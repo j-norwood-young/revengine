@@ -90,22 +90,6 @@ db.getCollection('top_1000_articles_by_hits').aggregate([
 ]);
 ```
 
-## Check that we are saving Sailthru events for each day
-
-```javascript
-var d = new Date();
-d.setDate(d.getDate()-7);
-db.sailthru_message_blast.aggregate([
-    { 
-        $match: { send_time: { $gte: d}} 
-    }, { 
-        $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$send_time" } }, count: { $sum: 1 } } 
-    }, {
-        $sort: { _id: 1 }
-    } 
-])
-```
-
 ## Find readers in sailthru who are missing in readers, and add them
 
 ```javascript
@@ -157,20 +141,25 @@ cursor.forEach(function(doc) {
     var new_doc = {};
     new_doc.send_time = new Date(doc.send_time);
     if (doc.opens) {
+        new_doc.opens = [];
         doc.opens.forEach(function(open) {
-            doc.ts = new Date(open.ts);
+            new_doc.opens.push({
+                ts: new Date(open.ts)
+            });
         });
-        new_doc.opens = doc.opens;
-        new_doc.open_count = doc.opens.length;
-        new_doc.open_time = doc.opens[0].ts;
+        new_doc.open_count = new_doc.opens.length;
+        new_doc.open_time = new_doc.opens[0].ts;
     }
     if (doc.clicks) {
+        new_doc.clicks = [];
         doc.clicks.forEach(function(click) {
-            click.ts = new Date(click.ts);
+            new_doc.clicks.push({
+                url: click.url,
+                ts: new Date(click.ts)
+            });
         });
-        new_doc.clicks = doc.clicks;
-        new_doc.click_count = doc.clicks.length;
-        new_doc.click_time = doc.clicks[0].ts;
+        new_doc.click_count = new_doc.clicks.length;
+        new_doc.click_time = new_doc.clicks[0].ts;
     }
     new_doc._processed = true;
     upserts.push({
@@ -182,4 +171,20 @@ cursor.forEach(function(doc) {
 });
 db.sailthru_message_blast.bulkWrite(upserts);
 db.sailthru_message_blast.find({ _processed: { $ne: true } }).count();
+```
+
+## Check that we are saving Sailthru events for each day
+
+```javascript
+var d = new Date();
+d.setDate(d.getDate()-7);
+db.sailthru_message_blast.aggregate([
+    { 
+        $match: { open_time: { $gte: d}} 
+    }, { 
+        $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$open_time" } }, count: { $sum: 1 } } 
+    }, {
+        $sort: { _id: 1 }
+    } 
+])
 ```
