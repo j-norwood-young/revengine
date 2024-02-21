@@ -1,6 +1,5 @@
 
 import moment from "moment"
-
 import mongo from "@revengine/common/mongo"
 import { Command } from 'commander';
 import cron from "node-cron";
@@ -45,9 +44,8 @@ async function calculate_count(mday: moment.Moment) {
     await mongo.close();
 }
 
-
-async function main(day: string | null = null) {
-    console.time("main");
+async function interactions(day: string | null = null) {
+    console.time("interactions");
     let mday: moment.Moment;
     if (!day) {
         mday = moment().subtract(1, "day");
@@ -61,7 +59,7 @@ async function main(day: string | null = null) {
     await process_es_interactions(mday);
     console.log("Calculating count...");
     await calculate_count(mday);
-    console.timeEnd("main");
+    console.timeEnd("interactions");
 }
 
 async function runBetweenDates(start_date, end_date) {
@@ -69,17 +67,17 @@ async function runBetweenDates(start_date, end_date) {
     const end = moment(end_date);
     let day = start.clone();
     while (day.isSameOrBefore(end)) {
-        await main(day.format("YYYY-MM-DD"));
+        await interactions(day.format("YYYY-MM-DD"));
         day.add(1, "day");
     }
 }
 
 if (options.daemon) {
-    cron.schedule(schedule, main);
+    cron.schedule(schedule, interactions);
 } else if (options.day) {
-    main(options.day);
+    interactions(options.day);
 } else if (options.start && options.end) {
     runBetweenDates(options.start, options.end);
 } else {
-    main()
+    interactions()
 }
