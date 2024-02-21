@@ -1,6 +1,7 @@
 import esclient from "@revengine/common/esclient"
 import moment from "moment"
 import apihelper from "@revengine/common/apihelper"
+import mongo from "@revengine/common/mongo"
 import { Command } from 'commander';
 import cron from "node-cron";
 
@@ -8,7 +9,7 @@ const program = new Command();
 program
     .option('-d, --daemon', 'run as a daemon on a cron schedule')
     .option('-c, --cron <cron>', 'override default cron schedule')
-    .option('-h, --historical <day>', 'calculate historical values starting on day')
+    .option('-d, --day <day>', 'calculate values for day')
     .option('-s, --start <day>', 'start date for historical calculation')
     .option('-e, --end <day>', 'end date for historical calculation')
     ;
@@ -25,24 +26,17 @@ type TInteraction = {
     day: Date;
     email: string;
     reader_id: string;
-    count_by_service: {
-        service: InteractionService;
-        count: number;
-    }[];
+    web_count: number;
+    sailthru_blast_open_count: number;
+    sailthru_blast_click_count: number;
+    sailthru_transactional_open_count: number;
+    sailthru_transactional_click_count: number;
+    touchbasepro_open_count: number;
+    quicket_open_count: number;
     count: number;
     insider: boolean;
     monthly_value: number;
 };
-
-enum InteractionService {
-    WEB = "web",
-    BOOKS = "books",
-    MOBILE = "mobile",
-    SAILTHRU_BLAST = "sailthru_blast",
-    SAILTHRU_TRANSACTIONAL = "sailthru_transactional",
-    TOUCHBASEPRO = "touchbasepro",
-    QUICKET = "quicket",
-}
 
 async function get_reader_cache() {
     if (reader_cache.length === 0) {
@@ -58,11 +52,45 @@ async function get_reader_cache() {
     return reader_cache;
 }
 
+async function process_es_interactions(mday: moment.Moment) {
+    const interactions = await get_es_interactions(mday);
+    // console.log(JSON.stringify(interactions.slice(0, 10), null, 2));
+    // Write to temp mongo collection
+    const tmp_collection = `es_interactions_${mday.format("YYYYMMDD")}`;
+    if (await mongo.collectionExists(tmp_collection)) {
+        await mongo.dropCollection(tmp_collection);
+    }
+    await mongo.insertMany(tmp_collection, interactions);
+    // Merge with existing interactions
+    const merge_query = [
+        {
+            $project: {
+                _id: 0,
+                uid: 1,
+                day: 1,
+                email: 1,
+                reader_id: 1,
+                web_count: 1
+            }
+        },
+        {
+            $merge: {
+                into: "interactions",
+                on: "uid",
+                whenMatched: "merge",
+                whenNotMatched: "insert",
+            }
+        }
+    ];
+    await mongo.aggregate(tmp_collection, merge_query);
+    await mongo.close();
+}
+
 async function get_es_interactions(mday: moment.Moment): Promise<TInteraction[]> {
     // Get ES interactions for yesterday
     const dateStart = mday.clone().startOf("day")
     const dateEnd = mday.clone().endOf("day")
-    console.log(`Processing for ${mday.format("YYYY-MM-DD")}`);
+    // console.log(`Processing web interactions for ${dateStart.toISOString()} to ${dateEnd.toISOString()}`);
     const query = {
         index: "pageviews_copy",
         size: 0,
@@ -121,14 +149,11 @@ async function get_es_interactions(mday: moment.Moment): Promise<TInteraction[]>
             return null;
         }
         return {
-            uid: `${reader._id}-${mday.format("YYYY-MM-DD")}`,
+            uid: `${reader.email}-${mday.format("YYYY-MM-DD")}`,
             day: mday.format("YYYY-MM-DD"),
             email: reader.email,
             reader_id: reader._id,
-            count_by_service: [{
-                service: InteractionService.WEB,
-                count: bucket.doc_count,
-            }],
+            web_count: bucket.doc_count,
         }
     }).filter(x => x !== null);
     return result;
@@ -140,23 +165,15 @@ async function get_sailthru_blast_interactions(mday: moment.Moment){
             {
                 $match: {
                     open_time: {
-                        $gte: mday.clone().startOf("day").format("YYYY-MM-DDTHH:mm:ss"),
-                        $lte: mday.clone().endOf("day").format("YYYY-MM-DDTHH:mm:ss")
-                    },
-                },
-            },
-            {
-                $group: {
-                    _id: "$profile_id",
-                    count: {
-                        $sum: 1,
+                        $gte: `new Date(\"${mday.clone().startOf("day").format("YYYY-MM-DDTHH:mm:ss")}\")`,
+                        $lte: `new Date(\"${mday.clone().endOf("day").format("YYYY-MM-DDTHH:mm:ss")}\")`
                     },
                 },
             },
             {
                 $lookup: {
                     from: "sailthru_profile",
-                    localField: "_id",
+                    localField: "profile_id",
                     foreignField: "id",
                     as: "profile",
                 },
@@ -165,68 +182,104 @@ async function get_sailthru_blast_interactions(mday: moment.Moment){
                 $unwind: "$profile",
             },
             {
-                $project: {
-                    _id: 0,
-                    count: 1,
-                    profile: {
-                        email: 1,
-                        first_name: 1,
-                        last_name: 1,
-                        created: 1,
-                        last_modified: 1,
+                $group: {
+                    _id: {
+                        email: "$profile.email", 
+                        day: {
+                            $dateToString: {
+                                date: "$open_time",
+                                format: "%Y-%m-%d",
+                            }
+                        }
                     },
+                    count: {
+                        $sum: 1,
+                    },
+                    // open_time: {
+                    //     $first: {
+                    //         open_time: "$open_time",
+                    //     }
+                    // }
                 },
             },
             {
-                $sort: {
-                    count: -1,
+                $lookup: {
+                    from: "readers",
+                    localField: "_id.email",
+                    foreignField: "email",
+                    as: "reader",
+                }
+            },
+            {
+                $unwind: "$reader",
+            },
+            {
+                $project: {
+                    _id: 0,
+                    uid: {
+                        $concat: ["$_id.email", "-", "$_id.day"]
+                    },
+                    day: {
+                        $dateFromString: {
+                            dateString: "$_id.day",
+                            format: "%Y-%m-%d",
+                        }
+                    },
+                    reader_id: "$reader._id",
+                    email: "$_id.email",
+                    sailthru_blast_open_count: "$count",
                 },
             },
+            // {
+            //     $sort: {
+            //         "sailthru_blast_open_count": -1,
+            //     },
+            // },
+            {
+                $merge: {
+                    into: "interactions",
+                    on: "uid",
+                    whenMatched: "merge",
+                    whenNotMatched: "insert",
+                },
+            }
         ];
-        console.log(JSON.stringify(query, null, 2));
+        // console.log(JSON.stringify(query, null, 2));
         const blast_messages = await apihelper.aggregate("sailthru_message_blast", query)
-        console.log(blast_messages.data.slice(0, 10));
+        // console.log(blast_messages.data.slice(0, 10));
     } catch (error) {
         console.log(error);
     }
 }
 
-async function merge_services(services: any[]) {
-    const result = [];
-    for (let interactions of services) {
-        for (let interaction of interactions) {
-            const existing = result.find(x => x.uid === interaction.uid);
-            if (existing) {
-                existing.count_by_service.push(...interaction.count_by_service);
-            } else {
-                result.push(interaction);
+async function calculate_count(mday: moment.Moment) {
+    // console.log("Calculating count...");
+    await mongo.updateMany("interactions", { day: mday.format("YYYY-MM-DD") }, 
+        [
+          {
+            $set: {
+              count: {
+                $add: [
+                  { $ifNull: ["$web_count", 0] },
+                  { $ifNull: ["$sailthru_blast_open_count", 0] },
+                  { $ifNull: ["$sailthru_blast_click_count", 0] },
+                    { $ifNull: ["$sailthru_transactional_open_count", 0] },
+                    { $ifNull: ["$sailthru_transactional_click_count", 0] },
+                    { $ifNull: ["$touchbasepro_open_count", 0] },
+                    { $ifNull: ["$quicket_open_count", 0] },
+                ]
+              }
             }
-        }
-        for (let interaction of result) {
-            let count = 0;
-            for (let service of Object.values(InteractionService)) {
-                const service_count = interaction.count_by_service.find(x => x.service === service);
-                if (service_count) {
-                    count += service_count.count;
-                }
-                // if (!count) {
-                //     interaction.count_by_service.push({
-                //         service,
-                //         count: 0,
-                //     });
-                // }
-            }
-            interaction.count = count;
-        }
-    }
-    return result;
+          }
+        ]
+    );
+    await mongo.close();
 }
 
 
 async function main(day: string | null = null) {
     console.log("Heating cache...");
-    // await get_reader_cache();
-    console.log("Getting interactions...");
+    await get_reader_cache();
     let mday: moment.Moment;
     if (!day) {
         mday = moment().subtract(1, "day");
@@ -236,14 +289,10 @@ async function main(day: string | null = null) {
     console.log(`Processing for ${mday.format("YYYY-MM-DD")}`);
     console.log("Getting Sailthru blast interactions...");
     await get_sailthru_blast_interactions(mday);
-    // console.log("Getting ES interactions...");
-    // const es_results = await get_es_interactions(mday);
-    // console.log(es_results.slice(0, 10));
-    // const interactions = await merge_services([es_results]);
-    // console.log(interactions.slice(0, 10));
-    
-    // const result = await apihelper.bulk_postput("interaction", "uid", interactions);
-    // console.log(result);
+    console.log("Getting ES interactions...");
+    await process_es_interactions(mday);
+    console.log("Calculating count...");
+    await calculate_count(mday);
 }
 
 async function runBetweenDates(start_date, end_date) {
