@@ -20,12 +20,6 @@ const InteractionSchema = new JXPSchema({
     touchbasepro_open_count: Number,
     touchbasepro_click_count: Number,
     quicket_count: Number,
-    // count_by_service: [
-    //     {
-    //         service: { type: String, index: true, trim: true, lowercase: true, enum: ["web", "books", "mobile", "sailthru_transactional", "sailthru_blast", "touchbasepro", "quicket"]},
-    //         count: Number,
-    //     }
-    // ],
 },
 {
     perms: {
