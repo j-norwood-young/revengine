@@ -188,3 +188,41 @@ db.sailthru_message_blast.aggregate([
     } 
 ])
 ```
+
+## Rename one field to another in a collection
+
+```javascript
+db.interactions.updateMany(
+  { "count_by_service.service": "sailthru_blast" },
+  [
+    {
+      $addFields: {
+        sailthru_blast_open_count: "$count_by_service.count"
+      }
+    },
+    {
+      $unset: "count_by_service"
+    }
+  ]
+)
+```
+
+## Sum up multiple fields and save as another field
+
+```javascript
+db.interactions.updateMany(
+  {},
+  [
+    {
+      $set: {
+        count: {
+          $add: [
+            { $ifNull: ["$web_count", 0] },
+            { $ifNull: ["$sailthru_blast_open_count", 0] }
+          ]
+        }
+      }
+    }
+  ]
+)
+```
