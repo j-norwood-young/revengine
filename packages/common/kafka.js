@@ -43,6 +43,14 @@ class KafkaProducer {
         });
         this.producer = new Producer(client);
         this.topic = opts.topic;
+        // Check if topic exists
+        const topics = client.topicMetadata;
+        if (topics[this.topic]) {
+            if (this.debug) {
+                console.log(`Topic ${this.topic} already exists`);
+            }
+            return;
+        }
         client.createTopics(
             [
                 {
