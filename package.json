@@ -22,7 +22,7 @@
     "dev-track:consolidator": "env NODE_ENV=development nodemon packages/consolidator",
     "dev-track:tracker": "env NODE_ENV=development tsx watch packages/tracker",
     "dev-track:crosswords": "env NODE_ENV=development env TRACKER_NAME=crosswords TRACKER_KAFKA_TOPIC=crosswords INDEX=crosswords env PORT=3015 env TRACKER_HOST='127.0.0.1' tsx watch -- packages/tracker/event_tracker.ts",
-    "dev-track-test:event_tracker": "env NODE_ENV=development env TRACKER_NAME=event_tracker_test env TRACKER_KAFKA_TOPIC=event_tracker_test INDEX=event_tracker_test env PORT=5015 npx jest --forceExit packages/tracker/test/event_tracker.test.ts",
+    "dev-track-test:event_tracker": "env NODE_ENV=development env TRACKER_NAME=event_tracker_test env TRACKER_KAFKA_TOPIC=event_tracker_test INDEX=event_tracker_test env PORT=5015 npx jest --forceExit packages/tracker/test/*.test.ts",
     "test:revengine_wordpress": "env NODE_ENV=development npx jest packages/common/tests/revengine_wordpress.test.js",
     "dev:api": "env NODE_ENV=development env NODE_OPTIONS=--max-old-space-size=8192 nodemon --inspect --verbose --watch packages/api packages/api",
     "dev:content": "env NODE_ENV=development nodemon packages/content",
