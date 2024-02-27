@@ -5,6 +5,7 @@ import { Command } from 'commander';
 import cron from "node-cron";
 import { process_sailthru_blast_interactions } from "./interactions/sailthru";
 import { process_es_interactions } from "./interactions/es";
+import { process_memberships } from "./interactions/membership";
 
 const program = new Command();
 program
@@ -13,6 +14,8 @@ program
     .option('-d, --day <day>', 'calculate values for day')
     .option('-s, --start <day>', 'start date for historical calculation')
     .option('-e, --end <day>', 'end date for historical calculation')
+    .option('-a, --all', 'calculate all interactions')
+    .option('-i, --interactions <interactions>', 'calculate specific interactions')
     ;
 
 program.parse(process.argv);
@@ -52,12 +55,20 @@ async function interactions(day: string | null = null) {
     } else {
         mday = moment(day);
     }
+    let run_all = options.all || !options.interactions;
     console.log(`Processing for ${mday.format("YYYY-MM-DD")}`);
-    console.log("Getting Sailthru blast interactions...");
-    await process_sailthru_blast_interactions(mday);
-    console.log("Getting ES interactions...");
-    await process_es_interactions(mday);
-    console.log("Calculating count...");
+    if (run_all || options.interactions === "sailthru") {
+        console.log("Getting Sailthru blast interactions...");
+        await process_sailthru_blast_interactions(mday);
+        console.log("Getting ES interactions...");
+    }
+    if (run_all || options.interactions === "es") {
+        await process_es_interactions(mday);
+        console.log("Calculating count...");
+    }
+    if (run_all || options.interactions === "membership") {
+        await process_memberships(mday);
+    }
     await calculate_count(mday);
     console.timeEnd("interactions");
 }
