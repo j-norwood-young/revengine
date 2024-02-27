@@ -8,6 +8,7 @@ const geo = new Reader(buffer);
 export const geolocate_ip = async function (ip) {
     const geo_data: any = geo.get(ip);
     if (!geo_data) return {};
+    if (config.debug) console.log(`Geodata file: ${config.geoip.mmdb}`, JSON.stringify(geo_data, null, 2));
     return {
         derived_city: geo_data.city.names.en,
         derived_country: geo_data.country.names.en,
