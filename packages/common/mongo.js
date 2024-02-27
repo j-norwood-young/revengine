@@ -3,7 +3,7 @@
  * @module mongo
  */
 
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 const config = require('config');
 
 const connection_string = config.api.mongo.connection_string;
@@ -218,10 +218,21 @@ module.exports.aggregate = async (collection, pipeline) => {
 };
 
 /**
+ * 
+ * @param {string} id - The id to convert to ObjectId.
+ * @returns {ObjectId} - The converted id.
+ */
+module.exports.toObjectId = (id) => {
+    return new ObjectId(id);
+}
+
+/**
  * Closes the connection to the MongoDB server.
  * @async
  */
 module.exports.close = async () => {
+    if (!is_connected) return;
+    if (!client) return;
     await client.close();
     is_connected = false;
 };
