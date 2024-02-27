@@ -2,7 +2,7 @@
 
 const Woocommerce_OrderSchema = new JXPSchema({
     id: { type: Number, index: true }, 
-    customer_id: Number, 
+    customer_id: { type: Number, index: true }, 
     customer_ip_address: String, 
     customer_user_agent: String, 
     date_completed: Date, 
