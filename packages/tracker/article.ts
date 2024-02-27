@@ -9,7 +9,7 @@ const jxphelper = new JXPHelper({
 });
 
 export const get_article_data = async function (post_id) {
-    const save_to_db = !config.debug;
+    const save_to_db = !config.debug && !(process.env.NODE_ENV === "test");
     let sections = null;
     let tags = null;
     let date_published = null;
@@ -19,7 +19,7 @@ export const get_article_data = async function (post_id) {
         const article = (
             await jxphelper.get("article", {
                 "filter[post_id]": post_id,
-                fields: "tags,sections,date_published,author",
+                fields: "tags,sections,date_published,author,title",
             })
         ).data.pop();
         if (!article) {
@@ -34,6 +34,7 @@ export const get_article_data = async function (post_id) {
                 title = wparticle.title;
             }
             if (save_to_db) {
+                console.log("Saving article to database", wpdata.data.title);
                 await jxphelper.post("article", wpdata.data);
             }
         } else {
