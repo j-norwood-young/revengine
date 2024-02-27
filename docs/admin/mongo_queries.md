@@ -226,3 +226,11 @@ db.interactions.updateMany(
   ]
 )
 ```
+
+## Fix a string field to be an objectid field
+
+Note the square brackets!
+
+```javascript
+db.interactions.updateMany({ reader_id: { $type: "string"} }, [{ $set: { reader_id: { $toObjectId: "$reader_id" } } }])
+```
