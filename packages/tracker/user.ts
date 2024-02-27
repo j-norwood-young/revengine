@@ -46,7 +46,7 @@ export const get_user_data = async function (user_id): Promise<{ user_labels: st
         if (result.labels) {
             user_labels = result.labels.map(label => label.code);
         }
-        if (result.user_segments) {
+        if (result.segments) {
             user_segments = result.segments.map(segment => segment.code);
         }
     }
