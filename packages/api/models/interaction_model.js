@@ -9,6 +9,8 @@ const InteractionSchema = new JXPSchema({
     insider: { type: Boolean, index: true },
     email: { type: String, index: true, trim: true, lowercase: true },
     monthly_value: Number,
+    lifetime_value: Number,
+    date_paid: Date,
     count: { type: Number, index: true },
     web_count: Number,
     books_count: Number,
