@@ -49,7 +49,7 @@
         "port": 3014
     },
     "geoip": {
-        "mmdb": "/root/mmdb/dbip-city-lite-2022-10.mmdb"
+        "mmdb": "/root/mmdb/dbip-city-lite-2024-02.mmdb"
     },
     "google_cloud_language": {
         "keyFilename": "/root/keys/dmbigquery-8deb86ecf874.json",
