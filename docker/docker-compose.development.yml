@@ -16,3 +16,6 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3014
+    volumes:
+      - ../packages/frontend:/usr/src/app/packages/frontend
+      - ../packages/common:/usr/src/app/packages/common
