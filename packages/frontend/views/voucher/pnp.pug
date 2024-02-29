@@ -1,0 +1,12 @@
+extends ../layout
+
+block content
+    .container
+        h2 Pick n Pay Voucher Upload
+        form(action="/voucher/pnp", method="post")
+            .form-group
+                label(for="codes") Voucher Codes
+                textarea#codes.form-control(name="codes", rows="20")
+            .form-group.mt-3
+                input.btn.btn-primary(type="submit", value="Submit")
+                

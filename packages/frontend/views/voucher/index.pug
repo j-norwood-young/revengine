@@ -4,6 +4,17 @@ block content
     .container
         h1 Vouchers
         .row.row-cols-1.row-cols-sm-2.row-cols-md-3.g-3
+            .col 
+                .card.shadow-sm
+                    .card-header 
+                        h2 
+                            i.fa.fa-ticket
+                            |  Pick 'n Pay
+                    .card-body
+                        .d-flex.justify-content-between.align-items-center
+                            .btn-group 
+                                a.btn.btn-small.btn-outline-secondary(href="/voucher/pnp") Upload PnP Vouchers
+        .row.row-cols-1.row-cols-sm-2.row-cols-md-3.g-3.mt-3
             .col
                 .card.shadow-sm
                     .card-header 

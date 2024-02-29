@@ -182,4 +182,29 @@ router.post("/assign", async (req, res) => {
     }
 })
 
+router.get("/pnp", async (req, res) => {
+    res.render("voucher/pnp", { title: "PnP Vouchers" });
+});
+
+router.post("/pnp", async (req, res) => {
+    const codes = req.body.codes.split("\n").map(code => code.trim());
+    // Make sure we only have valid codes - they should start with DM
+    const valid_codes = codes.filter(code => code.startsWith("DM"));
+    //Split into two arrays
+    const alength = Math.floor(valid_codes.length / 2);
+    const array_1 = valid_codes.slice(0, alength);
+    const array_2 = valid_codes.slice(alength, valid_codes.length);
+    const result = ["code"];
+    //Merge the codes using | as a join
+    for (let i = 0; i < alength; i++) {
+        result.push(array_1[i] + "|" + array_2[i]);
+    }
+    const formatted_codes = result.join("\n");
+    res.attachment("pnp_codes.csv");
+    res.send(formatted_codes);
+
+    // res.download(Buffer.from(formatted_codes), "pnp_codes.txt");
+    // res.render("voucher/pnp_results", { title: "PnP Vouchers", formatted_codes });
+})
+
 module.exports = router;
