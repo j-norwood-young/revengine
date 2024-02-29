@@ -7,6 +7,6 @@ WORKDIR /usr/src/app
 COPY . .
 RUN yarn install
 ENV HOST=0.0.0.0
-ENV PORT=4014
-EXPOSE 4014
-CMD node packages/frontend/bin/www
+ENV PORT=3014
+EXPOSE 3014
+CMD npm run dev:frontend
