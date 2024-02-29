@@ -51,7 +51,7 @@ class Cache {
      * @returns {Promise<any>} - A promise that resolves to the value associated with the key, or null if not found.
      */
     async get(key) {
-        console.log(`Gettign ${key}`);
+        console.log(`Getting ${key}`);
         const result = await redis_get(`${this.prefix}:${key}`);
         console.log(`Got result for ${key}`)
         if (result) return JSON.parse(result);
