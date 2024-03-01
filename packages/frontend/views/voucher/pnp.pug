@@ -2,11 +2,15 @@ extends ../layout
 
 block content
     .container
-        h2 Pick n Pay Voucher Upload
-        form(action="/voucher/pnp", method="post")
+        h2 Pick n Pay Voucher Conversion
+        p Upload a CSV file with the voucher codes to merge two vouchers in preparation for uploading to Sailthru.
+        form(action="/voucher/pnp" method="post" enctype="multipart/form-data")
             .form-group
                 label(for="codes") Voucher Codes
-                textarea#codes.form-control(name="codes", rows="20")
+                input(type="file" name="codes" class="form-control" id="codes" required)
             .form-group.mt-3
                 input.btn.btn-primary(type="submit", value="Submit")
+        p Upload to Sailthru 
+            a(href="https://my.sailthru.com/promotions#/") here
+            | .
                 

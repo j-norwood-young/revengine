@@ -71,6 +71,13 @@ const ReaderSchema = new JXPSchema({
     height: Number,
     width: Number,
 
+    // Location data
+    country: String,
+    region: String,
+    city: String,
+    latitude: Number,
+    longitude: Number,
+
     // Label Data
     label_data: Mixed,
 

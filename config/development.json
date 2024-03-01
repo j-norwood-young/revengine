@@ -35,7 +35,7 @@
         }
     },
     "content": {
-        "wordpress_api": "http://local.dailymaverick.com/wp-json/revengine/v1"
+        "wordpress_api": "https://internal.dailymaverick.co.za/wp-json/revengine/v1"
     },
     "elasticsearch": {
         "node": "http://10.0.1.5:9200",
@@ -45,7 +45,7 @@
         "sitename": "DM RevEngine",
         "secret": "VerySecret",
         "shared_secret": "SharedSecret",
-        "url": "http://admin.revengine.dailymaverick.co.za:3014/",
+        "url": "http://dev.revengine.dailymaverick.co.za:3014/",
         "port": 3014
     },
     "geoip": {
@@ -67,8 +67,8 @@
     "listeners": {
         "public_port": 3020,
         "protected_port": 3021,
-        "public_url": "http://listeners.revengine.dailymaverick.co.za:3020",
-        "protected_url": "http://listeners.revengine.dailymaverick.co.za:3021"
+        "public_url": "http://dev.revengine.dailymaverick.co.za:3020",
+        "protected_url": "http://dev.revengine.dailymaverick.co.za:3021"
     },
     "mailer": {
         "from": "Revengine <revengine@dailymaverick.co.za>",
