@@ -9,7 +9,7 @@ import { process_memberships } from "./interactions/membership";
 
 const program = new Command();
 program
-    .option('-d, --daemon', 'run as a daemon on a cron schedule')
+    .option('--daemon', 'run as a daemon on a cron schedule')
     .option('-c, --cron <cron>', 'override default cron schedule')
     .option('-d, --day <day>', 'calculate values for day')
     .option('-s, --start <day>', 'start date for historical calculation')
@@ -57,18 +57,22 @@ async function interactions(day: string | null = null) {
     }
     let run_all = options.all || !options.interactions;
     console.log(`Processing for ${mday.format("YYYY-MM-DD")}`);
+
     if (run_all || options.interactions === "sailthru") {
         console.log("Getting Sailthru blast interactions...");
         await process_sailthru_blast_interactions(mday);
         console.log("Getting ES interactions...");
     }
+
     if (run_all || options.interactions === "es") {
         await process_es_interactions(mday);
         console.log("Calculating count...");
     }
+
     if (run_all || options.interactions === "membership") {
         await process_memberships(mday);
     }
+
     await calculate_count(mday);
     console.timeEnd("interactions");
 }
