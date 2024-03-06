@@ -88,6 +88,14 @@ const ensure_index = async () => await esclient.ensure_index(index, {
     title: { type: "text" },
 });
 
+const get_ip = (req) => {
+    let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    if (ip.includes(",")) {
+        ip = ip.split(",")[0].trim();
+    }
+    return ip;
+}
+
 // Queue listeners
 
 // Enrichment
@@ -134,7 +142,7 @@ const handle_hit = async (data: EventTrackerMessage, req, res) => {
     const url = req.url;
     let cache_id = null;
     try {
-        data.user_ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || null;
+        data.user_ip = get_ip(req);
         data.user_agent = req.headers["user-agent"];
         data.test_id = data.test_id || null;
         const cookies = cookie.parse(req.headers.cookie || "");
