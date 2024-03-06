@@ -178,7 +178,9 @@ export async function process_memberships(mday: moment.Moment) {
                 monthly_value: 1,
                 date_paid: 1,
                 insider: 1,
-                wordpress_id: 1
+                wordpress_id: 1,
+                first_payment: 1,
+                last_payment: 1
             }
         },
         {
