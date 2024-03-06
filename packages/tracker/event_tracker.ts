@@ -17,13 +17,13 @@
 import { EventTrackerMessage } from "./event_tracker_types";
 import { KafkaConsumer, KafkaProducer } from "@revengine/common/kafka";
 import config from "config";
-import http from "http";
+import * as http from "http";
 import { enrich_tracker } from "./enrich_tracker";
 import { get_user_data } from "./user";
 import qs from "qs";
-import cookie from "cookie";
+import * as cookie from "cookie";
 import { createClient } from "redis";
-import myCrypto from "crypto";
+import * as myCrypto from "crypto";
 import esclient from "@revengine/common/esclient";
 
 // Constants

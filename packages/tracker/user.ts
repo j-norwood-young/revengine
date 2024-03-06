@@ -1,6 +1,6 @@
 import config from "config";
 import JXPHelper from "jxp-helper";
-import dotenv from "dotenv";
+import * as dotenv from "dotenv";
 dotenv.config();
 const jxphelper = new JXPHelper({
     server: config.api.server,

@@ -1,6 +1,6 @@
 import config from "config";
 import JXPHelper from "jxp-helper";
-import dotenv from "dotenv";
+import * as dotenv from "dotenv";
 import { get_post } from "@revengine/common/revengine_wordpress"
 dotenv.config();
 const jxphelper = new JXPHelper({

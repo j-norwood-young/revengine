@@ -1,6 +1,6 @@
 import config from 'config';
 import { Reader } from 'maxmind';
-import fs from 'fs';
+import * as fs from 'fs';
 
 const buffer = fs.readFileSync(config.geoip.mmdb);
 const geo = new Reader(buffer);
