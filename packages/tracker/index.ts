@@ -127,6 +127,14 @@ const send_to_kafka = async (data) => {
     });
 };
 
+const get_ip = (req) => {
+    let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    if (ip.includes(",")) {
+        ip = ip.split(",")[0].trim();
+    }
+    return ip;
+}
+
 const post_hit = async (req, res) => {
     let data = undefined;
     try {
@@ -165,7 +173,7 @@ const post_hit = async (req, res) => {
                     data.browser_id = data.browser_id || crypto.randomBytes(20).toString('hex');
                     headers["Set-Cookie"] = `${cookie_name}=${data.browser_id}`;
                 }
-                data.user_ip = data.user_ip || req.headers["x-forwarded-for"] || req.socket.remoteAddress || null;
+                data.user_ip = data.user_ip || get_ip(req);
                 res.writeHead(200, headers);
                 res.write(
                     JSON.stringify({
@@ -217,7 +225,7 @@ const get_hit = async (req, res) => {
     let data = undefined;
     try {
         data = parse_url(url);
-        data.user_ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || null;
+        data.user_ip = get_ip(req);
         data.user_agent = req.headers["user-agent"];
         const cookies = cookie.parse(req.headers.cookie || "");
         if (cookies[cookie_name]) {
