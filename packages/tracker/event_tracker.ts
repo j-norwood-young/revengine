@@ -48,9 +48,9 @@ const redis_password = process.env.REDIS_PASSWORD || config.redis.password || un
 // Setup
 const redis = createClient({ url: redis_url, password: redis_password });
 
-const queue_1 = new KafkaProducer({ kafka_server, topic: `${topic}-1`, partitions: kafka_partitions, replication_factor: kafka_replication_factor, debug: true });
+const queue_1 = new KafkaProducer({ kafka_server, topic: `${topic}-1`, partitions: kafka_partitions, replication_factor: kafka_replication_factor, debug: config.debug });
 const queue_2 = new KafkaProducer({ kafka_server, topic: `${topic}-2`, partitions: kafka_partitions, replication_factor: kafka_replication_factor });
-const queue_test = new KafkaProducer({ kafka_server, topic: `${topic}-test`, partitions: kafka_partitions, replication_factor: kafka_replication_factor, debug: true });
+const queue_test = new KafkaProducer({ kafka_server, topic: `${topic}-test`, partitions: kafka_partitions, replication_factor: kafka_replication_factor, debug: config.debug });
 
 const consumer_1 = new KafkaConsumer({ kafka_server, topic: `${topic}-1` });
 const consumer_2 = new KafkaConsumer({ kafka_server, topic: `${topic}-2` });
