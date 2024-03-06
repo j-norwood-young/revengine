@@ -93,6 +93,20 @@ class KafkaProducer {
             );
         });
     }
+
+    /**
+     * Closes the Kafka producer.
+     * @returns {Promise<any>} A promise that resolves when the producer is closed.
+     */
+    async close() {
+        return new Promise((resolve, reject) => {
+            this.producer.close((err, result) => {
+                if (err) return reject(err);
+                if (this.debug) console.log("Kafka producer closed");
+                return resolve(result);
+            })
+        })
+    }
 }
 
 /*
@@ -200,7 +214,7 @@ class KafkaConsumer extends EventEmitter {
      * @param {boolean} force - Whether to force close the consumer.
      * @returns {Promise<any>} A promise that resolves when the consumer is closed.
      */
-    async close(force) {
+    async close(force = false) {
         return new Promise((resolve, reject) => {
             this.consumer.close(force, (err, result) => {
                 if (err) return reject(err);
