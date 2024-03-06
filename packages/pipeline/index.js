@@ -99,7 +99,7 @@ const scheduler = () => {
     cron.schedule("0 * * * *", healthcheck)
 }
 
-server.get("/run/:pipeline_id", async (req, res, next) => {
+server.get("/run/:pipeline_id", async (req, res) => {
     try {
         const pipeline_id = req.params.pipeline_id;
         const result = await run_pipeline(pipeline_id);
