@@ -5,8 +5,13 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const redis = require("redis");
+const dotenv = require("dotenv");
+dotenv.config();
+
+const redis_url = process.env.REDIS_URL || config.redis.url;
+
 const client = redis.createClient({
-	url: config.redis.url
+	url: redis_url
 });
 
 const indexRouter = require('./routes/index');

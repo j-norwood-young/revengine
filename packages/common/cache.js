@@ -1,8 +1,13 @@
 const config = require("config");
 const Redis = require("redis")
 const { promisify } = require("util");
+const dotenv = require("dotenv");
+dotenv.config();
+
+const redis_url = process.env.REDIS_URL || config.redis.url;
+
 const redis = Redis.createClient({
-    url: config.redis.url
+    url: redis_url
 });
 const errs = require('restify-errors');
 const crypto = require("crypto");

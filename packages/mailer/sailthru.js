@@ -5,8 +5,13 @@ const apihelper = new Apihelper({ server: config.api.cluster_server, apikey: pro
 const sailthru_client = require("sailthru-client").createSailthruClient(process.env.SAILTHRU_KEY, process.env.SAILTHRU_SECRET);
 const wordpress_auth = require("@revengine/wordpress_auth");
 const Redis = require("redis");
+const dotenv = require("dotenv");
+dotenv.config();
+
+const redis_url = process.env.REDIS_URL || config.redis.url;
+
 const redis = Redis.createClient({
-    url: config.redis.url
+    url: redis_url
 });
 const errs = require('restify-errors');
 const Cache = require("@revengine/common/cache");
