@@ -60,7 +60,7 @@
         "propertyId": "249894695"
     },
     "kafka": {
-        "server": "localhost:9092",
+        "server": "kafka:9092",
         "partitions": 1,
         "replication_factor": 0
     },

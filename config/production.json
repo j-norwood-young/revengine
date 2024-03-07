@@ -58,7 +58,7 @@
         "projectId": "DMBigQuery"
     },
     "kafka": {
-        "server": "localhost:9092",
+        "server": "kafka:9092",
         "partitions": 1,
         "replication_factor": 0
     },
@@ -128,7 +128,7 @@
         "homepage": "https://www.dailymaverick.co.za",
         "front_page_admin": "https://www.dailymaverick.co.za/wp-admin/admin.php?page=featured-flagged-post",
         "port": 4019,
-        "local_server": "https://wordpress_api.revengine.dailymaverick.co.za",
+        "local_server": "https://wordpressapi.revengine.dailymaverick.co.za",
         "revengine_api": "https://www.dailymaverick.co.za/wp-json/revengine/v1"
     },
     "wp_auth": {
