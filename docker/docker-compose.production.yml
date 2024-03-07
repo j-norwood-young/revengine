@@ -1,4 +1,4 @@
-version: '3'
+version: '3.6'
 services:
   api:
     restart: unless-stopped
@@ -8,11 +8,33 @@ services:
       - ../.env-prod
     environment:
       - NODE_ENV=production
+      - PORT=4001
   frontend:
     ports:
       - 4014:4014
     env_file:
       - ../.env-dev
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - PORT=4014
+  tracker:
+    ports:
+      - 4003:8080
+    env_file:
+      - ../.env-dev
+    environment:
+      - NODE_ENV=production
+      - MMDB_FILE=/usr/lib/mmdb/dbip-city-lite-2024-02.mmdb
+  pipeline:
+    ports:
+      - 4018:8080
+    env_file:
+      - ../.env-prod
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+  consolidator:
+    env_file:
+      - ../.env-prod
+    environment:
+      - NODE_ENV=production

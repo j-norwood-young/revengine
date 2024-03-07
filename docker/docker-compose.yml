@@ -1,4 +1,4 @@
-version: '3'
+version: '3.6'
 services:
   api:
     build:
@@ -14,8 +14,43 @@ services:
     restart: unless-stopped
     stdin_open: true
     tty: true
-  redis:
-    image: redis:alpine
+  tracker:
+    build:
+      context: ../.
+      dockerfile: ./docker/tracker/Dockerfile
+    environment:
+      - KAFKA_SERVER=kafka1:9092
+      - REDIS_URL=redis://redis1:6379
     restart: unless-stopped
-    ports:
-      - "6379:6379"
+    stdin_open: true
+    tty: true
+    networks:
+      - kafka_network
+      - redis_network
+      - default
+  consolidator:
+    build:
+      context: ../.
+      dockerfile: ./docker/consolidator/Dockerfile
+    environment:
+      - KAFKA_SERVER=kafka1:9094
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    networks:
+      - kafka_network
+      - default
+  pipeline:
+    build:
+      context: ../.
+      dockerfile: ./docker/pipeline/Dockerfile
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+networks:
+  kafka_network:
+    name: kafka_external
+    external: true
+  redis_network:
+    name: redis_network
+    external: true
