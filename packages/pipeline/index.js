@@ -112,7 +112,7 @@ server.get("/run/:pipeline_id", async (req, res) => {
 });
 
 if (!options.standalone) {
-    server.listen(config.pipeline.port || 3018, function () {
+    server.listen(process.env.PORT || config.pipeline.port || 3018, function () {
         console.log('%s listening at %s', server.name, server.url);
     });
     scheduler();
