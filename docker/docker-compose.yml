@@ -52,6 +52,18 @@ services:
     restart: unless-stopped
     stdin_open: true
     tty: true
+  listeners:
+    build:
+      context: ../.
+      dockerfile: ./docker/listeners/Dockerfile
+    environment:
+      - REDIS_URL=redis://redis1:6379
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    networks:
+      - redis_network
+      - default
 networks:
   kafka_network:
     name: kafka_external
