@@ -1,0 +1,14 @@
+version: '3.6'
+services:
+ redis1:
+    image: redis:alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - redis_network
+networks:
+  redis_network:
+    name: redis_network
+    external: true
+      
