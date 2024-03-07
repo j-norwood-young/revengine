@@ -1,29 +1,33 @@
 import config from "config";
 import http from "http";
-import kafka from "kafka-node";
 import { parse_user_agent } from "./user_agent";
 import { geolocate_ip } from "./geolocate_ip";
 import { parse_referer } from "./referer";
 import { parse_utm } from "./utm";
 import { get_article_data } from "./article";
 import { get_user_data } from "./user";
+import { KafkaProducer } from "@revengine/common/kafka";
+
 import qs from "qs";
 import cookie from "cookie";
 import crypto from "crypto";
 import Redis from "redis";
+import dotenv from "dotenv";
+dotenv.config();
+
+const redis_url = process.env.REDIS_URL || config.redis.url;
 const redis = Redis.createClient({
-    url: config.redis.url,
+    url: redis_url
 });
 
 const name = process.env.TRACKER_NAME || config.name || "revengine";
 const port = process.env.PORT || config.tracker.port || 3012;
-const kafka_server = process.env.KAFKA_SERVER || config.kafka.server || "localhost:9092";
 const host = process.env.TRACKER_HOST || config.tracker.host || "127.0.0.1";
 const topic = process.env.TRACKER_KAFKA_TOPIC || config.tracker.kafka_topic || `${name}_events`;
-const kafka_partitions = process.env.KAFKA_PARTITIONS || config.kafka.partitions || 1;
-const kafka_replication_factor = process.env.KAFKA_REPLICATION_FACTOR || config.kafka.replication_factor || 1;
 const cookie_name = process.env.TRACKER_COOKIE_NAME || config.tracker.cookie_name || "revengine_browser_id"
 const allow_origin = process.env.TRACKER_ALLOWED_ORIGINS || config.tracker.allow_origin || "*";
+
+// console.log({ redis_url, kafka_server, host, topic, kafka_partitions, kafka_replication_factor, cookie_name, allow_origin });
 
 const headers = {
     "Content-Type": "text/html",
@@ -33,12 +37,15 @@ const headers = {
 };
 const index = process.env.INDEX || config.debug ? "pageviews_test" : "pageviews";
 
-const Producer = kafka.Producer;
-
-const client = new kafka.KafkaClient({
-    kafkaHost: kafka_server
-});
-const producer = new Producer(client);
+let producer = null;
+try {
+    while (!producer) {
+        producer = new KafkaProducer({ topic });
+        
+    }
+} catch (err) {
+    console.error(err.toString());
+}
 
 // Process for all hits
 // 1. Get hit
@@ -51,33 +58,6 @@ const producer = new Producer(client);
 // 7. Parse utm params
 // 8. Get post data
 // 9. Sent to kafka queue
-
-if (config.debug) {
-    console.log({
-        topic,
-        server: kafka_server,
-        partitions: kafka_partitions,
-        replicationFactor: kafka_replication_factor
-    });
-}
-// Ensure we have the topic created
-client.createTopics(
-    [
-        {
-            topic,
-            partitions: kafka_partitions,
-            replicationFactor: kafka_replication_factor,
-        },
-    ],
-    (err, result) => {
-        if (config.debug) console.log("createTopics", err, result);
-        if (err) {
-            console.error("Error creating topic");
-            console.error(err);
-            return process.exit(1);
-        }
-    }
-);
 
 const set_esdata = async (data) => {
     if (data.user_id === "0") {
