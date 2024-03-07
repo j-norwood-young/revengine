@@ -1,4 +1,4 @@
-import * as Bowser from "bowser";
+import Bowser from "bowser";
 
 export const parse_user_agent = function (user_agent) {
     const ua = Bowser.parse(user_agent);
