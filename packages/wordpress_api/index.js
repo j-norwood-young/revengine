@@ -6,6 +6,8 @@ const JXPHelper = require("jxp-helper");
 const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
 const apicache = require('apicache');
 const fetch = require("node-fetch");
+const dotenv = require("dotenv");
+dotenv.config();
 
 const server = restify.createServer();
 
@@ -55,7 +57,7 @@ const top_articles_report = async (params) => {
         }
         params = Object.assign(default_params, params);
         const top_articles = await report.run(params);
-        let articles = (await jxphelper.aggregate("article", [
+        const pipeline = [
             {
                 $match: {
                     post_id: { $in: top_articles.map(a => a.key) }
@@ -78,7 +80,9 @@ const top_articles_report = async (params) => {
                     img_full: 1
                 }
             }
-        ])).data;
+        ];
+        let articles = (await jxphelper.aggregate("article", pipeline)).data;
+        // console.log(JSON.stringify(pipeline));
         for (let article of articles) {
             article.hits = top_articles.find(hit => hit.key === article.post_id).doc_count;
             article.url = `https://www.dailymaverick.co.za/article/${article.date_published.substring(0, 10)}-${article.urlid}`;
@@ -217,11 +221,14 @@ server.get("/front_page", apicache.middleware("5 minutes"), async (req, res) => 
         const result = await fetch(`${config.wordpress.server}/wp-json/revengine/v1/featured`, {
             method: 'get',
             headers: {
-                'Authorization': `Bearer ${process.env.WORDPRESS_KEY}`,
+                'Authorization': `Bearer ${process.env.REVENGINE_WORDPRESS_KEY}`,
                 'Content-Type': 'application/json'
             }
         });
         const json_result = await result.json();
+        if (json_result.code === "rest_forbidden") {
+            throw "Wordpress REST API error - rest_forbidden"
+        }
         const articles = json_result.data;
         const report = new Reports.TopLastHour();
         for (let article of articles) {
@@ -339,6 +346,6 @@ server.post("/simulate/top_articles", async (req, res) => {
     }
 });
 
-server.listen(config.wordpress.port, () => {
+server.listen(process.env.PORT || config.wordpress.port, () => {
     console.log('%s listening at %s', server.name, server.url);
 });
