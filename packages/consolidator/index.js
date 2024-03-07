@@ -1,23 +1,18 @@
 const config = require("config");
-const kafka = require('kafka-node');
-const dotenv = require('dotenv');
-dotenv.config();
+const { KafkaConsumer } = require("@revengine/common/kafka");
 const esclient = require("@revengine/common/esclient");
 
-const kafkaOptions = {
-	kafkaHost: config.kafka.server,
-	groupId: config.kafka.group,
-	autoCommit: true,
-	autoCommitIntervalMs: 5000,
-	sessionTimeout: 15000,
- 	fetchMaxBytes: 10 * 1024 * 1024, // 10 MB
-	protocol: ['roundrobin'],
-	fromOffset: 'earliest',
-	outOfRangeOffset: 'earliest'
+let consumer;
+try {
+    consumer = new KafkaConsumer({
+        topic: config.tracker.kafka_topic,
+        group: config.kafka.group || "consolidator",
+        debug: config.debug
+    });
+} catch(err) {
+    console.error(err);
+    process.exit(1);
 }
-
-const kafkaConsumerGroup = kafka.ConsumerGroup;
-const consumer = new kafkaConsumerGroup(kafkaOptions, config.tracker.kafka_topic)
 
 var cache = [];
 var count = 0;
@@ -56,9 +51,9 @@ const flush = async () => {
     }
 }
 
-consumer.on('message', async (message) => {
+consumer.on('message', async (messages) => {
     try {
-        json = JSON.parse(message.value);
+        json = JSON.parse(messages[0].messages); // This isn't how this is meant to work
         if (config.debug) {
             console.log(JSON.stringify(json, null, "  "));
         }
