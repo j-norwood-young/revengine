@@ -45,13 +45,6 @@ services:
     networks:
       - kafka_network
       - default
-  pipeline:
-    build:
-      context: ../.
-      dockerfile: ./docker/pipeline/Dockerfile
-    restart: unless-stopped
-    stdin_open: true
-    tty: true
   listeners:
     build:
       context: ../.

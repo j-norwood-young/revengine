@@ -1,0 +1,16 @@
+version: '3.6'
+services:
+  pipeline:
+    build:
+      context: ../../.
+      dockerfile: ./docker/pipeline/Dockerfile
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    ports:
+      - 4018:8080
+    env_file:
+      - ../../.env-prod
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
