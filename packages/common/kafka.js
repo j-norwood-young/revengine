@@ -1,6 +1,9 @@
 const kafka = require('kafka-node');
 const config = require("config");
+const dotenv = require('dotenv');
+dotenv.config();
 
+const kafka_server = process.env.KAFKA_SERVER || config.kafka.server || "localhost:9092";
 /*
 KafkaProducer
 
@@ -14,19 +17,13 @@ try {
     console.error(err);
 }
 ```
-options:
-topic   No default  Required
-debug   false   Boolean
-server  config.kafka.server || "localhost:9092"
-partitions  config.kafka.partitions || 1
-replication_factor config.kafka.replication_factor || 1
 */
-
 
 class KafkaProducer {
     /**
      * Constructs a Kafka producer instance.
      * @param {Object} opts - The options for the Kafka producer.
+     * @param {string} opts.server - The Kafka server address. If not provided, it will use the default server address from the configuration.
      * @param {string} opts.topic - The topic to produce messages to.
      * @param {boolean} [opts.debug=false] - Whether to enable debug mode.
      * @param {string} [opts.server] - The Kafka server address. If not provided, it will use the default server address from the configuration.
@@ -37,7 +34,7 @@ class KafkaProducer {
         if (!opts.topic) throw "Topic required";
         this.debug = opts.debug || false;
         const Producer = kafka.Producer;
-        this.server = opts.server || config.kafka.server || "localhost:9092";
+        this.server = opts.server || kafka_server;
         const client = new kafka.KafkaClient({
             kafkaHost: this.server,
         });
@@ -119,7 +116,7 @@ consumer.on("message", message => console.log(`Message ${message} received`));
 Options:
 topic   No default  Required
 debug   false   Boolean
-server  config.kafka.server || "localhost:9092"
+server  process.env.KAFKA_SERVER || config.kafka.server || "localhost:9092"
 group   config.kafka.group
 */
 
@@ -129,20 +126,21 @@ class KafkaConsumer extends EventEmitter {
     /**
      * Creates a new instance of the Kafka consumer.
      * @param {Object} opts - The options for the Kafka consumer.
+     * @param {string} opts.server - The Kafka server address. If not provided, it will use the default server address from the configuration.
      * @param {string} opts.topic - The topic to consume messages from.
      * @param {boolean} [opts.debug=false] - Whether to enable debug mode.
-     * @param {string} [opts.server="localhost:9092"] - The Kafka server to connect to.
-     * @param {string} [opts.group] - The consumer group ID.
-     * @param {Object} [opts.options] - Additional options for the Kafka consumer.
+     * @param {string} opts.group - The consumer group ID.
+     * @param {Object} opts.options - Additional options for the Kafka consumer.
      * @throws {string} Throws an error if the topic is not provided.
      */
     constructor(opts) {
         try {
             super();
             if (!opts.topic) throw "Topic required";
+            if (!opts.group) throw "Group required";
             this.debug = opts.debug || false;
             const kafkaOptions = Object.assign({
-                kafkaHost: opts.server || config.kafka.server || "localhost:9092",
+                kafkaHost: opts.server || kafka_server,
                 groupId: opts.group || config.kafka.group,
                 autoCommit: true,
                 autoCommitIntervalMs: 5000,
@@ -152,6 +150,7 @@ class KafkaConsumer extends EventEmitter {
                 fromOffset: 'earliest',
                 outOfRangeOffset: 'earliest'
             }, opts.options);
+            if (this.debug) console.log(kafkaOptions);
             const kafkaConsumerGroup = kafka.ConsumerGroup;
             this.consumer = new kafkaConsumerGroup(kafkaOptions, opts.topic);
             this.consumer.on("message", this.onMessage.bind(this));
