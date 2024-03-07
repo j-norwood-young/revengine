@@ -1,6 +1,6 @@
 {
   "name": "@revengine/consolidator",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Consolidates RevEngine hits from Kafka to Elasticsearch",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,6 @@
   "author": "Jason Norwood-Young <jason@10layer.com>",
   "license": "MIT",
   "dependencies": {
-    "kafka-node": "^5.0.0",
     "@revengine/common": "^0.0.1"
   }
 }
