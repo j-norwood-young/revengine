@@ -11,9 +11,14 @@ services:
     build:
       context: ../.
       dockerfile: ./docker/frontend/Dockerfile
+    environment:
+      - REDIS_URL=redis://redis1:6379
     restart: unless-stopped
     stdin_open: true
     tty: true
+    networks:
+      - redis_network
+      - default
   tracker:
     build:
       context: ../.
