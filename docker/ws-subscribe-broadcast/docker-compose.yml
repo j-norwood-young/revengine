@@ -1,0 +1,8 @@
+version: '3.6'
+services:
+ wssb:
+    image: jasony/ws-subscribe-broadcast:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+      
