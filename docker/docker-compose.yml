@@ -38,12 +38,26 @@ services:
       context: ../.
       dockerfile: ./docker/consolidator/Dockerfile
     environment:
-      - KAFKA_SERVER=kafka1:9094
+      - KAFKA_SERVER=kafka1:9092
     restart: unless-stopped
     stdin_open: true
     tty: true
     networks:
       - kafka_network
+      - default
+  crossword_tracker:
+    build:
+      context: ../.
+      dockerfile: ./docker/crossword-tracker/Dockerfile
+    environment:
+      - KAFKA_SERVER=kafka1:9092
+      - REDIS_URL=redis://redis1:6379
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    networks:
+      - kafka_network
+      - redis_network
       - default
   listeners:
     build:

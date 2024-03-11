@@ -13,7 +13,7 @@ services:
     ports:
       - 4014:4014
     env_file:
-      - ../.env-dev
+      - ../.env-prod
     environment:
       - NODE_ENV=production
       - PORT=4014
@@ -21,7 +21,15 @@ services:
     ports:
       - 4003:8080
     env_file:
-      - ../.env-dev
+      - ../.env-prod
+    environment:
+      - NODE_ENV=production
+      - MMDB_FILE=/usr/lib/mmdb/dbip-city-lite-2024-02.mmdb
+  crossword_tracker:
+    ports:
+      - 4015:8080
+    env_file:
+      - ../.env-prod
     environment:
       - NODE_ENV=production
       - MMDB_FILE=/usr/lib/mmdb/dbip-city-lite-2024-02.mmdb
