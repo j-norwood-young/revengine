@@ -22,19 +22,19 @@ To run the services, you can use the following commands:
 
 ```bash
 # The core services:
-docker-compose redis/docker-compose.yml up -d
-docker-compose kafka/docker-compose.yml up -d
-docker-compose -f docker-compose.yml up -d
+docker compose -f docker/redis/docker-compose.yml up -d
+docker compose -f docker/kafka/docker-compose.yml up -d
+docker compose -f docker/docker-compose.yml up -d
 # Optional services:
-docker-compose pipeline/docker-compose.yml up -d # Only one instance of this should be running
-docker-compose ws-subscribe-broadcast/docker-compose.yml up -d # Only for FrontpageEngine
+docker compose -f docker/pipeline/docker-compose.yml up -d # Only one instance of this should be running
+docker compose -f docker/ws-subscribe-broadcast/docker-compose.yml up -d # Only for FrontpageEngine
 ```
 ## Updating a specific service
 
 To update a specific service, you can use the following commands:
 
 ```bash
-docker-compose -f docker-compose.yml up -d --no-deps --build <service-name>
+docker compose -f docker/docker-compose.yml up -d --no-deps --build <service-name>
 ```
 
 ## Services in RevEngine
