@@ -85,10 +85,11 @@ services:
       - redis_network
       - default
     ports:
-      - 4015:8080
+      - 4015:4015
     env_file:
       - ../.env-prod
     environment:
+      - PORT=4015
       - NODE_ENV=production
       - MMDB_FILE=/usr/lib/mmdb/dbip-city-lite-2024-02.mmdb
       - KAFKA_SERVER=kafka1:9092
