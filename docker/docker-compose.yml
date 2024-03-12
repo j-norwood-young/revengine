@@ -7,25 +7,37 @@ services:
     restart: unless-stopped
     stdin_open: true
     tty: true
+    ports:
+      - 4001:4001
+    env_file:
+      - ../.env-prod
+    environment:
+      - NODE_ENV=production
+      - PORT=4001
   frontend:
     build:
       context: ../.
       dockerfile: ./docker/frontend/Dockerfile
-    environment:
-      - REDIS_URL=redis://redis1:6379
     restart: unless-stopped
     stdin_open: true
     tty: true
     networks:
       - redis_network
       - default
+    ports:
+      - 4014:4014
+    env_file:
+      - ../.env-prod
+    environment:
+      - NODE_ENV=production
+      - PORT=4014
+      - REDIS_URL=redis://redis1:6379
+    depends_on:
+      - api
   tracker:
     build:
       context: ../.
       dockerfile: ./docker/tracker/Dockerfile
-    environment:
-      - KAFKA_SERVER=kafka1:9092
-      - REDIS_URL=redis://redis1:6379
     restart: unless-stopped
     stdin_open: true
     tty: true
@@ -33,25 +45,38 @@ services:
       - kafka_network
       - redis_network
       - default
+    ports:
+      - 4003:8080
+    env_file:
+      - ../.env-prod
+    environment:
+      - NODE_ENV=production
+      - MMDB_FILE=/usr/lib/mmdb/dbip-city-lite-2024-02.mmdb
+      - KAFKA_SERVER=kafka1:9092
+      - REDIS_URL=redis://redis1:6379
+    depends_on:
+      - api
   consolidator:
     build:
       context: ../.
       dockerfile: ./docker/consolidator/Dockerfile
-    environment:
-      - KAFKA_SERVER=kafka1:9092
     restart: unless-stopped
     stdin_open: true
     tty: true
     networks:
       - kafka_network
       - default
+    env_file:
+      - ../.env-prod
+    environment:
+      - NODE_ENV=production
+      - KAFKA_SERVER=kafka1:9092
+    depends_on:
+      - api
   crossword_tracker:
     build:
       context: ../.
       dockerfile: ./docker/crossword-tracker/Dockerfile
-    environment:
-      - KAFKA_SERVER=kafka1:9092
-      - REDIS_URL=redis://redis1:6379
     restart: unless-stopped
     stdin_open: true
     tty: true
@@ -59,22 +84,41 @@ services:
       - kafka_network
       - redis_network
       - default
+    ports:
+      - 4015:8080
+    env_file:
+      - ../.env-prod
+    environment:
+      - NODE_ENV=production
+      - MMDB_FILE=/usr/lib/mmdb/dbip-city-lite-2024-02.mmdb
+      - KAFKA_SERVER=kafka1:9092
+      - REDIS_URL=redis://redis1:6379
+    depends_on:
+      - api
   listeners:
     build:
       context: ../.
       dockerfile: ./docker/listeners/Dockerfile
     environment:
       - REDIS_URL=redis://redis1:6379
+      - NODE_ENV=production
     restart: unless-stopped
     stdin_open: true
     tty: true
     networks:
       - redis_network
       - default
+    env_file:
+      - ../.env-prod
+    ports:
+      - 4020:4020
+      - 4021:4021
+    depends_on:
+      - api
 networks:
   kafka_network:
-    name: kafka_external
+    name: kafka-external
     external: true
   redis_network:
-    name: redis_network
+    name: redis-external
     external: true

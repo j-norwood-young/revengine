@@ -9,6 +9,5 @@ services:
       - redis_network
 networks:
   redis_network:
-    name: redis_network
+    name: redis-external
     external: true
-      
