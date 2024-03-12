@@ -29,7 +29,6 @@ import esclient from "@revengine/common/esclient";
 // Constants
 const tracker_name = process.env.TRACKER_NAME || config.name || "revengine";
 const port = process.env.PORT || config.tracker.port || 3012;
-const kafka_server = process.env.KAFKA_SERVER || config.kafka.server || "localhost:9092";
 const host = process.env.TRACKER_HOST || config.tracker.host || "127.0.0.1";
 const topic = process.env.TRACKER_KAFKA_TOPIC || config.tracker.kafka_topic || `${tracker_name}_events`;
 const kafka_partitions = process.env.KAFKA_PARTITIONS || config.kafka.partitions || 1;
@@ -48,12 +47,12 @@ const redis_password = process.env.REDIS_PASSWORD || config.redis.password || un
 // Setup
 const redis = createClient({ url: redis_url, password: redis_password });
 
-const queue_1 = new KafkaProducer({ kafka_server, topic: `${topic}-1`, partitions: kafka_partitions, replication_factor: kafka_replication_factor, debug: config.debug });
-const queue_2 = new KafkaProducer({ kafka_server, topic: `${topic}-2`, partitions: kafka_partitions, replication_factor: kafka_replication_factor });
-const queue_test = new KafkaProducer({ kafka_server, topic: `${topic}-test`, partitions: kafka_partitions, replication_factor: kafka_replication_factor, debug: config.debug });
+const queue_1 = new KafkaProducer({ topic: `${topic}-1`, partitions: kafka_partitions, replication_factor: kafka_replication_factor, debug: config.debug });
+const queue_2 = new KafkaProducer({ topic: `${topic}-2`, partitions: kafka_partitions, replication_factor: kafka_replication_factor });
+const queue_test = new KafkaProducer({ topic: `${topic}-test`, partitions: kafka_partitions, replication_factor: kafka_replication_factor, debug: config.debug });
 
-const consumer_1 = new KafkaConsumer({ kafka_server, topic: `${topic}-1` });
-const consumer_2 = new KafkaConsumer({ kafka_server, topic: `${topic}-2` });
+const consumer_1 = new KafkaConsumer({ topic: `${topic}-1`, group: `${tracker_name}_group_1` });
+const consumer_2 = new KafkaConsumer({ topic: `${topic}-2`, group: `${tracker_name}_group_2` });
 
 // Check esclient index
 const ensure_index = async () => await esclient.ensure_index(index, {
@@ -122,6 +121,7 @@ consumer_2.on("message", async (message: EventTrackerMessage) => {
         };
         // console.log(data);
         const result = await esclient.index(data);
+        // console.log(result);
         if (config.debug) console.log(result);
     } catch (err) {
         console.error(err);

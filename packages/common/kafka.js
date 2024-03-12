@@ -52,7 +52,7 @@ class KafkaProducer {
             [
                 {
                     topic: this.topic,
-                    partitions: opts.partitions || config.kafka.partitions || 1,
+                    partitions: process.env.PARTITIONS || opts.partitions || config.kafka.partitions || 10,
                     replicationFactor: opts.replication_factor || config.kafka.replication_factor || 1,
                 },
             ],

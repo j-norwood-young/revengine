@@ -94,6 +94,7 @@ services:
       - MMDB_FILE=/usr/lib/mmdb/dbip-city-lite-2024-02.mmdb
       - KAFKA_SERVER=kafka1:9092
       - REDIS_URL=redis://redis1:6379
+      - TRACKER_HOST=0.0.0.0
     depends_on:
       - api
   listeners:
