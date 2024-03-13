@@ -11,6 +11,7 @@
   "author": "Jason Norwood-Young <jason@10layer.com>",
   "license": "MIT",
   "dependencies": {
-    "@revengine/common": "^0.0.1"
+    "@revengine/common": "^0.0.1",
+    "kafka-node": "^5.0.0"
   }
 }
