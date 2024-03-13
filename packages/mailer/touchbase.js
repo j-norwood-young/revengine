@@ -1,5 +1,4 @@
 const config = require("config");
-const fetch = require("node-fetch");
 const axios = require("axios");
 require("dotenv").config();
 const JXPHelper = require("jxp-helper");
