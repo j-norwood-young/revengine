@@ -17,7 +17,6 @@ const errs = require('restify-errors');
 const Cache = require("@revengine/common/cache");
 const cache = new Cache({ prefix: "sailthru", debug: true, ttl: 60*60 });
 const { fetch_csv } = require("@revengine/common/csv");
-const fetch = require("node-fetch");
 
 const USER_FIELDS = "email,segmentation_id,label_id,wordpress_id,display_name,first_name,last_name,cc_expiry_date,cc_last4_digits";
 
