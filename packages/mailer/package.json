@@ -10,11 +10,15 @@
   "author": "Jason Norwood-Young <jason@10layer.com>",
   "license": "MIT",
   "dependencies": {
-    "nodemailer": "^6.4.10",
+    "nodemailer": "^6.9.12",
     "pug": "3.0.2",
     "moment-timezone": "0.5.31",
     "apicache": "^1.6.3",
-    "sailthru-client": "^4.0.0"
+    "sailthru-client": "^4.0.0",
+    "commander": "^12.0.0",
+    "@revengine/reports": "0.0.1",
+    "node-cron": "^3.0.3",
+    "crypto": "^1.0.1"
   },
   "devDependencies": {
     "less":"^3.12.2",

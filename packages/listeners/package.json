@@ -12,11 +12,14 @@
     "license": "MIT",
     "dependencies": {
       "@revengine/common": "^0.0.1",
+      "@revengine/mailer": "^0.0.2",
       "node-fetch": "3.3.2",
       "restify":"^11.1.0",
       "restify-cors-middleware":"^1.1.1",
       "restify-plugins":"^1.6.0",
-      "restify-cors-middleware2": "^2.2.1"
-    }
+      "restify-cors-middleware2": "^2.2.1",
+      "jxp-helper": "^1.4.3"
+    },
+    "type": "module"
   }
   
