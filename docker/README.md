@@ -18,7 +18,7 @@ docker network create --attachable kafka-external
 
 ## Running the services
 
-To run the services, you can use the following commands:
+To run the services, you can use the following commands from the root of the repository:
 
 ```bash
 # The core services:
@@ -46,3 +46,4 @@ The following services are part of RevEngine:
 - `consolidator` - Consolidates hits and sends to ElasticSearch
 - `crossword_tracker` - Tracks crossword hits
 - `listeners` - Public and private endpoints for RevEngine
+- `wordpress_api` - API endpoints that get fired from Wordpress
