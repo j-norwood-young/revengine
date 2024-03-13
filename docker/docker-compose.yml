@@ -122,6 +122,26 @@ services:
       - 4021:4021
     depends_on:
       - api
+  wordpress_api:
+    build:
+      context: ../.
+      dockerfile: ./docker/wordpress-api/Dockerfile
+    environment:
+      # - REDIS_URL=redis://redis1:6379
+      - NODE_ENV=production
+      - PORT=4030
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    networks:
+      # - redis_network
+      - default
+    env_file:
+      - ../.env-prod
+    ports:
+      - 4030:4030
+    depends_on:
+      - api
 networks:
   kafka_network:
     name: kafka-external
