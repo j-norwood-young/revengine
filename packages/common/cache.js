@@ -36,6 +36,7 @@ const redis_expire = promisify(redis.expire).bind(redis);
  * Cache class for managing data caching using Redis.
  */
 class Cache {
+    connected = false;
     /**
      * Create a new instance of the Cache class.
      * @param {Object} opts - Options for configuring the cache.
@@ -50,12 +51,28 @@ class Cache {
         this.redis = redis;
     }
 
+    async init() {
+        await new Promise((resolve, reject) => {
+            this.redis.on("ready", () => {
+                console.log("Redis ready");
+                this.connected = true;
+                resolve();
+            });
+            this.redis.on("error", (err) => {
+                console.error("Redis error", err);
+                this.connected = false;
+                reject(err);
+            });
+        });
+    }
+
     /**
      * Get the value associated with the specified key from the cache.
      * @param {string} key - The key to retrieve the value for.
      * @returns {Promise<any>} - A promise that resolves to the value associated with the key, or null if not found.
      */
     async get(key) {
+        if (!this.connected) await this.init();
         console.log(`Getting ${key}`);
         const result = await redis_get(`${this.prefix}:${key}`);
         console.log(`Got result for ${key}`)
@@ -71,6 +88,7 @@ class Cache {
      * @returns {Promise<void>} - A promise that resolves when the value is set in the cache.
      */
     async set(key, value, ttl) {
+        if (!this.connected) await this.init();
         ttl = ttl || this.ttl;
         const json_value = JSON.stringify(value);
         console.log(`Setting ${key} to ${json_value.length}`)
@@ -82,8 +100,9 @@ class Cache {
      * @param {string} key - The key to delete the value for.
      * @returns {Promise<void>} - A promise that resolves when the value is deleted from the cache.
      */
-    del(key) {
-        return redis_del(`${this.prefix}:${key}`);
+    async del(key) {
+        if (!this.connected) await this.init();
+        return await redis_del(`${this.prefix}:${key}`);
     }
 
     /**
@@ -91,8 +110,9 @@ class Cache {
      * @param {string} search - The pattern to match keys against. Default is "*".
      * @returns {Promise<string[]>} - A promise that resolves to an array of keys.
      */
-    keys(search = "*") {
-        return redis_keys(`${this.prefix}:${search}`);
+    async keys(search = "*") {
+        if (!this.connected) await this.init();
+        return await redis_keys(`${this.prefix}:${search}`);
     }
 
     /**
@@ -110,8 +130,9 @@ class Cache {
      * @param {number} ttl - The time-to-live in seconds.
      * @returns {Promise<void>} - A promise that resolves when the time-to-live is set for the key.
      */
-    expire(key, ttl) {
-        return redis_expire(`${this.prefix}:${key}`, ttl);
+    async expire(key, ttl) {
+        if (!this.connected) await this.init();
+        return await redis_expire(`${this.prefix}:${key}`, ttl);
     }
 
     /**
@@ -121,6 +142,7 @@ class Cache {
      * @returns {boolean} - Returns true if the response was served from cache, false otherwise.
      */
     async restify_cache_middleware(req, res, next) {
+        if (!this.connected) await this.init();
         try {
             // If GET request, check cache
             if (req.method != "GET") return false;
