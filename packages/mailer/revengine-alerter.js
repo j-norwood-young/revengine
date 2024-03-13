@@ -1,14 +1,12 @@
 const config = require("config");
-require("dotenv").config();
-const path = require("path");
-const http = require("http");
 const fetch = require("node-fetch");
 const JXPHelper = require("jxp-helper");
-const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
 const moment = require("moment-timezone");
 const Reports = require("@revengine/reports");
-const numberFormat = new Intl.NumberFormat(config.locale || "en-GB");
 const program = require('commander');
+
+const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
+require("dotenv").config();
 
 moment.tz.setDefault(config.timezone || "UTC");
 
