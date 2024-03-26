@@ -13,6 +13,7 @@ COPY packages/article_ml/package.json ./packages/article_ml/
 COPY packages/frontend/package.json ./packages/frontend/
 RUN yarn install
 COPY . .
+RUN cd packages/frontend && yarn build
 ENV HOST=0.0.0.0
 ENV PORT=4014
 EXPOSE 4014
