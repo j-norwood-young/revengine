@@ -9,6 +9,7 @@ services:
       - 22181:2181
     networks:
       - default
+    restart: always
   kafka1:
     image: confluentinc/cp-kafka:7.4.4
     hostname: kafka1
@@ -26,6 +27,7 @@ services:
     networks:
       - external
       - default
+    restart: always
 networks:
   external:
     name: kafka-external
