@@ -2,8 +2,10 @@ doctype html
 html
     head
         title= title
-        link(rel='stylesheet', href='/assets/main.style.css')
-        script(src="/assets/main.bundle.js")
+        if (dev)
+            link(rel='stylesheet' href='/assets/revengine.css')
+        else 
+            link(rel='stylesheet' href='/assets/revengine.min.css')
     body
         .container
             h1= sitename
