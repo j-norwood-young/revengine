@@ -534,7 +534,7 @@ async function queue() {
         $dateSubtract: {
             startDate: "$$NOW",
             unit: "day",
-            amount: 2
+            amount: 6
         }
     }
     const match = { 
