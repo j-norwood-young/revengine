@@ -564,15 +564,58 @@ async function queue() {
                     ]
                 }
             },
-            // { 
-            //     "$expr": {
-            //         "$gte": [
-            //             "$updatedAt",
-            //             start_date
-            //         ]
-            //     }
-            // }
         ]
+    };
+    const query = [
+        { $match: match },
+        { 
+            $project: {
+                _id: 1,
+                email: 1,
+                label_id: 1,
+                segmentation_id: 1,
+                first_name: 1,
+                last_name: 1,
+                cc_expiry_date: 1,
+                cc_last4_digits: 1,
+                wordpress_id: 1,
+                segment_update: 1,
+                label_update: 1,
+            }
+        }
+    ];
+    const result = await apihelper.aggregate("reader", query);
+    const per_page = 10000;
+    const pages = Math.ceil(result.data.length / per_page);
+    const job_results = [];
+    console.log(`Queueing ${pages} jobs`);
+    for (let page = 0; page < pages; page++) {
+        const readers = result.data.slice(page * per_page, (page + 1) * per_page);
+        cache.set(`${uid}-${page}`, readers, 60 * 60);
+        const url = `${config.listeners.protected_url}/sailthru/push/${uid}/${page}?apikey=${process.env.SAILTHRU_REVENGINE_APIKEY}`
+        const job = await run_job(url);
+        const job_id = job.job_id;
+        const job_result = await await_job_result(job_id, `${uid}-${page}`);
+        job_results.push(job_result);
+    }
+    return job_results;
+}
+
+/**
+ * Syncs all readers with Sailthru through a number of jobs. Waits for the results, checks for errors, and adds the errors along with the offending reader to the results.
+ * @returns {Promise<Array>} An array of job results.
+ */
+async function full_queue() {
+    const uid = `sailthru-${new Date().getTime()}`;
+    const start_date = {
+        $dateSubtract: {
+            startDate: "$$NOW",
+            unit: "day",
+            amount: 6
+        }
+    }
+    const match = { 
+        "wordpress_id": { $exists: true }
     };
     const query = [
         { $match: match },
@@ -679,6 +722,22 @@ async function serve_queue(req, res) {
     }
 }
 
+/**
+ * Serves the full queue of jobs.
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} - A promise that resolves when the queue is served.
+ */
+async function serve_full_queue(req, res) {
+    try {
+        const jobs = await full_queue();
+        res.send(jobs);
+    } catch (err) {
+        console.error(err);
+        res.send(new errs.InternalServerError(err));
+    }
+}
+
 
 /**
  * Retrieves templates from Sailthru.
@@ -726,6 +785,7 @@ exports.unsubscribe_email_from_list = unsubscribe_email_from_list;
 exports.serve_job_status = serve_job_status;
 exports.serve_push = serve_push;
 exports.serve_queue = serve_queue;
+exports.serve_full_queue = serve_full_queue;
 exports.sync_user_by_email = sync_user_by_email;
 exports.sync_user_by_wordpress_id = sync_user_by_wordpress_id;
 exports.get_templates = get_templates;

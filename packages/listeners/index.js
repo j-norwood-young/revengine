@@ -293,9 +293,10 @@ protected_server.get("/report/users_by_segment", async (req, res) => {
     }
 });
 
+protected_server.get("/sailthru/queue", sailthru.serve_queue);
+protected_server.get("/sailthru/full_queue", sailthru.serve_full_queue);
 protected_server.get("/sailthru/job_status/:job_id", sailthru.serve_job_status);
 protected_server.get("/sailthru/push/:uid/:page", sailthru.serve_push);
-protected_server.get("/sailthru/queue", sailthru.serve_queue);
 protected_server.post("/sailthru/subscribe_email_to_list", async (req, res) => {
     try {
         const email = req.body.email;
