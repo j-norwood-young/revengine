@@ -297,6 +297,7 @@ async function get_users_in_list(list_id) {
         });
     });
     const job_id = job.job_id;
+    console.log(`Preparing job ${job_id}`)
     const job_result = await await_job_result(job_id);
     const url = job_result.export_url;
     const data = await fetch_csv(url);
@@ -690,7 +691,7 @@ async function get_error_report(url, uid_page) {
  */
 async function await_job_result(job_id, uid_page = null) {
     let job = await get_job_status(job_id);
-    const max_tries = 60;
+    const max_tries = 120;
     let tries = 0;
     while (job.status === "pending" && tries < max_tries) {
         await new Promise(resolve => setTimeout(resolve, 10000));
