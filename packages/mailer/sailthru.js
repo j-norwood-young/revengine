@@ -476,8 +476,13 @@ async function serve_push(req, res) {
         await load_cache();
         const result = [];
         for (let reader of readers) {
-            const record = await map_reader_to_sailthru(reader);
-            result.push(record);
+            try {
+                const record = await map_reader_to_sailthru(reader);
+                result.push(record);
+            } catch (err) {
+                console.error(`Error processing reader ${reader.email}`)
+                console.error(err);
+            }
             // await log_file.write(`${reader.email}\n`);
         }
         console.log(`Generate Sailthru user list for page ${page}. ${result.length} records.`)
