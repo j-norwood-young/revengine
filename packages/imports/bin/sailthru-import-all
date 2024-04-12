@@ -11,7 +11,7 @@
 # profile - sailthru_profile | id
 
 # Vars
-DIR=/root/dm-sailthru-data-explorer
+DIR=/data/dm-sailthru-data-explorer
 SID=9943
 DB=revengine-prod
 # Calculate running time
@@ -69,5 +69,5 @@ done
 
 # Calculate running time
 end=$(date +%s.%N)
-runtime=$(python -c "print(${end} - ${start})")
+runtime=$(echo "$end - $start" | awk '{printf "%.2f", $1}')
 echo "Runtime was $runtime"
