@@ -1,0 +1,15 @@
+{
+    "name": "@revengine/cron",
+    "version": "0.0.1",
+    "description": "Run Cron jobs for RevEngine",
+    "main": "index.js",
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "Jason Norwood-Young <jason@10layer.com>",
+    "license": "MIT",
+    "dependencies": {
+        "node-cron": "^3.0.3"
+    }
+  }
+  

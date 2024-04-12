@@ -1,0 +1,2 @@
+# m h  dom mon dow   command
+6 1 * * * /usr/src/app/packages/imports/bin/sailthru-s3-sync && /usr/src/app/packages/imports/bin/sailthru-import-yesterday

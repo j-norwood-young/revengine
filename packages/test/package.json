@@ -1,0 +1,32 @@
+{
+  "name": "@revengine/test",
+  "version": "0.0.1",
+  "description": "RevEngine tests",
+  "main": "index.ts",
+  "scripts": {
+    "start": "tsx index.ts",
+    "test": "echo \"Ironically, no tests\" && exit 1",
+    "dev": "env NODE_ENV=development nodemon index.ts"
+  },
+  "author": "Jason Norwood-Young <jason@10layer.com>",
+  "license": "MIT",
+  "dependencies": {
+    "bowser": "^2.11.0",
+    "maxmind": "^4.3.18",
+    "@revengine/common": "^0.0.1",
+    "kafka-node": "^5.0.0",
+    "utm-extractor": "^1.0.5",
+    "qs": "^6.11.2",
+    "referer-parser": "^0.0.3",
+    "cookie": "^0.6.0",
+    "redis": "^4.6.12",
+    "supertest": "^6.3.4",
+    "tsx": "^4.7.1",
+    "node-fetch": "^3.3.2",
+    "moment": "^2.30.1"
+  },
+  "devDependencies": {
+    "@types/supertest": "^6.0.2"
+  },
+  "type": "module"
+}

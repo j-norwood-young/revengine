@@ -1,0 +1,16 @@
+version: '3.6'
+services:
+  crontab:
+    build: 
+      context: ../../.
+      dockerfile: docker/crontab/Dockerfile
+    volumes:
+      - ./data:/data
+      - ./cron.d:/usr/src/app/packages/cron/cron.d
+    env_file:
+      - ../../.env-prod
+    extra_hosts:
+      - "rfvengine1:10.0.1.3"
+      - "rfvengine2:10.0.1.4"
+      - "rfvengine3:10.0.1.5"
+      - "rfvengine4:10.0.1.6"
