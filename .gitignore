@@ -15,3 +15,4 @@ packages/reports/node_modules/*
 packages/*/node_modules/*
 packages/frontend/public/assets/*
 dist/*
+docker/crontab/data/*
