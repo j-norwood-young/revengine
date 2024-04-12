@@ -11,7 +11,7 @@
 # profile - sailthru_profile | id
 
 # Vars
-DIR=/root/dm-sailthru-data-explorer
+DIR=/data/dm-sailthru-data-explorer
 SID=9943
 CURRENT_DATE=$(date -d "yesterday 13:00" '+%Y%m%d')
 DB=revengine-prod
@@ -114,7 +114,7 @@ mongosh --host=${HOSTS} --eval 'db.sailthru_profile.updateMany({ create_date: { 
 
 # Calculate running time
 end=$(date +%s.%N)
-runtime=$(python -c "print(${end} - ${start})")
+runtime=$(awk "BEGIN {print $end - $start}")
 echo "Runtime was $runtime"
 
 # Aggregate count by day
