@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# Get yesterday's date in the format YYYYMMDD
+# start_date=$(date -d "2024-03-26 13:00" '+%Y%m%d')
+# end_date=$(date -d "yesterday 13:00" '+%Y%m%d')
+# dates=($(date -d "2024-03-27 13:00" '+%Y%m%d') $(date -d "2024-03-28 13:00" '+%Y%m%d') $(date -d "2024-03-29 13:00" '+%Y%m%d') $(date -d "2024-03-30 13:00" '+%Y%m%d') $(date -d "2024-03-31 13:00" '+%Y%m%d') $(date -d "2024-04-01 13:00" '+%Y%m%d') $(date -d "2024-04-02 13:00" '+%Y%m%d'))
+# current_date=$(date -d "yesterday 13:00" '+%Y%m%d')
+
+# Get start and end dates from the command line arguments
+start_date=$1
+end_date=$2
+
+# Get the list of dates between the start and end dates
+dates=()
+current_date=$start_date
+while [[ $current_date -le $end_date ]]
+do
+    dates+=($current_date)
+    current_date=$(date -d "$current_date + 1 day" '+%Y%m%d')
+done
+
+
+# types
+types="blast message_blast message_blast_updates message_transactional message_transactional_updates profile"
+
+# Create the directory if it doesn't exist
+mkdir -p /data/dm-sailthru-data-explorer
+
+# Get the data from S3
+for type in $types
+do
+    for current_date in ${dates[@]}
+    do
+        echo "Downloading $type.${current_date}.json.gz from S3..."
+        aws s3 cp s3://dm-sailthru-data-explorer/9943_${type}.${current_date}.json.gz /data/dm-sailthru-data-explorer/.
+    done
+done
+
+cd /data/dm-sailthru-data-explorer
+gunzip -f *.gz
