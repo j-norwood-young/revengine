@@ -119,12 +119,12 @@ echo "Runtime was $runtime"
 
 # Aggregate count by day
 mongosh --host=${HOSTS} --eval 'var d = new Date();
-d.setDate(d.getDate()-7);
+d.setDate(d.getDate()-60);
 db.sailthru_message_blast.aggregate([
     { 
-        $match: { send_time: { $gte: d}} 
+        $match: { open_time: { $gte: d}} 
     }, { 
-        $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$send_time" } }, count: { $sum: 1 } } 
+        $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$open_time" } }, count: { $sum: 1 } } 
     }, {
         $sort: { _id: 1 }
     } 

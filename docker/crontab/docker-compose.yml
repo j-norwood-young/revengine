@@ -16,6 +16,7 @@ services:
       - "rfvengine4:10.0.1.6"
     environment:
       - NODE_ENV=production
+      - API_SERVER=http://api:4001
   api:
     build:
       context: ../../.
