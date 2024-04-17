@@ -408,6 +408,7 @@ async function map_reader_to_sailthru(reader, use_cache = true) {
     }
     if (reader.first_name) vars["first_name"] = reader.first_name;
     if (reader.last_name) vars["last_name"] = reader.last_name;
+    if (reader.display_name) vars["full_name"] = reader.display_name;
     if (reader.cc_expiry_date && reader.cc_last4_digits) {
         vars["cc_expiry_date"] = new Date(reader.cc_expiry_date).toISOString().slice(0, 10);
         vars["cc_last4_digits"] = reader.cc_last4_digits;
