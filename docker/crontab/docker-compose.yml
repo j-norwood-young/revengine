@@ -14,3 +14,22 @@ services:
       - "rfvengine2:10.0.1.4"
       - "rfvengine3:10.0.1.5"
       - "rfvengine4:10.0.1.6"
+    environment:
+      - NODE_ENV=production
+  api:
+    build:
+      context: ../../.
+      dockerfile: ./docker/api/Dockerfile
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    env_file:
+      - ../../.env-prod
+    environment:
+      - NODE_ENV=production
+      - PORT=4001
+    extra_hosts:
+      - "rfvengine1:10.0.1.3"
+      - "rfvengine2:10.0.1.4"
+      - "rfvengine3:10.0.1.5"
+      - "rfvengine4:10.0.1.6"
