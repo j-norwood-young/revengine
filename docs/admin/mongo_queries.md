@@ -132,6 +132,28 @@ db.missing_readers.find().forEach(function(doc) {
 });
 ```
 
+## Count number of individual customers with on-hold subscriptions
+```javascript
+db.woocommerce_subscriptions.aggregate([
+    {
+        $match: {
+            "status": "active"
+        }
+    },
+    {
+        $group: {
+            _id: "$customer_id",
+            total: {
+                $sum: 1
+            }
+        }
+    },
+    {
+        $count: "total"
+    }
+])
+```
+
 ### Fix dates in sailthru_message_blast
 
 ```javascript
