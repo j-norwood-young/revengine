@@ -177,12 +177,41 @@ db.sailthru_message_blast.find({ _processed: { $ne: true } }).count();
 
 ```javascript
 var d = new Date();
-d.setDate(d.getDate()-7);
+d.setDate(d.getDate()-30);
 db.sailthru_message_blast.aggregate([
     { 
         $match: { open_time: { $gte: d}} 
     }, { 
         $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$open_time" } }, count: { $sum: 1 } } 
+    }, {
+        $sort: { _id: 1 }
+    } 
+])
+```
+
+## Check the interactions for each day
+```javascript
+var d = new Date();
+d.setDate(d.getDate()-30);
+db.interactions.aggregate([
+    { 
+        $match: { day: { $gte: d}} 
+    }, { 
+        $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$day" } }, count: { $sum: 1 } } 
+    }, {
+        $sort: { _id: 1 }
+    } 
+])
+```
+
+```javascript
+var d = new Date();
+d.setDate(d.getDate()-30);
+db.interactions.aggregate([
+    { 
+        $match: { day: { $gte: d}} 
+    }, { 
+        $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$day" } }, count: { $sum: 1 } } 
     }, {
         $sort: { _id: 1 }
     } 
