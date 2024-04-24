@@ -124,7 +124,10 @@ async function sync_user_by_email(email) {
         const record = await map_reader_to_sailthru(reader, false);
         return new Promise((resolve, reject) => {
             sailthru_client.apiPost("user", record, (err, response) => {
-                if (err) return reject(err);
+                if (err) {
+                    console.error(err);
+                    return reject(err.errormsg || err);
+                }
                 resolve(response);
             });
         });
@@ -147,7 +150,10 @@ async function sync_user_by_wordpress_id(wordpress_id) {
         const record = await map_reader_to_sailthru(reader, false);
         return new Promise((resolve, reject) => {
             sailthru_client.apiPost("user", record, (err, response) => {
-                if (err) return reject(err);
+                if (err) {
+                    console.error(err);
+                    return reject(err.errormsg || err);
+                }
                 resolve(response);
             });
         });
@@ -571,6 +577,14 @@ async function queue() {
                     ]
                 }
             },
+            {
+                "$expr": {
+                    "$eq": [
+                        "$label_id",
+                        "661fdcfaa6d5931ebe671929"
+                    ]
+                }
+            }
         ]
     };
     const query = [
@@ -592,7 +606,7 @@ async function queue() {
         }
     ];
     const result = await apihelper.aggregate("reader", query);
-    const per_page = 10000;
+    const per_page = 5000;
     const pages = Math.ceil(result.data.length / per_page);
     const job_results = [];
     console.log(`Queueing ${pages} jobs`);
