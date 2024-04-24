@@ -8,9 +8,6 @@ const public_server = restify.createServer({
 const protected_server = require("@revengine/http_server");
 protected_server.use(restify.plugins.bodyParser());
 const Reports = require("@revengine/reports");
-const Cache = require("@revengine/common/cache");
-
-const hour_cache = new Cache({ ttl: 60 * 60 });
 
 const cors = corsMiddleware({
     origins: ['*'],
