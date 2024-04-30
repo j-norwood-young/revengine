@@ -571,6 +571,9 @@ async function queue() {
                     ]
                 }
             },
+            {
+                "paying_customer": true,
+            }
         ]
     };
     const query = [
