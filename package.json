@@ -16,7 +16,7 @@
     "prod:pipeline": "env NODE_ENV=production node packages/pipeline",
     "prod:wordpress_api": "env NODE_ENV=production node packages/wordpress_api",
     "prod:mailer": "env NODE_ENV=production node packages/mailer",
-    "prod-fork:listeners": "env NODE_ENV=production node packages/listeners",
+    "prod-fork:listeners": "env NODE_ENV=production nodemon --watch packages/mailer --watch packages/listeners packages/listeners",
     "prod-track:crosswords": "env NODE_ENV=production env TRACKER_NAME=crosswords TRACKER_KAFKA_TOPIC=crosswords INDEX=crosswords tsx watch -- packages/tracker/event_tracker.ts",
     "prod-track:hits": "env NODE_ENV=production env TRACKER_NAME=hits TRACKER_KAFKA_TOPIC=hits INDEX=pageviews tsx watch -- packages/tracker/event_tracker.ts",
     "dev-track:consolidator": "env NODE_ENV=development nodemon packages/consolidator",
