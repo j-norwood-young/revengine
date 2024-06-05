@@ -19,17 +19,8 @@ const cache = new Cache({ prefix: "sailthru", debug: true, ttl: 60*60 });
 const { fetch_csv } = require("@revengine/common/csv");
 
 const USER_FIELDS = "email,segmentation_id,label_id,wordpress_id,display_name,first_name,last_name,cc_expiry_date,cc_last4_digits";
-
+const SUBSCRIPTIONS_CACHE_KEY = "sailthru_subscriptions_cache";
 let cache_loaded = false;
-
-/**
- * Invalidates the cache for sailthru subscriptions.
- * @returns {Promise<void>} A promise that resolves when the cache is invalidated.
- */
-async function invalidate_cache() {
-    const subscriptions_cache_key = "sailthru_subscriptions_cache";
-    await redis.del(subscriptions_cache_key);
-}
 
 /**
  * Loads the cache for segments, labels, and subscriptions.
@@ -44,15 +35,14 @@ async function load_cache() {
 
 async function get_subscriptions() {
     // Check if we have a redis cache for subscriptions. If not, load it from the API and cache it for 1 hour.
-    const subscriptions_cache_key = "sailthru_subscriptions_cache";
     const subscriptions_cache_ttl = 60 * 60;
-    let subscriptions = await cache.get(subscriptions_cache_key);
+    let subscriptions = await cache.get(SUBSCRIPTIONS_CACHE_KEY);
     if (!subscriptions) {
         console.log("Subscriptions Cache Miss");
         subscriptions = (await apihelper.get("woocommerce_subscription", {
             "fields": "customer_id,billing_period,payment_method,status,total,utm_campaign,utm_medium,utm_source,meta_data,date_created,date_modified"
         })).data;
-        await cache.set(subscriptions_cache_key, subscriptions, subscriptions_cache_ttl);
+        await cache.set(SUBSCRIPTIONS_CACHE_KEY, subscriptions, subscriptions_cache_ttl);
     }
     return subscriptions;
 }
@@ -62,16 +52,16 @@ async function get_subscriptions() {
  * The cache is preheated every 30 minutes by calling load_cache function.
  * @returns {Promise<void>} A promise that resolves when the cache is preheated.
  */
-async function preheat_cache() {
-    await cache.del("sailthru_subscriptions_cache");
+async function keep_cache_fresh() {
+    await cache.del(SUBSCRIPTIONS_CACHE_KEY);
     await load_cache();
-    // Preheat the cache every 30 minutes
-    setInterval(async () => {
-        await load_cache();
-    }, 1000 * 60 * 30);
 }
 
-preheat_cache();
+keep_cache_fresh();
+
+setInterval(async () => {
+    await keep_cache_fresh();
+}, 1000 * 60 * 60); // 60 minutes
 
 /**
  * Retrieves a list of mailing lists from Sailthru.
