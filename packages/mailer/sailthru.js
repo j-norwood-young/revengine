@@ -19,17 +19,8 @@ const cache = new Cache({ prefix: "sailthru", debug: true, ttl: 60*60 });
 const { fetch_csv } = require("@revengine/common/csv");
 
 const USER_FIELDS = "email,segmentation_id,label_id,wordpress_id,display_name,first_name,last_name,cc_expiry_date,cc_last4_digits";
-
+const SUBSCRIPTIONS_CACHE_KEY = "sailthru_subscriptions_cache";
 let cache_loaded = false;
-
-/**
- * Invalidates the cache for sailthru subscriptions.
- * @returns {Promise<void>} A promise that resolves when the cache is invalidated.
- */
-async function invalidate_cache() {
-    const subscriptions_cache_key = "sailthru_subscriptions_cache";
-    await redis.del(subscriptions_cache_key);
-}
 
 /**
  * Loads the cache for segments, labels, and subscriptions.
@@ -38,18 +29,22 @@ async function invalidate_cache() {
 async function load_cache() {
     segments_cache = (await apihelper.get("segmentation")).data;
     labels_cache = (await apihelper.get("label")).data;
+    subscriptions_cache = await get_subscriptions();
+    cache_loaded = true;
+}
+
+async function get_subscriptions() {
     // Check if we have a redis cache for subscriptions. If not, load it from the API and cache it for 1 hour.
-    const subscriptions_cache_key = "sailthru_subscriptions_cache";
     const subscriptions_cache_ttl = 60 * 60;
-    subscriptions_cache = await cache.get(subscriptions_cache_key);
-    if (!subscriptions_cache) {
-        subscriptions_cache = (await apihelper.get("woocommerce_subscription", {
+    let subscriptions = await cache.get(SUBSCRIPTIONS_CACHE_KEY);
+    if (!subscriptions) {
+        console.log("Subscriptions Cache Miss");
+        subscriptions = (await apihelper.get("woocommerce_subscription", {
             "fields": "customer_id,billing_period,payment_method,status,total,utm_campaign,utm_medium,utm_source,meta_data,date_created,date_modified"
         })).data;
-        await cache.set(subscriptions_cache_key, subscriptions_cache, subscriptions_cache_ttl);
-        console.log("Subscriptions cache set")
-        cache_loaded = true;
+        await cache.set(SUBSCRIPTIONS_CACHE_KEY, subscriptions, subscriptions_cache_ttl);
     }
+    return subscriptions;
 }
 
 /**
@@ -57,16 +52,16 @@ async function load_cache() {
  * The cache is preheated every 30 minutes by calling load_cache function.
  * @returns {Promise<void>} A promise that resolves when the cache is preheated.
  */
-async function preheat_cache() {
-    await cache.del("sailthru_subscriptions_cache");
+async function keep_cache_fresh() {
+    await cache.del(SUBSCRIPTIONS_CACHE_KEY);
     await load_cache();
-    // Preheat the cache every 30 minutes
-    setInterval(async () => {
-        await load_cache();
-    }, 1000 * 60 * 30);
 }
 
-preheat_cache();
+keep_cache_fresh();
+
+setInterval(async () => {
+    await keep_cache_fresh();
+}, 1000 * 60 * 60); // 60 minutes
 
 /**
  * Retrieves a list of mailing lists from Sailthru.
@@ -120,7 +115,7 @@ async function create_list(list_name) {
 async function sync_user_by_email(email) {
     try {
         const reader = (await apihelper.get("reader", { "filter[email]": email, "fields": USER_FIELDS })).data.pop();
-        if (!reader) throw "Reader not found";
+        if (!reader) throw `Reader not found: ${email}`;
         const record = await map_reader_to_sailthru(reader, false);
         return new Promise((resolve, reject) => {
             sailthru_client.apiPost("user", record, (err, response) => {
@@ -146,7 +141,7 @@ async function sync_user_by_email(email) {
 async function sync_user_by_wordpress_id(wordpress_id) {
     try {
         const reader = (await apihelper.get("reader", { "filter[wordpress_id]": wordpress_id, "fields": USER_FIELDS })).data.pop();
-        if (!reader) throw "Reader not found";
+        if (!reader) throw `Reader not found: wordpress_id ${wordpress_id}`;
         const record = await map_reader_to_sailthru(reader, false);
         return new Promise((resolve, reject) => {
             sailthru_client.apiPost("user", record, (err, response) => {
@@ -172,7 +167,7 @@ async function sync_user_by_wordpress_id(wordpress_id) {
 async function sync_user_by_reader_id(reader_id) {
     try {
         const reader = (await apihelper.getOne("reader", reader_id, { "fields": USER_FIELDS })).data;
-        if (!reader) throw "Reader not found";
+        if (!reader) throw `Reader not found: reader_id ${reader_id}`;
         const record = await map_reader_to_sailthru(reader, false);
         return new Promise((resolve, reject) => {
             sailthru_client.apiPost("user", record, (err, response) => {
@@ -196,7 +191,7 @@ async function sync_user_by_reader_id(reader_id) {
 async function subscribe_email_to_list(email, list_name) {
     try {
         const reader = (await apihelper.get("reader", { "filter[email]": email, "fields": USER_FIELDS })).data.pop();
-        if (!reader) throw "Reader not found";
+        if (!reader) throw `Reader not found: ${email}`;
         const record = await map_reader_to_sailthru(reader, false);
         record.lists = { [list_name]: 1 };
         return new Promise((resolve, reject) => {
@@ -222,7 +217,7 @@ async function subscribe_email_to_list(email, list_name) {
 async function subscribe_reader_to_list(reader_id, list_name) {
     try {
         const reader = (await apihelper.getOne("reader", reader_id, { "fields": USER_FIELDS })).data;
-        if (!reader) throw "Reader not found";
+        if (!reader) throw `Reader not found: reader_id ${reader_id}`;
         const record = await map_reader_to_sailthru(reader, false);
         record.lists = { [list_name]: 1 };
         return new Promise((resolve, reject) => {
@@ -247,7 +242,7 @@ async function subscribe_reader_to_list(reader_id, list_name) {
 async function unsubscribe_email_from_list(email, list_name) {
     try {
         const reader = (await apihelper.get("reader", { "filter[email]": email, "fields": USER_FIELDS })).data.pop();
-        if (!reader) throw "Reader not found";
+        if (!reader) throw `Reader not found: ${email}`;
         const record = await map_reader_to_sailthru(reader, false);
         record.lists = { [list_name]: 0 };
         return new Promise((resolve, reject) => {
@@ -272,7 +267,7 @@ async function unsubscribe_email_from_list(email, list_name) {
 async function unsubscribe_reader_from_list(reader_id, list_name) {
     try {
         const reader = (await apihelper.getOne("reader", reader_id, { "fields": USER_FIELDS })).data;
-        if (!reader) throw "Reader not found";
+        if (!reader) throw `Reader not found: reader_id ${reader_id}`;
         const record = await map_reader_to_sailthru(reader, false);
         record.lists = { [list_name]: 0 };
         return new Promise((resolve, reject) => {
@@ -378,10 +373,8 @@ let subscriptions_cache = [];
  * @param {boolean} [use_cache=true] - Indicates whether to use the cache for retrieving data.
  * @returns {Object} - The mapped Sailthru record.
  */
-async function map_reader_to_sailthru(reader, use_cache = true) {
-    if (!subscriptions_cache) {
-        await load_cache();
-    }
+async function map_reader_to_sailthru(reader, use_cache = true, cached_subscriptions) {
+    // const cached_subscriptions = await get_subscriptions();
     const login_token = wordpress_auth.encrypt({
         "wordpress_id": reader.wordpress_id,
         "revengine_id": reader._id,
@@ -422,7 +415,7 @@ async function map_reader_to_sailthru(reader, use_cache = true) {
     let subscriptions;
     if (use_cache) {
         if (!cache_loaded) throw "Cache not loaded";
-        subscriptions = subscriptions_cache.filter(s => (s.customer_id === reader.wordpress_id));
+        subscriptions = cached_subscriptions.filter(s => (s.customer_id === reader.wordpress_id));
     } else {
         subscriptions = (await apihelper.get("woocommerce_subscription", {
             "filter[customer_id]": reader.wordpress_id,
@@ -481,10 +474,11 @@ async function serve_push(req, res) {
         const readers = await cache.get(`${uid}-${page}`);
         if (!readers) throw "Cache not found";
         await load_cache();
+        const cached_subscriptions = await get_subscriptions();
         const result = [];
         for (let reader of readers) {
             try {
-                const record = await map_reader_to_sailthru(reader);
+                const record = await map_reader_to_sailthru(reader, true, cached_subscriptions);
                 result.push(record);
             } catch (err) {
                 console.error(`Error processing reader ${reader.email}`)
@@ -787,7 +781,7 @@ function get_templates() {
  */
 async function send_template_to_reader(reader_id, template_name, vars = {}) {
     const reader = (await apihelper.getOne("reader", reader_id, { "fields": USER_FIELDS })).data;
-    if (!reader) throw "Reader not found";
+    if (!reader) throw `Reader not found: reader_id: ${reader_id}`;
     return new Promise((resolve, reject) => {
         sailthru_client.apiPost("send", {
             "template": template_name,
