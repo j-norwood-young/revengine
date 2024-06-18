@@ -4,18 +4,12 @@ const Apihelper = require("jxp-helper");
 const apihelper = new Apihelper({ server: config.api.cluster_server, apikey: process.env.SAILTHRU_REVENGINE_APIKEY });
 const sailthru_client = require("sailthru-client").createSailthruClient(process.env.SAILTHRU_KEY, process.env.SAILTHRU_SECRET);
 const wordpress_auth = require("@revengine/wordpress_auth");
-const Redis = require("redis");
 const dotenv = require("dotenv");
 dotenv.config();
 
-const redis_url = process.env.REDIS_URL || config.redis.url;
-
-const redis = Redis.createClient({
-    url: redis_url
-});
 const errs = require('restify-errors');
 const Cache = require("@revengine/common/cache");
-const cache = new Cache({ prefix: "sailthru", debug: true, ttl: 60*60 });
+const cache = new Cache({ prefix: "sailthru", debug: true, ttl: 60 * 60 });
 const { fetch_csv } = require("@revengine/common/csv");
 
 const USER_FIELDS = "email,segmentation_id,label_id,wordpress_id,display_name,first_name,last_name,cc_expiry_date,cc_last4_digits";
@@ -396,7 +390,7 @@ async function map_reader_to_sailthru(reader, use_cache = true, cached_subscript
             labels.push(label.name);
         }
     }
-    
+
     const vars = {
         "revengine_segments": segments,
         "revengine_labels": labels,
@@ -544,7 +538,7 @@ async function queue() {
             amount: 6
         }
     }
-    const match = { 
+    const match = {
         "wordpress_id": { $exists: true },
         "$or": [
             {
@@ -555,7 +549,7 @@ async function queue() {
                     ]
                 }
             },
-            { 
+            {
                 "$expr": {
                     "$gte": [
                         "$label_update",
@@ -563,7 +557,7 @@ async function queue() {
                     ]
                 }
             },
-            { 
+            {
                 "$expr": {
                     "$gte": [
                         "$createdAt",
@@ -586,7 +580,7 @@ async function queue() {
     };
     const query = [
         { $match: match },
-        { 
+        {
             $project: {
                 _id: 1,
                 email: 1,
@@ -632,12 +626,12 @@ async function full_queue() {
             amount: 6
         }
     }
-    const match = { 
+    const match = {
         "wordpress_id": { $exists: true }
     };
     const query = [
         { $match: match },
-        { 
+        {
             $project: {
                 _id: 1,
                 email: 1,

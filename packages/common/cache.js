@@ -1,23 +1,18 @@
 const config = require("config");
 const Redis = require("redis")
-const { promisify } = require("util");
 const dotenv = require("dotenv");
 dotenv.config();
 
 const redis_url = process.env.REDIS_URL || config.redis.url;
 
-let connected = false;
-
 const redis = Redis.createClient({
     url: redis_url
 });
+
 redis.on("error", (err) => {
     console.error("Redis error", err);
 });
-redis.on("ready", () => {
-    console.log("Redis ready");
-    connected = true;
-});
+
 const errs = require('restify-errors');
 const crypto = require("crypto");
 
@@ -52,13 +47,6 @@ class Cache {
         this.redis = redis;
     }
 
-    async init() {
-        if (!connected) {
-            await this.redis.connect();
-            connected = true;
-        }
-    }
-
     /**
      * Get the value associated with the specified key from the cache.
      * @param {string} key - The key to retrieve the value for.
@@ -66,13 +54,12 @@ class Cache {
      */
     async get(key) {
         try {
-            if (!connected) await this.init();
             console.log(`Getting ${key}`);
             const result = await this.redis.get(`${this.prefix}:${key}`);
             console.log(`Got result for ${key}`)
             if (result) return JSON.parse(result);
             return null;
-        } catch(err) {
+        } catch (err) {
             console.error(err);
             return null;
         }
@@ -86,7 +73,6 @@ class Cache {
      * @returns {Promise<void>} - A promise that resolves when the value is set in the cache.
      */
     async set(key, value, ttl) {
-        if (!connected) await this.init();
         ttl = ttl || this.ttl;
         const json_value = JSON.stringify(value);
         console.log(`Setting ${key} to ${json_value.length}`)
@@ -99,7 +85,6 @@ class Cache {
      * @returns {Promise<void>} - A promise that resolves when the value is deleted from the cache.
      */
     async del(key) {
-        if (!connected) await this.init();
         return await this.redis.del(`${this.prefix}:${key}`);
     }
 
@@ -109,7 +94,6 @@ class Cache {
      * @returns {Promise<string[]>} - A promise that resolves to an array of keys.
      */
     async keys(search = "*") {
-        if (!connected) await this.init();
         return await this.redis.keys(`${this.prefix}:${search}`);
     }
 
@@ -129,7 +113,6 @@ class Cache {
      * @returns {Promise<void>} - A promise that resolves when the time-to-live is set for the key.
      */
     async expire(key, ttl) {
-        if (!connected) await this.init();
         return await this.redis.expire(`${this.prefix}:${key}`, ttl);
     }
 
@@ -140,14 +123,13 @@ class Cache {
      * @returns {boolean} - Returns true if the response was served from cache, false otherwise.
      */
     async restify_cache_middleware(req, res, next) {
-        if (!connected) await this.init();
         try {
             // If GET request, check cache
             if (req.method != "GET") return false;
             const url = req.url;
-            console.log({url});
+            // console.log({ url });
             const key = md5(url);
-            console.log({key});
+            // console.log({ key });
             const cached = await this.get(key);
             if (cached) {
                 console.log("Cache hit");
@@ -184,7 +166,7 @@ class Cache {
             res.header("x-cache", "miss");
             console.log("Cache miss");
             return next();
-        } catch(err) {
+        } catch (err) {
             console.error(err);
             res.send(new errs.InternalServerError(err));
         }
