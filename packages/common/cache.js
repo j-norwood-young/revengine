@@ -1,13 +1,11 @@
 const config = require("config");
-const Redis = require("redis")
+const Redis = require("ioredis")
 const dotenv = require("dotenv");
 dotenv.config();
 
 const redis_url = process.env.REDIS_URL || config.redis.url;
 
-const redis = Redis.createClient({
-    url: redis_url
-});
+const redis = new Redis(redis_url);
 
 redis.on("error", (err) => {
     console.error("Redis error", err);
