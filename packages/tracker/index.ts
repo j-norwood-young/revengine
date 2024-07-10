@@ -30,9 +30,12 @@ const allow_origin = process.env.TRACKER_ALLOWED_ORIGINS || config.tracker.allow
 // console.log({ redis_url, kafka_server, host, topic, kafka_partitions, kafka_replication_factor, cookie_name, allow_origin });
 
 const headers = {
-    "Content-Type": "text/html",
+    "Content-Type": "application/json; charset=UTF-8",
     "Content-Disposition": "inline",
-    "Access-Control-Allow-Origin": allow_origin,
+    // "Access-Control-Allow-Origin": allow_origin,
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
     "X-Powered-By": `${name}`,
 };
 const index = process.env.INDEX || config.debug ? "pageviews_test" : "pageviews";

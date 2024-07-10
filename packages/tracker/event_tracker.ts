@@ -35,9 +35,11 @@ const kafka_partitions = process.env.KAFKA_PARTITIONS || config.kafka.partitions
 const kafka_replication_factor = process.env.KAFKA_REPLICATION_FACTOR || config.kafka.replication_factor || 1;
 const cookie_name = process.env.TRACKER_COOKIE_NAME || config.tracker.cookie_name || "revengine_browser_id"
 const headers = {
-    "Content-Type": "text/json",
+    "Content-Type": "application/json; charset=UTF-8",
     "Content-Disposition": "inline",
     "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
     "X-Powered-By": `${tracker_name}`,
 };
 const index = process.env.INDEX || (config.debug ? "pageviews_test" : "pageviews");
