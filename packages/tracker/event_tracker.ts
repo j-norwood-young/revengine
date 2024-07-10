@@ -204,7 +204,10 @@ const handle_hit = async (data: EventTrackerMessage, req, res) => {
 export const app = http.createServer(async (req, res) => {
     if (req.url == "/favicon.ico") return;
     if (config.debug) console.log({ headers: req.headers });
-    if (req.method === "GET") {
+    if (req.method === "OPTIONS") {
+        res.writeHead(200, headers);
+        res.end();
+    } else if (req.method === "GET") {
         const url = req.url;
         try {
             const data: EventTrackerMessage = parse_url(url);

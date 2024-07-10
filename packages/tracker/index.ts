@@ -273,6 +273,11 @@ http.createServer((req, res) => {
     if (config.debug) {
         console.log({ headers: req.headers });
     }
+    if (req.method === "OPTIONS") {
+        res.writeHead(200, headers);
+        res.end();
+        return;
+    }
     if (
         req.method === "POST" &&
         req.headers["content-type"] === "application/json"
