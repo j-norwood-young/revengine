@@ -1,9 +1,4 @@
 import mongo from "@revengine/common/mongo"
-import config from "config";
-import JXPHelper from "jxp-helper";
-import dotenv from "dotenv";
-dotenv.config({ path: "../../.env"});
-const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
 
 export async function get_memberships(mday: moment.Moment) {
     try {

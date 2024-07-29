@@ -18,14 +18,14 @@ const RFVSchema = new JXPSchema({
     total_lifetime_value_score: { type: Number, index: true },
     total_lifetime_value: Number,
 },
-{
-    perms: {
-        admin: "crud",
-        owner: "crud",
-        user: "cr",
-        all: ""
-    }
-});
+    {
+        perms: {
+            admin: "crud",
+            owner: "crud",
+            user: "cr",
+            all: ""
+        }
+    });
 
 RFVSchema.index({ date: 1, reader_id: 1 });
 RFVSchema.index({ date: 1, email: 1 });

@@ -31,9 +31,9 @@ async function calculate_count(mday: moment.Moment) {
             $set: {
               count: {
                 $add: [
-                  { $ifNull: ["$web_count", 0] },
-                  { $ifNull: ["$sailthru_blast_open_count", 0] },
-                  { $ifNull: ["$sailthru_blast_click_count", 0] },
+                    { $ifNull: ["$web_count", 0] },
+                    { $ifNull: ["$sailthru_blast_open_count", 0] },
+                    { $ifNull: ["$sailthru_blast_click_count", 0] },
                     { $ifNull: ["$sailthru_transactional_open_count", 0] },
                     { $ifNull: ["$sailthru_transactional_click_count", 0] },
                     { $ifNull: ["$touchbasepro_open_count", 0] },

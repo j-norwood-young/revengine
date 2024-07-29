@@ -10,6 +10,7 @@ export type TInteraction = {
     sailthru_transactional_click_count: number;
     touchbasepro_open_count: number;
     quicket_open_count: number;
+    app_count: number;
     count: number;
     insider: boolean;
     monthly_value: number;

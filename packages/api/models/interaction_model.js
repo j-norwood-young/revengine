@@ -17,7 +17,7 @@ const InteractionSchema = new JXPSchema({
     count: { type: Number, index: true },
     web_count: { type: Number, index: true },
     books_count: { type: Number, index: true },
-    mobile_count: { type: Number, index: true },
+    app_count: { type: Number, index: true },
     sailthru_transactional_open_count: { type: Number, index: true },
     sailthru_transactional_click_count: { type: Number, index: true },
     sailthru_blast_open_count: { type: Number, index: true },
@@ -26,14 +26,14 @@ const InteractionSchema = new JXPSchema({
     touchbasepro_click_count: { type: Number, index: true },
     quicket_count: { type: Number, index: true },
 },
-{
-    perms: {
-        admin: "crud",
-        owner: "crud",
-        user: "cr",
-        all: ""
-    }
-});
+    {
+        perms: {
+            admin: "crud",
+            owner: "crud",
+            user: "cr",
+            all: ""
+        }
+    });
 
 InteractionSchema.index({ day: 1, email: 1 }, { unique: true });
 

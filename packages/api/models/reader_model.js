@@ -19,7 +19,7 @@ const ReaderSchema = new JXPSchema({
     wordpressuser_id: { type: ObjectId, link: "wordpressuser", index: true },
 
     // Segments and labels
-    label_id: [ { type: ObjectId, link: "Label", map_to: "label" } ],
+    label_id: [{ type: ObjectId, link: "Label", map_to: "label" }],
     label_update: Date,
     segmentation_id: [{ type: ObjectId, link: "segmentation", map_to: "segment" }],
     segment_update: Date,
@@ -36,27 +36,27 @@ const ReaderSchema = new JXPSchema({
     remp_beam_id: Number,
 
     user_registered_on_wordpress: Date,
-    
+
     member: Boolean,
     monthly_contribution: Number,
-    
+
     authors: [{ type: String, index: true }],
     sections: [{ type: String, index: true }],
-    authors_last_30_days: [{ 
+    authors_last_30_days: [{
         count: Number,
         name: String
     }],
-    sections_last_30_days: [{ 
+    sections_last_30_days: [{
         count: Number,
         name: String
     }],
     favourite_author: String,
     favourite_section: String,
-    
+
     email_state: { type: String, index: true },
     email_client: String,
-    newsletters: [ String ],
-    
+    newsletters: [String],
+
     uas: { type: Mixed, set: toSet },
 
     medium: String,
@@ -83,7 +83,7 @@ const ReaderSchema = new JXPSchema({
 
     // Uber Code Overrides
     uber_code_override: { type: String, enum: ['send', 'withhold', 'auto'], default: "auto", index: true },
-    
+
     // Credit Cards
     cc_expiry_date: Date,
     cc_last4_digits: String,
@@ -103,15 +103,17 @@ const ReaderSchema = new JXPSchema({
     total_lifetime_value_score: { type: Number, index: true },
     total_lifetime_value: Number,
 
-    sent_insider_welcome_email: { type: Date, index: true }
+    sent_insider_welcome_email: { type: Date, index: true },
+
+    app_user: { type: Boolean, index: true, default: false },
 },
-{
-    perms: {
-        admin: "crud",
-        owner: "crud",
-        user: "r",
-    }
-});
+    {
+        perms: {
+            admin: "crud",
+            owner: "crud",
+            user: "r",
+        }
+    });
 
 function toSet(a) {
     return [...new Set(a)];
@@ -123,14 +125,14 @@ function toSet(a) {
 // })
 
 // Newsletters
-ReaderSchema.pre("save", async function() {
+ReaderSchema.pre("save", async function () {
     const item = this;
     let lists = [];
     if (!item.touchbasesubscriber) {
         item.newsletters = lists;
         return;
     }
-    for(touchbasesubscriber_id of item.touchbasesubscriber) {
+    for (touchbasesubscriber_id of item.touchbasesubscriber) {
         try {
             let tbp = await TouchbaseSubscriber.findById(touchbasesubscriber_id);
             let list = await TouchbaseList.findById(tbp.list_id);
@@ -182,7 +184,7 @@ ReaderSchema.pre("save", async function () {
         let subscriber = await TouchbaseSubscriber.findById(subscriber_id);
         if (subscriber.email_client) item.email_client = subscriber.email_client;
     }
-    
+
 });
 
 // const Reader 
