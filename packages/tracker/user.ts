@@ -8,6 +8,7 @@ const jxphelper = new JXPHelper({
 });
 
 export const get_user_data = async function (user_id): Promise<{ user_labels: string[], user_segments: string[] }> {
+    if (!Number.isInteger(user_id * 1)) return { user_labels: [], user_segments: [] };
     if (!user_id) return { user_labels: [], user_segments: [] };
     let user_labels = [];
     let user_segments = [];

@@ -63,7 +63,7 @@ try {
 // 9. Sent to kafka queue
 
 const set_esdata = async (data) => {
-    if (data.user_id === "0") {
+    if (data.user_id === "0" || data.user_id === 0) {
         data.user_id = null;
     }
     const action = data.action || "hit";
@@ -143,6 +143,7 @@ const post_hit = async (req, res) => {
                     data.hasOwnProperty(f)
                 );
                 if (!check_result) throw "Missing fields";
+                data.user_id = Number(data.user_id) || 0;
                 let { user_labels, user_segments } = await get_user_data(data.user_id);
                 data.user_labels = user_labels || {};
                 data.user_segments = user_segments || {};
