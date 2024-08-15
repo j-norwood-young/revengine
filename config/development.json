@@ -4,7 +4,12 @@
     "debug": true,
     "locale": "en-GB",
     "timezone": "SAST",
-    "cors_origins": ["https://dev.dailymaverick.co.za", "https://dailymaverick.co.za", "https://www.dailymaverick.co.za", "http://local.dailymaverick.com"],
+    "cors_origins": [
+        "https://dev.dailymaverick.co.za",
+        "https://dailymaverick.co.za",
+        "https://www.dailymaverick.co.za",
+        "http://local.dailymaverick.com"
+    ],
     "api": {
         "port": 3002,
         "server": "http://api:3002",
@@ -30,8 +35,12 @@
         "cache_size": 1,
         "test_interval": 1000,
         "indexes": {
-            "pageviews": [ "pageviews_test" ],
-            "pageviews_test": [ "pageviews_test" ]
+            "pageviews": [
+                "pageviews_test"
+            ],
+            "pageviews_test": [
+                "pageviews_test"
+            ]
         }
     },
     "content": {
@@ -90,7 +99,32 @@
         "server": "http://api.revengine.dailymaverick.co.za:3018"
     },
     "redis": {
-        "url": "redis://redis:6379"
+        "cluster": [
+            {
+                "host": "10.0.1.3",
+                "port": 7000
+            },
+            {
+                "host": "10.0.1.4",
+                "port": 7000
+            },
+            {
+                "host": "10.0.1.5",
+                "port": 7000
+            },
+            {
+                "host": "10.0.1.6",
+                "port": 7000
+            },
+            {
+                "host": "10.0.0.3",
+                "port": 7000
+            },
+            {
+                "host": "10.0.0.4",
+                "port": 7000
+            }
+        ]
     },
     "rfv": {
         "days": 30,
@@ -109,7 +143,7 @@
             "youth_deal": "a4334fa6-92a0-44fe-a781-085687e45742"
         },
         "products_for_uber_deal": [
-            "Monthly Membership: R150 - R250 Range", 
+            "Monthly Membership: R150 - R250 Range",
             "Monthly Membership: R250 - R350 Range",
             "Monthly Membership: R350 - Rinfinite Range",
             "Yearly Membership: R1 800 - R3 000 Range",
@@ -140,6 +174,8 @@
         "revengine_api": "https://internal.dailymaverick.co.za/wp-json/revengine/v1"
     },
     "wp_auth": {
-        "add_to_tbp_lists": ["5f33f33a15d01e4d0c699131"]
+        "add_to_tbp_lists": [
+            "5f33f33a15d01e4d0c699131"
+        ]
     }
 }

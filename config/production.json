@@ -93,7 +93,32 @@
         "server": "https://pipeline.revengine.dailymaverick.co.za"
     },
     "redis": {
-        "url": "redis://redis:6379"
+        "cluster": [
+            {
+                "host": "10.0.1.3",
+                "port": 7000
+            },
+            {
+                "host": "10.0.1.4",
+                "port": 7000
+            },
+            {
+                "host": "10.0.1.5",
+                "port": 7000
+            },
+            {
+                "host": "10.0.1.6",
+                "port": 7000
+            },
+            {
+                "host": "10.0.0.3",
+                "port": 7000
+            },
+            {
+                "host": "10.0.0.4",
+                "port": 7000
+            }
+        ]
     },
     "sailthru": {
         "log_prefix": "9943_",

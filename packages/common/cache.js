@@ -3,9 +3,20 @@ const Redis = require("ioredis")
 const dotenv = require("dotenv");
 dotenv.config();
 
-const redis_url = process.env.REDIS_URL || config.redis.url;
+let redis;
 
-const redis = new Redis(redis_url);
+if (process.env.REDIS_CLUSTER) {
+    const nodes = process.env.REDIS_CLUSTER_NODES.split(",");
+    redis = new Redis.Cluster(nodes.map(node => {
+        const [host, port] = node.split(":");
+        return { host, port };
+    }));
+} else if (config.redis.cluster) {
+    redis = new Redis.Cluster(config.redis.cluster);
+} else {
+    const redis_url = process.env.REDIS_URL || config.redis.url;
+    redis = new Redis(redis_url);
+}
 
 redis.on("error", (err) => {
     console.error("Redis error", err);

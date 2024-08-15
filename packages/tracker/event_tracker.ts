@@ -22,12 +22,13 @@ import { enrich_tracker } from "./enrich_tracker";
 import { get_user_data } from "./user";
 import qs from "qs";
 import * as cookie from "cookie";
-import { createClient } from "redis";
 import * as myCrypto from "crypto";
 import esclient from "@revengine/common/esclient";
+import Cache from "@revengine/common/cache";
 
 // Constants
 const tracker_name = process.env.TRACKER_NAME || config.name || "revengine";
+const cache = new Cache({ prefix: `event-tracker-${tracker_name}`, debug: false, ttl: 60 * 60 });
 const port = process.env.PORT || config.tracker.port || 3012;
 const host = process.env.TRACKER_HOST || config.tracker.host || "127.0.0.1";
 const topic = process.env.TRACKER_KAFKA_TOPIC || config.tracker.kafka_topic || `${tracker_name}_events`;
@@ -43,11 +44,6 @@ const headers = {
     "X-Powered-By": `${tracker_name}`,
 };
 const index = process.env.INDEX || (config.debug ? "pageviews_test" : "pageviews");
-const redis_url = process.env.REDIS_URL || config.redis.url || "redis://localhost:6379";
-const redis_password = process.env.REDIS_PASSWORD || config.redis.password || undefined;
-
-// Setup
-const redis = createClient({ url: redis_url, password: redis_password });
 
 const queue_1 = new KafkaProducer({ topic: `${topic}-1`, partitions: kafka_partitions, replication_factor: kafka_replication_factor, debug: config.debug });
 const queue_2 = new KafkaProducer({ topic: `${topic}-2`, partitions: kafka_partitions, replication_factor: kafka_replication_factor });
@@ -156,13 +152,7 @@ const handle_hit = async (data: EventTrackerMessage, req, res) => {
         }
         cache_id = `GET-${browser_id}-${data.user_ip}`;
         if (config.debug) console.log({cache_id});
-        const cached_user_data_json = await redis.get(cache_id);
-        let cached_user_data = null;
-        try {
-            cached_user_data = JSON.parse(cached_user_data_json);
-        } catch (e) {
-            console.error(e);
-        }
+        const cached_user_data = await cache.get(cache_id);
         if (cached_user_data) {
             if (config.debug) console.log("Cache hit", cached_user_data);
             data.user_labels = cached_user_data.user_labels || [];
@@ -172,7 +162,7 @@ const handle_hit = async (data: EventTrackerMessage, req, res) => {
             let { user_labels, user_segments } = await get_user_data(data.user_id);
             data.user_labels = user_labels || [];
             data.user_segments = user_segments || [];
-            await redis.set(cache_id, JSON.stringify({user_labels, user_segments}), { EX: 60 * 60 });
+            await cache.set(cache_id, {user_labels, user_segments});
         }
     } catch (err) {
         console.error(err);
@@ -248,7 +238,6 @@ export const app = http.createServer(async (req, res) => {
         res.end();
     }
 }).listen(port, host, async () => {
-    await redis.connect();
     await ensure_index();
     if (config.debug) console.log(`RevEngine Tracker listening ${host}:${port}`);
 });
