@@ -7,27 +7,21 @@ import { parse_utm } from "./utm";
 import { get_article_data } from "./article";
 import { get_user_data } from "./user";
 import { KafkaProducer } from "@revengine/common/kafka";
+import Cache from "@revengine/common/cache";
 
 import qs from "qs";
 import cookie from "cookie";
 import crypto from "crypto";
-import Redis from "redis";
 import dotenv from "dotenv";
 dotenv.config();
 
-const redis_url = process.env.REDIS_URL || config.redis.url;
-const redis = Redis.createClient({
-    url: redis_url
-});
-
 const name = process.env.TRACKER_NAME || config.name || "revengine";
+const cache = new Cache({ prefix: `tracker-${name}`, debug: false, ttl: 60 * 60 });
 const port = process.env.PORT || config.tracker.port || 3012;
 const host = process.env.TRACKER_HOST || config.tracker.host || "127.0.0.1";
 const topic = process.env.TRACKER_KAFKA_TOPIC || config.tracker.kafka_topic || `${name}_events`;
 const cookie_name = process.env.TRACKER_COOKIE_NAME || config.tracker.cookie_name || "revengine_browser_id"
 const allow_origin = process.env.TRACKER_ALLOWED_ORIGINS || config.tracker.allow_origin || "*";
-
-// console.log({ redis_url, kafka_server, host, topic, kafka_partitions, kafka_replication_factor, cookie_name, allow_origin });
 
 const headers = {
     "Content-Type": "application/json; charset=UTF-8",
@@ -222,13 +216,7 @@ const get_hit = async (req, res) => {
         if (config.debug) {
             console.log({cache_id});
         }
-        const cached_user_data_json = await redis.get(cache_id);
-        let cached_user_data = null;
-        try {
-            cached_user_data = JSON.parse(cached_user_data_json);
-        } catch (err) {
-            console.error(err.toString());
-        }
+        const cached_user_data = await cache.get(cache_id);
         if (cached_user_data) {
             if (config.debug) console.log("Cache hit", cached_user_data);
             data.user_labels = cached_user_data.user_labels;
@@ -238,7 +226,7 @@ const get_hit = async (req, res) => {
             let { user_labels, user_segments } = await get_user_data(data.user_id);
             data.user_labels = user_labels || {};
             data.user_segments = user_segments || {};
-            await redis.set(cache_id, JSON.stringify({user_labels, user_segments}), { 'EX': 60 * 60 });
+            await cache.set(cache_id, {user_labels, user_segments});
         }
     } catch (err) {
         console.error(err.toString());
@@ -296,7 +284,6 @@ http.createServer((req, res) => {
         res.end();
     }
 }).listen(port, host, async () => {
-    await redis.connect();
     if (config.debug) {
         console.log(`RevEngine Tracker listening ${host}:${port}`);
     }
