@@ -43,11 +43,12 @@ const headers = {
     "Access-Control-Allow-Headers": "Content-Type",
     "X-Powered-By": `${tracker_name}`,
 };
-const index = process.env.INDEX || (config.debug ? "pageviews_test" : "pageviews");
+const debug = process.env.DEBUG || config.debug;
+const index = process.env.INDEX || (debug ? "pageviews_test" : "pageviews");
 
-const queue_1 = new KafkaProducer({ topic: `${topic}-1`, partitions: kafka_partitions, replication_factor: kafka_replication_factor, debug: config.debug });
+const queue_1 = new KafkaProducer({ topic: `${topic}-1`, partitions: kafka_partitions, replication_factor: kafka_replication_factor, debug });
 const queue_2 = new KafkaProducer({ topic: `${topic}-2`, partitions: kafka_partitions, replication_factor: kafka_replication_factor });
-const queue_test = new KafkaProducer({ topic: `${topic}-test`, partitions: kafka_partitions, replication_factor: kafka_replication_factor, debug: config.debug });
+const queue_test = new KafkaProducer({ topic: `${topic}-test`, partitions: kafka_partitions, replication_factor: kafka_replication_factor, debug });
 
 const consumer_1 = new KafkaConsumer({ topic: `${topic}-1`, group: `${tracker_name}_group_1` });
 const consumer_2 = new KafkaConsumer({ topic: `${topic}-2`, group: `${tracker_name}_group_2` });
@@ -120,7 +121,7 @@ consumer_2.on("message", async (message: EventTrackerMessage) => {
         // console.log(data);
         const result = await esclient.index(data);
         // console.log(result);
-        if (config.debug) console.log(result);
+        debug && console.log(result);
     } catch (err) {
         console.error(err);
     }
@@ -151,14 +152,14 @@ const handle_hit = async (data: EventTrackerMessage, req, res) => {
             headers["Set-Cookie"] = `${cookie_name}=${browser_id}`;
         }
         cache_id = `GET-${browser_id}-${data.user_ip}`;
-        if (config.debug) console.log({cache_id});
+        debug && console.log({cache_id});
         const cached_user_data = await cache.get(cache_id);
         if (cached_user_data) {
-            if (config.debug) console.log("Cache hit", cached_user_data);
+            debug && console.log("Cache hit", cached_user_data);
             data.user_labels = cached_user_data.user_labels || [];
             data.user_segments = cached_user_data.user_segments || [];
         } else {
-            if (config.debug) console.log("Cache miss");
+            debug && console.log("Cache miss");
             let { user_labels, user_segments } = await get_user_data(data.user_id);
             data.user_labels = user_labels || [];
             data.user_segments = user_segments || [];
@@ -196,7 +197,7 @@ const handle_hit = async (data: EventTrackerMessage, req, res) => {
 // Server
 export const app = http.createServer(async (req, res) => {
     if (req.url == "/favicon.ico") return;
-    if (config.debug) console.log({ headers: req.headers });
+    debug && console.log({ headers: req.headers });
     if (req.method === "OPTIONS") {
         res.writeHead(200, headers);
         res.end();
@@ -240,8 +241,8 @@ export const app = http.createServer(async (req, res) => {
     }
 }).listen(port, host, async () => {
     await ensure_index();
-    if (config.debug) console.log(`RevEngine Tracker listening ${host}:${port}`);
+    debug && console.log(`RevEngine Tracker listening ${host}:${port}`);
 });
 
 console.log(`===${tracker_name} Tracker Started===`);
-if (config.debug) console.log("Debug mode on");
+debug && console.log("Debug mode on");

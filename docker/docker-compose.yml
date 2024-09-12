@@ -145,6 +145,43 @@ services:
         parallelism: 1
         delay: 60s
         order: start-first
+  mavio_tracker:
+    image: jasony/revengine-mavio-tracker
+    build:
+      context: ../.
+      dockerfile: ./docker/mavio-tracker/Dockerfile
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    networks:
+      - kafka_network
+      - redis_network
+      - default
+    ports:
+      - 4016:4016
+    env_file:
+      - ../.env-prod
+    environment:
+      - PORT=4016
+      - NODE_ENV=production
+      - MMDB_FILE=/usr/lib/mmdb/dbip-city-lite-2024-02.mmdb
+      - KAFKA_SERVER=kafka1:9092
+      - REDIS_URL=redis://redis1:6379
+      - TRACKER_HOST=0.0.0.0
+      - TRACKER_NAME=mavio
+      - TRACKER_KAFKA_TOPIC=mavio
+      - INDEX=mavio
+    depends_on:
+      - api
+      - kafka1
+      - redis1
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 60s
+        order: start-first
   listeners:
     image: jasony/revengine-listeners
     build:

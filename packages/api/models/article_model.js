@@ -10,40 +10,20 @@ const ArticleSchema = new JXPSchema({
     title: String,
     excerpt: String,
     type: String,
-    tags: [ String ],
-    terms: [ String ],
-    sections: [ String ],
+    tags: [String],
+    terms: [String],
+    sections: [String],
+    primary_section: { type: String, index: true },
     custom_section_label: String,
     img_thumbnail: String,
     img_medium: String,
     img_full: String,
     google_categories: [
-        { 
+        {
             name: String,
             confidence: Number
         }
     ],
-    // google_entities: [
-    //     {
-    //         name: String,
-    //         type: String,
-    //         salience: Number,
-    //         metadata: Mixed,
-    //         mentions: [
-    //             {
-    //                 text: {
-    //                     content: String,
-    //                     beginOffset: Number
-    //                 },
-    //                 type: String,
-    //                 sentiment: {
-    //                     magnitude: Number,
-    //                     score: Number
-    //                  }
-    //             }
-    //         ]
-    //     }
-    // ],
     google_entities: [Mixed],
     google_sentiment: {
         sentences: [Mixed],
@@ -56,22 +36,25 @@ const ArticleSchema = new JXPSchema({
     avg_secs_engaged: Number,
     engagement_rate: Number,
     returning_readers: Number,
-    hits: [ Mixed ],
-    unique_hits: [ Mixed ],
-    newsletter_hits: [ Mixed ],
-    logged_in_hits: [ Mixed ],
-    subscriber_hits: [ Mixed ],
-    readers_led_to_subscription: [ Mixed ],
+    hits: [Mixed],
+    unique_hits: [Mixed],
+    newsletter_hits: [Mixed],
+    logged_in_hits: [Mixed],
+    subscriber_hits: [Mixed],
+    readers_led_to_subscription: [Mixed],
     summary: String,
+    status: String,
+    comment_status: String,
+    comment_count: Number,
 },
-{
-    perms: {
-        admin: "crud",
-        owner: "crud",
-        user: "cr",
-        all: ""
-    }
-});
+    {
+        perms: {
+            admin: "crud",
+            owner: "crud",
+            user: "cr",
+            all: ""
+        }
+    });
 
 ArticleSchema.index({ terms: 1 });
 ArticleSchema.index({ tags: 1 });
