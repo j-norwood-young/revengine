@@ -179,12 +179,13 @@ const handle_hit = async (data: EventTrackerMessage, req, res) => {
     try {
         if (!data) throw `No data ${url}`;
         if (!data.action) throw `No action ${url}`;
-        const referer = req.headers.referer; // Our tracker is embedded as an iframe or image or similar, so it should always have a referer.
-        if (!referer) {
-            if (config.debug) console.log("No referer", { status: "error", message: "no referer" });
-            return; // This is common with bots or noreferrer policy, we can't track it anyway, so don't worry about throwing an error
+        if (!data.url) {
+            data.url = req.headers.referer;
         }
-        data.url = referer;
+        if (!data.url) {
+            if (config.debug) console.log("No referer or url", { status: "error", message: "no referer" });
+            return;
+        }
         data.browser_id = browser_id;
         await queue_1.send(data);
     } catch (err) {

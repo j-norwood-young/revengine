@@ -54,6 +54,7 @@ class Cache {
         this.prefix = opts.prefix || "revengine";
         this.ttl = opts.ttl || 60;
         this.redis = redis;
+        this.debug = opts.debug || false;
     }
 
     /**
@@ -63,9 +64,9 @@ class Cache {
      */
     async get(key) {
         try {
-            console.log(`Getting ${key}`);
+            this.debug && console.log(`Getting ${key}`);
             const result = await this.redis.get(`${this.prefix}:${key}`);
-            console.log(`Got result for ${key}`)
+            this.debug && console.log(`Got result for ${key}`)
             if (result) return JSON.parse(result);
             return null;
         } catch (err) {
@@ -84,7 +85,7 @@ class Cache {
     async set(key, value, ttl) {
         ttl = ttl || this.ttl;
         const json_value = JSON.stringify(value);
-        console.log(`Setting ${key} to ${json_value.length}`)
+        this.debug && console.log(`Setting ${key} to ${json_value.length}`)
         return await this.redis.set(`${this.prefix}:${key}`, json_value, "EX", ttl);
     }
 
@@ -141,7 +142,7 @@ class Cache {
             // console.log({ key });
             const cached = await this.get(key);
             if (cached) {
-                console.log("Cache hit");
+                this.debug && console.log("Cache hit");
                 // Write header x-cache: hit
                 res.header("x-cache", "hit");
                 res.send(cached);
@@ -150,30 +151,30 @@ class Cache {
             // Deal with res.send
             res.sendResponse = res.send;
             res.send = async (body) => {
-                console.log("Setting cache", key);
+                this.debug && console.log("Setting cache", key);
                 await this.set(key, body);
                 res.sendResponse(body);
-                console.log("Done here");
+                this.debug && console.log("Done here");
             }
             // Deal with res.write, res.end
             const buffer = [];
             res.writeResponse = res.write;
             res.write = async (body) => {
-                console.log("Setting cache", key);
+                this.debug && console.log("Setting cache", key);
                 buffer.push(body);
                 res.writeResponse(body);
-                console.log("Done here");
+                this.debug && console.log("Done here");
             }
             res.endResponse = res.end;
             res.end = async (body) => {
                 if (body) buffer.push(body);
-                console.log("Setting cache", key);
+                this.debug && console.log("Setting cache", key);
                 await this.set(key, buffer.join(""));
                 res.endResponse(body);
-                console.log("Done here");
+                this.debug && console.log("Done here");
             }
             res.header("x-cache", "miss");
-            console.log("Cache miss");
+            this.debug && console.log("Cache miss");
             return next();
         } catch (err) {
             console.error(err);
