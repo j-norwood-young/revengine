@@ -2,6 +2,8 @@ import { Utm as utmExtractor } from "utm-extractor";
 
 export const parse_utm = function (url) {
     let utm: any = {};
+    if (!url) return utm;
+    url = url.replace("dm_source=", "utm_source=").replace("dm_medium=", "utm_medium=").replace("dm_campaign=", "utm_campaign=").replace("dm_content=", "utm_content=").replace("dm_term=", "utm_term=");
     try {
         utm = new utmExtractor(url).get();
     } catch (err) {
