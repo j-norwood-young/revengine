@@ -136,3 +136,109 @@
     }
 }
 ```
+
+## Users over 10 visits
+
+```JSON
+GET pageviews_copy/_search
+{
+  "size": 0,
+  "query": {
+    "range": {
+      "time": {
+        "gte": "now-30d/d",
+        "lte": "now/d"
+      }
+    }
+  },
+  "aggs": {
+    "users_by_count": {
+      "terms": {
+        "field": "ip_addr",
+        "size": 10000
+      },
+      "aggs": {
+        "visit_count": {
+          "value_count": {
+            "field": "ip_addr"
+          }
+        }
+      }
+    },
+    "users_with_ten_or_more_visits": {
+      "scripted_metric": {
+        "init_script": "state.users = []",
+        "map_script": """
+          if (doc['ip_addr'].size() > 0) {
+            state.users.add(doc['ip_addr'].value);
+          }
+        """,
+        "combine_script": """
+          state.users;
+        """,
+        "reduce_script": """
+          def count = 0;
+          def userVisits = [:];
+          for (s in states) {
+            for (u in s) {
+              if (!userVisits.containsKey(u)) {
+                userVisits[u] = 1;
+              } else {
+                userVisits[u] += 1;
+              }
+            }
+          }
+          for (entry in userVisits.entrySet()) {
+            if (entry.getValue() >= 10) {
+              count += 1;
+            }
+          }
+          return count;
+        """
+      }
+    }
+  }
+}
+```
+
+## Pageviews by IP using Rollup Index
+```JSON
+GET pageviews_ip_rollup/_search
+{
+  "size": 0,
+  "query": {
+    "range": {
+      "time.date_histogram.timestamp": {
+        "gte": "now-12M/M",
+        "lte": "now-1M/M"
+      }
+    }
+  },
+  "aggs": {
+    "monthly_breakdown": {
+      "date_histogram": {
+        "field": "time.date_histogram.timestamp",
+        "calendar_interval": "month",
+        "format": "MMMM yyyy",
+        "min_doc_count": 0,
+        "extended_bounds": {
+          "min": "now-3M/M",
+          "max": "now/M"
+        }
+      },
+      "aggs": {
+        "ip_count_ranges": {
+          "range": {
+            "field": "user_ip.keyword.terms._count",
+            "ranges": [
+              { "to": 2, "key": "equal_to_one" },
+              { "from": 2, "to": 15, "key": "between_two_and_fourteen" },
+              { "from": 15, "key": "fifteen_or_more" }
+            ]
+          }
+        }
+      }
+    }
+  }
+}
+```
