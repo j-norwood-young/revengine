@@ -8,13 +8,14 @@ const public_server = restify.createServer({
 const protected_server = require("@revengine/http_server");
 protected_server.use(restify.plugins.bodyParser());
 const Reports = require("@revengine/reports");
+const esclient = require("@revengine/common/esclient");
 
 const cors = corsMiddleware({
     origins: ['*'],
 });
 
-public_server.use(restify.plugins.bodyParser()); 
-public_server.use(restify.plugins.queryParser()); 
+public_server.use(restify.plugins.bodyParser());
+public_server.use(restify.plugins.queryParser());
 public_server.use(cors.preflight);
 public_server.use(cors.actual);
 const touchbase = require("@revengine/mailer/touchbase");
@@ -40,9 +41,9 @@ public_server.post("/wp/woocommerce/subscription/update", touchbase.woocommerce_
         if (config.debug) console.log(subscription_data);
         // Is this a new subscription?
         if (req.body.old === "pending" && req.body.new === "active") {
-            
+
         }
-    } catch(err) {
+    } catch (err) {
         console.error(err);
     }
 });
@@ -58,7 +59,7 @@ public_server.post("/wp/wordpress/user/update", async (req, res) => {
         if (!reader) throw "Reader not found";
         await wordpress_auth.sync_reader(reader._id);
         if (config.debug) console.log("Synced existing user", wordpress_user_id);
-    } catch(err) {
+    } catch (err) {
         console.error(err);
     }
 });
@@ -73,7 +74,7 @@ public_server.post("/wp/wordpress/user/create", async (req, res) => {
         const data = await sync_wordpress.sync_user(wordpress_user_id);
         if (config.debug) console.log(data);
         if (config.debug) console.log("Synced new user", wordpress_user_id);
-    } catch(err) {
+    } catch (err) {
         console.error(err);
     }
 });
@@ -82,13 +83,13 @@ public_server.post("/wp/wordpress/user/delete", async (req, res) => {
     try {
         if (config.debug) console.log(JSON.stringify(req.body, null, 2));
         res.send({ status: "not implemented" });
-    } catch(err) {
+    } catch (err) {
         console.error(err);
         res.send(500, { status: "error", error: err.toString() });
     }
 });
 
-public_server.post("/wp/reader/labels", async(req, res) => {
+public_server.post("/wp/reader/labels", async (req, res) => {
     try {
         const wordpress_id = Number(req.body.user_id);
         if (!wordpress_id) throw "No user_id";
@@ -114,11 +115,11 @@ public_server.post("/wp/reader/labels", async(req, res) => {
                     as: "segments"
                 }
             },
-            { 
-                $project: { 
+            {
+                $project: {
                     "labels.code": 1,
                     "segments.code": 1,
-                } 
+                }
             },
         ])).data.pop();
         if (!user_data) throw "Reader not found";
@@ -137,13 +138,13 @@ public_server.post("/wp/reader/labels", async(req, res) => {
         }
         if (config.debug) console.log(data);
         res.send(data);
-    } catch(err) {
+    } catch (err) {
         console.error(err);
         res.send(500, { status: "error", error: err.toString() });
     }
 });
 
-protected_server.get("/wp/readers/labels", async(req, res) => {
+protected_server.get("/wp/readers/labels", async (req, res) => {
     try {
         const raw_data = (await apihelper.aggregate("reader", [
             {
@@ -162,12 +163,12 @@ protected_server.get("/wp/readers/labels", async(req, res) => {
                     as: "segments"
                 }
             },
-            { 
+            {
                 $project: {
                     "_id": false,
                     "labels.code": 1,
                     "segments.code": 1,
-                } 
+                }
             },
         ])).data;
         if (!raw_data.length) throw "Data not found";
@@ -187,10 +188,10 @@ protected_server.get("/wp/readers/labels", async(req, res) => {
             }
             return user;
         })
-        .filter(user => user.labels.length || user.segments.length);
+            .filter(user => user.labels.length || user.segments.length);
         if (config.debug) console.log(data.slice(0, 10));
         res.send(data);
-    } catch(err) {
+    } catch (err) {
         console.error(err);
         res.send(500, { status: "error", error: err.toString() });
     }
@@ -213,7 +214,7 @@ protected_server.get("/email/mailrun/:mailrun_id", async (req, res) => {
     try {
         const result = await touchbase.run_mailrun(req.params.mailrun_id);
         res.send(result);
-    } catch(err) {
+    } catch (err) {
         res.send(500, { error: err.toString() });
     }
 });
@@ -228,7 +229,7 @@ protected_server.post("/add_autologin", async (req, res) => {
         if (!list) throw "List not found";
         await wordpress_auth.force_sync_reader(user_id, list._id);
         res.send({ status: "ok" });
-    } catch(err) {
+    } catch (err) {
         res.send(500, { error: err.toString() });
     }
 });
@@ -240,7 +241,7 @@ public_server.get("/autogen_newsletter", async (req, res) => {
         const sections = section_query.split(",").map(topic => topic.trim());
         const result = await autogen_newsletter.generate(sections);
         res.send(result);
-    } catch(err) {
+    } catch (err) {
         res.send(500, { error: err.toString() });
     }
 });
@@ -252,7 +253,7 @@ protected_server.get("/report/logged_in_users", async (req, res) => {
         const Sessions = new Reports.Sessions();
         const result = await Sessions.get_logged_in_users(req.query?.period);
         res.send(result);
-    } catch(err) {
+    } catch (err) {
         res.send(500, { error: err.toString() });
     }
 });
@@ -263,7 +264,7 @@ protected_server.get("/report/users_by_utm_source", async (req, res) => {
         const Sessions = new Reports.Sessions();
         const result = await Sessions.get_users_by_utm_source(req.query.utm_source, req.query?.period);
         res.send(result);
-    } catch(err) {
+    } catch (err) {
         res.send(500, { error: err.toString() });
     }
 });
@@ -274,7 +275,7 @@ protected_server.get("/report/users_by_label", async (req, res) => {
         const Sessions = new Reports.Sessions();
         const result = await Sessions.get_users_by_label(req.query.label, req.query?.period);
         res.send(result);
-    } catch(err) {
+    } catch (err) {
         res.send(500, { error: err.toString() });
     }
 });
@@ -285,7 +286,7 @@ protected_server.get("/report/users_by_segment", async (req, res) => {
         const Sessions = new Reports.Sessions();
         const result = await Sessions.get_users_by_segment(req.query.segment, req.query?.period);
         res.send(result);
-    } catch(err) {
+    } catch (err) {
         res.send(500, { error: err.toString() });
     }
 });
@@ -303,7 +304,7 @@ protected_server.post("/sailthru/subscribe_email_to_list", async (req, res) => {
         const result = await sailthru.subscribe_email_to_list(email, list_name);
         res.send(result);
         // res.send({ status: "ok" });
-    } catch(err) {
+    } catch (err) {
         res.send(500, { error: err.toString() });
     }
 })
@@ -323,7 +324,7 @@ protected_server.post("/sailthru/subscribe_to_list", async (req, res) => {
         }
         res.send(result);
         // res.send({ status: "ok" });
-    } catch(err) {
+    } catch (err) {
         res.send(500, { error: err.toString() });
     }
 })
@@ -336,7 +337,7 @@ protected_server.post("/sailthru/unsubscribe_email_from_list", async (req, res) 
         const result = await sailthru.unsubscribe_email_from_list(email, list_name);
         res.send(result);
         // res.send({ status: "ok" });
-    } catch(err) {
+    } catch (err) {
         res.send(500, { error: err.toString() });
     }
 })
@@ -356,7 +357,7 @@ protected_server.post("/sailthru/unsubscribe_from_list", async (req, res) => {
         }
         res.send(result);
         // res.send({ status: "ok" });
-    } catch(err) {
+    } catch (err) {
         res.send(500, { error: err.toString() });
     }
 })
@@ -365,7 +366,7 @@ protected_server.get("/sailthru/get_lists", async (req, res) => {
     try {
         const lists = await sailthru.get_lists();
         res.send({ lists });
-    } catch(err) {
+    } catch (err) {
         res.send(500, { error: err.toString() });
     }
 })
@@ -376,7 +377,7 @@ protected_server.get("/sailthru/get_users_in_list", async (req, res) => {
         if (!list) throw "No list";
         const users = await sailthru.get_users_in_list(list);
         res.send({ users });
-    } catch(err) {
+    } catch (err) {
         console.error(err);
         res.send(500, { error: err.toString() });
     }
@@ -399,7 +400,7 @@ protected_server.post("/sailthru/sync_user", async (req, res) => {
             throw "No email, user_id or reader_id";
         }
         res.send(result);
-    } catch(err) {
+    } catch (err) {
         res.send(500, { error: err.toString() });
     }
 })
@@ -408,7 +409,17 @@ protected_server.get("/wordpress/sync_readers_missing_in_wordpress", async (req,
     try {
         await sync_wordpress.sync_readers_missing_in_wordpress();
         res.send({ status: "ok" });
-    } catch(err) {
+    } catch (err) {
+        console.error(err);
+        res.send(new errs.InternalServerError(err));
+    }
+});
+
+protected_server.post("/elasticsearch", async (req, res) => {
+    try {
+        const result = await esclient.search(req.body);
+        res.send(result);
+    } catch (err) {
         console.error(err);
         res.send(new errs.InternalServerError(err));
     }
