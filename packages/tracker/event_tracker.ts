@@ -145,12 +145,28 @@ const handle_hit = async (data: EventTrackerMessage, req, res) => {
         data.user_agent = req.headers["user-agent"];
         data.test_id = data.test_id || null;
         const cookies = cookie.parse(req.headers.cookie || "");
-        if (cookies[cookie_name]) {
-            browser_id = cookies[cookie_name]
+        
+        if (data.user_id) {
+            // Create MD5 hash for browser_id when user_id is present
+            const md5Hash = myCrypto.createHash('md5');
+            md5Hash.update(`${data.user_id}${data.user_agent}`);
+            browser_id = md5Hash.digest('hex');
+        } else if (cookies[cookie_name]) {
+            browser_id = cookies[cookie_name];
         } else {
             browser_id = data.browser_id || myCrypto.randomBytes(20).toString('hex');
-            headers["Set-Cookie"] = `${cookie_name}=${browser_id}`;
         }
+
+        // Set the cookie with proper attributes
+        const cookieOptions: cookie.CookieSerializeOptions = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production', // Set to true in production
+            sameSite: 'lax', // or 'strict' or 'none', depending on your requirements
+            maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
+            path: '/'
+        };
+        headers["Set-Cookie"] = cookie.serialize(cookie_name, browser_id, cookieOptions);
+
         cache_id = `GET-${browser_id}-${data.user_ip}`;
         debug && console.log({cache_id});
         const cached_user_data = await cache.get(cache_id);
@@ -174,6 +190,7 @@ const handle_hit = async (data: EventTrackerMessage, req, res) => {
             status: "ok",
             user_labels: data?.user_labels,
             user_segments: data?.user_segments,
+            browser_id,
         })
     );
     res.end();
@@ -198,8 +215,17 @@ const handle_hit = async (data: EventTrackerMessage, req, res) => {
 export const app = http.createServer(async (req, res) => {
     if (req.url == "/favicon.ico") return;
     debug && console.log({ headers: req.headers });
+
     if (req.method === "OPTIONS") {
         res.writeHead(200, headers);
+        res.end();
+    } else if (req.url === "/ping") {
+        res.writeHead(200, { "Content-Type": "text/plain" });
+        res.write("pong");
+        res.end();
+    } else if (req.url === "/robots.txt") {
+        res.writeHead(200, { "Content-Type": "text/plain" });
+        res.write("User-agent: *\nDisallow: /");
         res.end();
     } else if (req.method === "GET") {
         const url = req.url;

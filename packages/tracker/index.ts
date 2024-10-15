@@ -145,12 +145,28 @@ const post_hit = async (req, res) => {
                     console.log(data);
                 }
                 const cookies = cookie.parse(req.headers.cookie || "");
-                if (cookies[cookie_name]) {
-                    data.browser_id = cookies[cookie_name]
+                // console.log({cookies: req.headers.cookie});
+                if (data.user_id) {
+                    // Create MD5 hash for browser_id when user_id is present
+                    const md5Hash = crypto.createHash('md5');
+                    md5Hash.update(`${data.user_id}${data.user_agent}`);
+                    data.browser_id = md5Hash.digest('hex');
+                } else if (cookies[cookie_name]) {
+                    data.browser_id = cookies[cookie_name];
                 } else {
                     data.browser_id = data.browser_id || crypto.randomBytes(20).toString('hex');
-                    headers["Set-Cookie"] = `${cookie_name}=${data.browser_id}`;
                 }
+
+                // Set the cookie with proper attributes
+                const cookieOptions: cookie.CookieSerializeOptions = {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production', // Set to true in production
+                    sameSite: 'lax', // or 'strict' or 'none', depending on your requirements
+                    maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
+                    path: '/'
+                };
+                res.setHeader('Set-Cookie', cookie.serialize(cookie_name, data.browser_id, cookieOptions));
+
                 data.user_ip = data.user_ip || get_ip(req);
                 res.writeHead(200, headers);
                 res.write(
@@ -203,15 +219,33 @@ const get_hit = async (req, res) => {
     let data = undefined;
     try {
         data = parse_url(url);
+        if (!data) {
+            throw new Error(`Failed to parse URL: ${url}`);
+        }
         data.user_ip = get_ip(req);
         data.user_agent = req.headers["user-agent"];
         const cookies = cookie.parse(req.headers.cookie || "");
-        if (cookies[cookie_name]) {
-            browser_id = cookies[cookie_name]
+        if (data.user_id) {
+            // Create MD5 hash for browser_id when user_id is present
+            const md5Hash = crypto.createHash('md5');
+            md5Hash.update(`${data.user_id}${data.user_agent}`);
+            browser_id = md5Hash.digest('hex');
+        } else if (cookies[cookie_name]) {
+            browser_id = cookies[cookie_name];
         } else {
             browser_id = data.browser_id || crypto.randomBytes(20).toString('hex');
-            headers["Set-Cookie"] = `${cookie_name}=${browser_id}`;
         }
+        
+        // Set the cookie with proper attributes
+        const cookieOptions: cookie.CookieSerializeOptions = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production', // Set to true in production
+            sameSite: 'lax', // or 'strict' or 'none', depending on your requirements
+            maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
+            path: '/'
+        };
+        res.setHeader('Set-Cookie', cookie.serialize(cookie_name, browser_id, cookieOptions));
+        // console.log({browser_id, cookie_name, cookieOptions});
         cache_id = `GET-${browser_id}-${data.user_ip}`;
         if (config.debug) {
             console.log({cache_id});
@@ -231,12 +265,16 @@ const get_hit = async (req, res) => {
     } catch (err) {
         console.error(err.toString());
     }
+    if (data.user_id && data.user_id == 1481) {
+        console.log(data);
+    }
     res.writeHead(200, headers);
     res.write(
         JSON.stringify({
             status: "ok",
             user_labels: data?.user_labels,
             user_segments: data?.user_segments,
+            browser_id,
         })
     );
     res.end();
@@ -276,6 +314,18 @@ http.createServer((req, res) => {
         post_hit(req, res);
     }
     else if (req.method === "GET") {
+        if (req.url === "/robots.txt") {
+            res.writeHead(200, { "Content-Type": "text/plain" });
+            res.write("User-agent: *\nDisallow: /");
+            res.end();
+            return;
+        }
+        if (req.url === "/ping") {
+            res.writeHead(200, { "Content-Type": "text/plain" });
+            res.write("pong");
+            res.end();
+            return;
+        }
         get_hit(req, res);
     } else {
         res.writeHead(404, headers);

@@ -127,6 +127,8 @@ services:
       - default
     ports:
       - 4015:4015
+    volumes:
+      - ../packages/tracker:/usr/src/app/packages/tracker
     env_file:
       - ../.env-prod
     environment:
@@ -161,6 +163,8 @@ services:
       - default
     ports:
       - 4016:4016
+    volumes:
+      - ../packages/tracker:/usr/src/app/packages/tracker
     env_file:
       - ../.env-prod
     environment:
