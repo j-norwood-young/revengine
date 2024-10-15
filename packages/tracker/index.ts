@@ -265,9 +265,6 @@ const get_hit = async (req, res) => {
     } catch (err) {
         console.error(err.toString());
     }
-    if (data.user_id && data.user_id == 1481) {
-        console.log(data);
-    }
     res.writeHead(200, headers);
     res.write(
         JSON.stringify({
