@@ -61,6 +61,8 @@ services:
     build:
       context: ../.
       dockerfile: ./docker/tracker/Dockerfile
+    volumes:
+      - ../packages/tracker:/usr/src/app/packages/tracker
     restart: unless-stopped
     stdin_open: true
     tty: true
