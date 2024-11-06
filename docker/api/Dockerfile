@@ -10,4 +10,4 @@ COPY . .
 ENV HOST=0.0.0.0
 ENV PORT=4001
 EXPOSE 4001
-CMD node packages/api
+CMD node --watch packages/api
