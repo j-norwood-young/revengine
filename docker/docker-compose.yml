@@ -20,6 +20,8 @@ services:
       - "rfvengine2:10.0.1.4"
       - "rfvengine3:10.0.1.5"
       - "rfvengine4:10.0.1.6"
+    volumes:
+      - ../packages/api:/usr/src/app/packages/api
     deploy:
       mode: replicated
       replicas: 1
@@ -46,6 +48,8 @@ services:
       - NODE_ENV=production
       - PORT=4014
       - REDIS_URL=redis://redis1:6379
+      - REDIS_HOST=redis1
+      - REDIS_PORT=6379
     depends_on:
       - api
       - redis1
@@ -56,6 +60,10 @@ services:
         parallelism: 1
         delay: 60s
         order: start-first
+    volumes:
+      - ../packages/frontend:/usr/src/app/packages/frontend
+      - ../packages/common:/usr/src/app/packages/common
+      - ../packages/rfv:/usr/src/app/packages/rfv
   tracker:
     image: jasony/revengine-tracker
     build:
