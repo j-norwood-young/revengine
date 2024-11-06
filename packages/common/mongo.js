@@ -218,6 +218,34 @@ module.exports.aggregate = async (collection, pipeline) => {
 };
 
 /**
+ * Performs a bulk write operation on a collection.
+ * @async
+ * @param {string} collection - The name of the collection.
+ * @param {object[]} operations - The bulk write operations.
+ * @returns {object} - The result of the bulk write operation.
+ */
+module.exports.bulkWrite = async (collection, operations) => {
+    try {
+        if (!is_connected) await this.connect();
+        const db = client.db(config.api.mongo.db);
+        const result = await db.collection(collection).bulkWrite(operations);
+        return result;
+    } catch (err) {
+        console.error(err);
+    }
+};
+
+module.exports.ensureIndex = async (collection, index) => {
+    try {
+        if (!is_connected) await this.connect();
+        const db = client.db(config.api.mongo.db);
+        await db.collection(collection).createIndex(index);
+    } catch (err) {
+        console.error(err);
+    }
+};
+
+/**
  * 
  * @param {string} id - The id to convert to ObjectId.
  * @returns {ObjectId} - The converted id.
