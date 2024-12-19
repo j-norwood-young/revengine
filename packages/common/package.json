@@ -16,6 +16,7 @@
         "papaparse": "^5.4.1",
         "mongodb": "^6.3.0",
         "redis": "^4.6.13",
-        "ioredis": "^5.4.1"
+        "ioredis": "^5.4.1",
+        "restify-errors": "^8.0.2"
     }
 }
