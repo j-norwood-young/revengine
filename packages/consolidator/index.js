@@ -1,6 +1,14 @@
 const config = require("config");
 const { KafkaConsumer } = require("@revengine/common/kafka");
 const esclient = require("@revengine/common/esclient");
+const fs = require("fs");
+const Cache = require("@revengine/common/cache");
+
+const redis_cache = new Cache({
+    debug: config.debug,
+    prefix: "consolidator",
+    ttl: 60 * 60 * 24 // 1 day
+});
 
 let consumer;
 try {
@@ -9,7 +17,7 @@ try {
         group: config.kafka.group || "consolidator",
         debug: config.debug
     });
-} catch(err) {
+} catch (err) {
     console.error(err);
     process.exit(1);
 }
@@ -29,19 +37,87 @@ const flush = async () => {
             if (config.debug) {
                 console.log("Cache length:", cache.length);
             }
-            const result = await esclient.bulk({ body: cache });
+
+            // Process cache to update existing documents
+            const processedCache = [];
+            for (let i = 0; i < cache.length; i += 2) {
+                const action = cache[i];
+                const doc = cache[i + 1];
+
+                // Add time_updated to the document
+                const enrichedDoc = {
+                    ...doc,
+                    time_updated: new Date().toISOString()
+                };
+
+                if (doc.browser_id && doc.article_id) {
+                    const mappingKey = `${doc.browser_id}:${doc.article_id}`;
+                    const existingId = await redis_cache.get(mappingKey);
+
+                    if (existingId) {
+                        // Update existing document
+                        if (config.debug) {
+                            console.log(`Updating existing record for ${mappingKey} (ID: ${existingId})`);
+                        }
+                        processedCache.push({
+                            update: {
+                                _index: action.index._index,
+                                _type: "_doc",
+                                _id: existingId
+                            }
+                        });
+                        processedCache.push({
+                            doc: enrichedDoc,
+                            doc_as_upsert: true
+                        });
+                    } else {
+                        // Create new document
+                        if (config.debug) {
+                            console.log(`Creating new record for ${mappingKey}`);
+                        }
+                        processedCache.push(action);
+                        processedCache.push(enrichedDoc);
+                    }
+                } else {
+                    // No browser_id or article_id, just pass through
+                    if (config.debug) {
+                        console.log('Processing record without browser_id or article_id');
+                    }
+                    processedCache.push(action);
+                    processedCache.push(enrichedDoc);
+                }
+            }
+
+            const result = await esclient.bulk({ body: processedCache });
+
+            // Update Redis cache with results
+            result.items.forEach((item, index) => {
+                const originalDoc = processedCache[index * 2 + 1]; // Get the original document
+                if (originalDoc.browser_id && originalDoc.article_id) {
+                    const mappingKey = `${originalDoc.browser_id}:${originalDoc.article_id}`;
+                    const docId = item.index?._id || item.update?._id;
+                    if (docId) {
+                        redis_cache.set(mappingKey, docId);
+                    }
+                }
+            });
+
+            // Write debug files
+            fs.writeFileSync("/tmp/consolidator.cache.json", JSON.stringify(processedCache, null, 2));
             cache = [];
+            fs.writeFileSync("/tmp/consolidator.json", JSON.stringify(result, null, 2));
+
             if (config.debug) {
                 console.log(JSON.stringify(result, null, "  "));
                 console.log(`Flushed cache, loop ${count++}, items ${result.items.length}`);
                 for (let item of result.items) {
-                    if (item.index.error) {
-                        console.error(item.index.error);
+                    if (item.index?.error || item.update?.error) {
+                        console.error(item.index?.error || item.update?.error);
                     }
                 }
             }
-            consumer.resume();    
-        } catch(err) {
+            consumer.resume();
+        } catch (err) {
             consumer.resume();
             console.log("We hit an error");
             console.error(err);
@@ -53,7 +129,7 @@ const flush = async () => {
 
 consumer.on('message', async (messages) => {
     try {
-        json = JSON.parse(messages[0].messages); // This isn't how this is meant to work
+        json = JSON.parse(messages[0].messages);
         if (config.debug) {
             console.log(JSON.stringify(json, null, "  "));
         }
@@ -65,11 +141,11 @@ consumer.on('message', async (messages) => {
                         _type: "_doc",
                     }
                 }, json);
-            } catch(err) {
+            } catch (err) {
                 console.error(err);
             }
         };
-    } catch(err) {
+    } catch (err) {
         console.error(err);
     }
 });
