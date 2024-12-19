@@ -116,9 +116,12 @@ services:
     environment:
       - NODE_ENV=production
       - KAFKA_SERVER=kafka1:9092
+      - REDIS_URL=redis://redis1:6379
     depends_on:
       - api
       - kafka1
+    volumes:
+      - ../packages/consolidator:/usr/src/app/packages/consolidator
     # deploy:
     #   mode: global
   crossword_tracker:
@@ -289,6 +292,8 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_LOG4J_ROOT_LOGLEVEL: WARN
+      KAFKA_LOG4J_LOGGERS: org.apache.zookeeper=ERROR,org.apache.kafka=ERROR,kafka=ERROR,kafka.cluster=ERROR,kafka.controller=ERROR,kafka.coordinator=ERROR,kafka.log=ERROR,kafka.server=ERROR,kafka.zookeeper=ERROR,state.change.logger=ERROR,kafka.request.logger=ERROR
     networks:
     #   - external
       - default
