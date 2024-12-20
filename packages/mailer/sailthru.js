@@ -21,24 +21,35 @@ let cache_loaded = false;
  * @returns {Promise<void>} A promise that resolves once the cache is loaded.
  */
 async function load_cache() {
-    segments_cache = (await apihelper.get("segmentation")).data;
-    labels_cache = (await apihelper.get("label")).data;
-    subscriptions_cache = await get_subscriptions();
-    cache_loaded = true;
+    try {
+        segments_cache = (await apihelper.get("segmentation")).data;
+        labels_cache = (await apihelper.get("label")).data;
+        subscriptions_cache = await get_subscriptions();
+        cache_loaded = true;
+    } catch (err) {
+        console.error(err);
+        // Retry in 10 seconds
+        setTimeout(load_cache, 10000);
+    }
 }
 
 async function get_subscriptions() {
-    // Check if we have a redis cache for subscriptions. If not, load it from the API and cache it for 1 hour.
-    const subscriptions_cache_ttl = 60 * 60;
-    let subscriptions = await cache.get(SUBSCRIPTIONS_CACHE_KEY);
-    if (!subscriptions) {
-        console.log("Subscriptions Cache Miss");
-        subscriptions = (await apihelper.get("woocommerce_subscription", {
-            "fields": "customer_id,billing_period,payment_method,status,total,utm_campaign,utm_medium,utm_source,meta_data,date_created,date_modified"
-        })).data;
-        await cache.set(SUBSCRIPTIONS_CACHE_KEY, subscriptions, subscriptions_cache_ttl);
+    try {
+        // Check if we have a redis cache for subscriptions. If not, load it from the API and cache it for 1 hour.
+        const subscriptions_cache_ttl = 60 * 60;
+        let subscriptions = await cache.get(SUBSCRIPTIONS_CACHE_KEY);
+        if (!subscriptions) {
+            console.log("Subscriptions Cache Miss");
+            subscriptions = (await apihelper.get("woocommerce_subscription", {
+                "fields": "customer_id,billing_period,payment_method,status,total,utm_campaign,utm_medium,utm_source,meta_data,date_created,date_modified"
+            })).data;
+            await cache.set(SUBSCRIPTIONS_CACHE_KEY, subscriptions, subscriptions_cache_ttl);
+        }
+        return subscriptions;
+    } catch (err) {
+        console.error(err);
+        throw err;
     }
-    return subscriptions;
 }
 
 /**
