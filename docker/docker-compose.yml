@@ -5,7 +5,7 @@ services:
     build:
       context: ../.
       dockerfile: ./docker/api/Dockerfile
-    restart: unless-stopped
+    restart: always
     stdin_open: true
     tty: true
     ports:
@@ -29,12 +29,18 @@ services:
         parallelism: 1
         delay: 60s
         order: start-first
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:4001/api/test | grep -q '\"count\".*\"data\"'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
   frontend:
     image: jasony/revengine-frontend
     build:
       context: ../.
       dockerfile: ./docker/frontend/Dockerfile
-    restart: unless-stopped
+    restart: always
     stdin_open: true
     tty: true
     # networks:
@@ -64,6 +70,12 @@ services:
       - ../packages/frontend:/usr/src/app/packages/frontend
       - ../packages/common:/usr/src/app/packages/common
       - ../packages/rfv:/usr/src/app/packages/rfv
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:4014/ | grep -q '<title>Login</title>'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
   tracker:
     image: jasony/revengine-tracker
     build:
@@ -71,7 +83,7 @@ services:
       dockerfile: ./docker/tracker/Dockerfile
     volumes:
       - ../packages/tracker:/usr/src/app/packages/tracker
-    restart: unless-stopped
+    restart: always
     stdin_open: true
     tty: true
     networks:
@@ -100,12 +112,18 @@ services:
         parallelism: 1
         delay: 60s
         order: start-first
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/ | grep -q '\"status\":\"ok\"'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
   consolidator:
     image: jasony/revengine-consolidator
     build:
       context: ../.
       dockerfile: ./docker/consolidator/Dockerfile
-    restart: unless-stopped
+    restart: always
     stdin_open: true
     tty: true
     networks:
@@ -124,12 +142,18 @@ services:
       - ../packages/consolidator:/usr/src/app/packages/consolidator
     # deploy:
     #   mode: global
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep -v grep | grep -q 'node.*consolidator' && netstat -an | grep -q ':9092.*ESTABLISHED' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
   crossword_tracker:
     image: jasony/revengine-crossword-tracker
     build:
       context: ../.
       dockerfile: ./docker/crossword-tracker/Dockerfile
-    restart: unless-stopped
+    restart: always
     stdin_open: true
     tty: true
     networks:
@@ -160,12 +184,18 @@ services:
         parallelism: 1
         delay: 60s
         order: start-first
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:4015/ping | grep -q 'pong'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
   mavio_tracker:
     image: jasony/revengine-mavio-tracker
     build:
       context: ../.
       dockerfile: ./docker/mavio-tracker/Dockerfile
-    restart: unless-stopped
+    restart: always
     stdin_open: true
     tty: true
     networks:
@@ -199,6 +229,12 @@ services:
         parallelism: 1
         delay: 60s
         order: start-first
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:4016/ping | grep -q 'pong'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
   listeners:
     image: jasony/revengine-listeners
     build:
@@ -207,7 +243,7 @@ services:
     environment:
       - REDIS_URL=redis://redis1:6379
       - NODE_ENV=production
-    restart: unless-stopped
+    restart: always
     stdin_open: true
     tty: true
     networks:
@@ -229,6 +265,16 @@ services:
         parallelism: 1
         delay: 60s
         order: start-first
+    volumes:
+      - ../packages/listeners:/usr/src/app/packages/listeners
+      - ../packages/common:/usr/src/app/packages/common
+      - ../packages/mailer:/usr/src/app/packages/mailer
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:4020/test | grep -q '\"status\":\"ok\"'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
   wordpress_api:
     image: jasony/revengine-wordpress-api
     build:
@@ -238,7 +284,7 @@ services:
       # - REDIS_URL=redis://redis1:6379
       - NODE_ENV=production
       - PORT=4030
-    restart: unless-stopped
+    restart: always
     stdin_open: true
     tty: true
     networks:
@@ -258,6 +304,12 @@ services:
         parallelism: 1
         delay: 60s
         order: start-first
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:4030/top_articles | grep -q '\"post_id\"'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.4
     environment:
@@ -302,9 +354,15 @@ services:
       - kafka-data:/var/lib/kafka/data
     # deploy:
     #   mode: global
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
   redis1:
     image: redis:alpine
-    restart: unless-stopped
+    restart: always
     ports:
       - "6379:6379"
     # deploy:

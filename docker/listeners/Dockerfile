@@ -15,4 +15,4 @@ COPY packages/wordpress-auth/package.json ./packages/wordpress-auth/
 COPY packages/autogen_newsletter/package.json ./packages/autogen_newsletter/
 RUN yarn install
 COPY . .
-CMD npm run prod-fork:listeners
+CMD ["node", "--watch", "packages/listeners/index.js"]

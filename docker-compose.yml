@@ -1,0 +1,11 @@
+services:
+  api:
+    build: 
+      context: .
+      dockerfile: docker/api/Dockerfile
+    deploy:
+      resources:
+        limits:
+          memory: 7G     # Set slightly higher than Node.js limit
+        reservations:
+          memory: 6G     # Guaranteed memory
