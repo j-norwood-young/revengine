@@ -28,6 +28,10 @@ const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env
 
 // const woocommerce = require("./woocommerce");
 
+public_server.get("/test", async (req, res) => {
+    res.send({ status: "ok" });
+});
+
 public_server.post("/wp/woocommerce/subscription/update", touchbase.woocommerce_subscriptions_callback, async (req, res) => {
     try {
         res.send({ status: "ok" });
