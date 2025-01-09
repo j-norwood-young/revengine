@@ -12,7 +12,7 @@ dotenv.config();
 const server = restify.createServer();
 
 server.use(restify.plugins.queryParser());
-server.use(restify.plugins.bodyParser()); 
+server.use(restify.plugins.bodyParser());
 const cors = Cors({
     origins: config.cors_origins || ["*"],
 });
@@ -31,14 +31,14 @@ server.use(cors.actual);
  * @param {integer} jitter_factor - multiply results by this factor before picking random article, default: 10
  * 
  **/
- server.post("/random", async (req, res) => {
+server.post("/random", async (req, res) => {
     try {
         const size = req.body.size || 1;
         const ignore_post_ids = req.body.ignore_post_ids || [];
         const published_start_date = req.body.published_start_date || null;
         const published_end_date = req.body.published_end_date || null;
         const jitter_factor = req.body.jitter_factor || 10;
-        const report = new Reports.Random({size, published_start_date, published_end_date, ignore_post_ids, jitter_factor});
+        const report = new Reports.Random({ size, published_start_date, published_end_date, ignore_post_ids, jitter_factor });
         const result = await report.random_articles();
         res.send({ size, ignore_post_ids, published_start_date, published_end_date, jitter_factor, result });
     } catch (err) {
@@ -89,7 +89,7 @@ const top_articles_report = async (params) => {
         }
         articles.sort((a, b) => b.hits - a.hits);
         return articles.slice(0, params.size);
-    } catch(err) {
+    } catch (err) {
         throw err;
     }
 }
@@ -180,7 +180,7 @@ server.get("/top_articles/:period", apicache.middleware("5 minutes"), async (req
             // year: "now-1y/y",
         }
         const period = req.params.period;
-        if (!periods[period]) throw `Unknown period. Choose from ${ Object.keys(periods).join(", ")}`;
+        if (!periods[period]) throw `Unknown period. Choose from ${Object.keys(periods).join(", ")}`;
         const size = req.query.size || 5;
         const start_period = periods[period];
         const end_period = "now/h";
@@ -190,7 +190,7 @@ server.get("/top_articles/:period", apicache.middleware("5 minutes"), async (req
         }
         const articles = await top_articles_report(params);
         res.send(articles);
-    } catch(err) {
+    } catch (err) {
         console.error(err);
         res.send(500, { status: "error", error: err });
     }
@@ -210,7 +210,7 @@ server.get("/top_articles", apicache.middleware("5 minutes"), async (req, res) =
         }, req.query);
         const articles = await top_articles_report(params);
         res.send(articles);
-    } catch(err) {
+    } catch (err) {
         console.error(err);
         res.send(500, { status: "error", error: err });
     }
@@ -283,10 +283,10 @@ server.get("/reader/:wordpress_id", apicache.middleware("5 minutes"), async (req
         const wordpress_id = req.params.wordpress_id;
         const reader = (await jxphelper.get("reader", { "filter[wordpress_id]": wordpress_id, "populate[segment]": "code", "fields": "segmentation_id" })).data.pop();
         if (!reader) {
-            return res.send(404, { status: "error", message: "Reader not found"});
+            return res.send(404, { status: "error", message: "Reader not found" });
         }
-        res.send({ status: "ok", data: { segments: reader.segment.map(segment => segment.code), labels: reader.lbl, authors: reader.authors, sections: reader.sections }});
-    } catch(err) {
+        res.send({ status: "ok", data: { segments: reader.segment.map(segment => segment.code), labels: reader.lbl, authors: reader.authors, sections: reader.sections } });
+    } catch (err) {
         console.error(err);
         res.send({ status: "error" });
     }
@@ -300,8 +300,8 @@ server.get("/analytics/posts", async (req, res) => {
         }
         const report = new Reports.TopLastHour();
         const post_hits = await report.run({ article_id: post_ids.map(id => Number(id)) });
-        res.send(post_hits.map(a => ({ post_id: a.key, hits: a.doc_count })));
-    } catch(err) {
+        res.send(post_hits.map(a => ({ post_id: a.key, hits: a.doc_count, avg_scroll_depth: a.avg_scroll_depth.value, avg_seconds_on_page: a.avg_seconds_on_page.value })));
+    } catch (err) {
         console.error(err);
         res.send(500, { status: "error", error: err });
     }
@@ -321,13 +321,13 @@ server.post("/analytics/posts", async (req, res) => {
         const report = new Reports.TopLastHour();
         const top_articles = await report.run({ article_id: post_ids });
         const result = [];
-        for(let post_id of post_ids) {
+        for (let post_id of post_ids) {
             const post = top_articles.find(a => a.key === Number(post_id));
-            result.push({ post_id, hits: post ? post.doc_count : 0 });
+            result.push({ post_id, hits: post ? post.doc_count : 0, avg_scroll_depth: post ? post.avg_scroll_depth.value : 0, avg_seconds_on_page: post ? post.avg_seconds_on_page.value : 0 });
         }
         // console.log(result)
         res.send(result);
-    } catch(err) {
+    } catch (err) {
         console.error(err);
         res.send(500, { status: "error", error: err });
     }
@@ -336,11 +336,11 @@ server.post("/analytics/posts", async (req, res) => {
 server.post("/simulate/top_articles", async (req, res) => {
     try {
         const { posts } = req.body;
-        for(let post in posts) {
+        for (let post in posts) {
             post.hits_last_hour = Math.floor(Math.random() * 100);
         }
         res.send(posts);
-    } catch(err) {
+    } catch (err) {
         console.error(err);
         res.send(500, { status: "error", error: err });
     }
