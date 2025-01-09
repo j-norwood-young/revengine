@@ -284,6 +284,9 @@ services:
       # - REDIS_URL=redis://redis1:6379
       - NODE_ENV=production
       - PORT=4030
+    volumes:
+      - ../packages/wordpress_api:/usr/src/app/packages/wordpress_api
+      - ../packages/reports:/usr/src/app/packages/reports
     restart: always
     stdin_open: true
     tty: true
