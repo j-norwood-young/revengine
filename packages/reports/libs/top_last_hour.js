@@ -47,6 +47,18 @@ class TopLastHour {
                         "terms": {
                             "field": "article_id",
                             "size": size,
+                        },
+                        "aggs": {
+                            "avg_scroll_depth": {
+                                "avg": {
+                                    "field": "scroll_depth"
+                                }
+                            },
+                            "avg_seconds_on_page": {
+                                "avg": {
+                                    "field": "seconds_on_page"
+                                }
+                            }
                         }
                     }
                 }
