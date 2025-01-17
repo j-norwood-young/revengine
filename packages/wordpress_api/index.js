@@ -300,7 +300,7 @@ server.get("/analytics/posts", async (req, res) => {
         }
         const report = new Reports.TopLastHour();
         const post_hits = await report.run({ article_id: post_ids.map(id => Number(id)) });
-        res.send(post_hits.map(a => ({ post_id: a.key, hits: a.doc_count, avg_scroll_depth: a.avg_scroll_depth.value, avg_seconds_on_page: a.avg_seconds_on_page.value })));
+        res.send(post_hits.map(a => ({ post_id: a.key, hits: a.doc_count, avg_scroll_depth: Math.round(a.avg_scroll_depth.value), avg_seconds_on_page: Math.round(a.avg_seconds_on_page.value) })));
     } catch (err) {
         console.error(err);
         res.send(500, { status: "error", error: err });
@@ -323,7 +323,7 @@ server.post("/analytics/posts", async (req, res) => {
         const result = [];
         for (let post_id of post_ids) {
             const post = top_articles.find(a => a.key === Number(post_id));
-            result.push({ post_id, hits: post ? post.doc_count : 0, avg_scroll_depth: post ? post.avg_scroll_depth.value : 0, avg_seconds_on_page: post ? post.avg_seconds_on_page.value : 0 });
+            result.push({ post_id, hits: post ? post.doc_count : 0, avg_scroll_depth: post ? Math.round(post.avg_scroll_depth.value) : 0, avg_seconds_on_page: post ? Math.round(post.avg_seconds_on_page.value) : 0 });
         }
         // console.log(result)
         res.send(result);
