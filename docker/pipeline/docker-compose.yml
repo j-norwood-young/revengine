@@ -1,8 +1,9 @@
 version: '3.6'
 services:
   pipeline:
+    image: jasony/revengine-pipeline
     build:
-      context: ../../.
+      context: ../.
       dockerfile: ./docker/pipeline/Dockerfile
     restart: unless-stopped
     stdin_open: true
@@ -10,7 +11,7 @@ services:
     ports:
       - 4018:8080
     env_file:
-      - ../../.env-prod
+      - ../.env-prod
     environment:
       - NODE_ENV=production
       - PORT=8080
