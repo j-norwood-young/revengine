@@ -16,3 +16,4 @@ packages/*/node_modules/*
 packages/frontend/public/assets/*
 dist/*
 docker/crontab/data/*
+docker/bqsync/application_default_credentials.json

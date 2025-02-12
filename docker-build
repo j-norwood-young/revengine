@@ -1,0 +1,43 @@
+#!/bin/bash
+
+echo "Building revengine-api"
+docker build -t revengine-api:latest -f docker/api/Dockerfile .
+docker tag revengine-api:latest harbor.revengine.dailymaverick.co.za/revengine/revengine-api:latest
+docker push harbor.revengine.dailymaverick.co.za/revengine/revengine-api:latest
+echo "----------------------------------------"
+
+echo "Building revengine-frontend"
+docker build -t revengine-frontend:latest -f docker/frontend/Dockerfile .
+docker tag revengine-frontend:latest harbor.revengine.dailymaverick.co.za/revengine/revengine-frontend:latest
+docker push harbor.revengine.dailymaverick.co.za/revengine/revengine-frontend:latest
+echo "----------------------------------------"
+
+echo "Building revengine-mavio-tracker"
+docker build -t revengine-mavio-tracker:latest -f docker/mavio-tracker/Dockerfile .
+docker tag revengine-mavio-tracker:latest harbor.revengine.dailymaverick.co.za/revengine/revengine-mavio-tracker:latest
+docker push harbor.revengine.dailymaverick.co.za/revengine/revengine-mavio-tracker:latest
+echo "----------------------------------------"
+
+echo "Building revengine-tracker"
+docker build -t revengine-tracker:latest -f docker/tracker/Dockerfile .
+docker tag revengine-tracker:latest harbor.revengine.dailymaverick.co.za/revengine/revengine-tracker:latest
+docker push harbor.revengine.dailymaverick.co.za/revengine/revengine-tracker:latest
+echo "----------------------------------------"
+
+echo "Building listeners"
+docker build -t revengine-listeners:latest -f docker/listeners/Dockerfile .
+docker tag revengine-listeners:latest harbor.revengine.dailymaverick.co.za/revengine/revengine-listeners:latest
+docker push harbor.revengine.dailymaverick.co.za/revengine/revengine-listeners:latest
+echo "----------------------------------------"
+
+echo "Building wordpress-api"
+docker build -t revengine-wordpress-api:latest -f docker/wordpress-api/Dockerfile .
+docker tag revengine-wordpress-api:latest harbor.revengine.dailymaverick.co.za/revengine/revengine-wordpress-api:latest
+docker push harbor.revengine.dailymaverick.co.za/revengine/revengine-wordpress-api:latest
+echo "----------------------------------------"
+
+echo "Building bqsync"
+docker build -t revengine-bqsync:latest -f docker/bqsync/Dockerfile .
+docker tag revengine-bqsync:latest harbor.revengine.dailymaverick.co.za/revengine/revengine-bqsync:latest
+docker push harbor.revengine.dailymaverick.co.za/revengine/revengine-bqsync:latest
+echo "----------------------------------------"
