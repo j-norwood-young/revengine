@@ -30,6 +30,8 @@ bq mk --table "${GOOGLE_PROJECT_ID}:revengine.articles" id:INT64,urlid:STRING,au
 
 bq mk --table "${GOOGLE_PROJECT_ID}:revengine.wordpressusers" id:INT64,user_registered:TIMESTAMP,wp_user_level:STRING,current_login:TIMESTAMP,last_login:TIMESTAMP,dm_status_user:INT64,gender:STRING,user_industry:STRING,wsl_current_provider:STRING,wc_last_active:TIMESTAMP,dm_ad_free_interacted:BOOL,dm_ad_free_toggle:BOOL,last_update:TIMESTAMP,paying_customer:BOOL,cc_expiry_date:TIMESTAMP
 
+bq mk --table "${GOOGLE_PROJECT_ID}:revengine.customer_value" uid:STRING,date_paid:TIMESTAMP,first_payment:TIMESTAMP,last_payment:TIMESTAMP,lifetime_value:FLOAT64,month:STRING,wordpress_id:INT64,month_value:FLOAT64,payment_method:STRING,product_name_first:STRING,product_quantity_first:INT64,product_total_first:FLOAT64,product_name:STRING,recurring_period:STRING
+
 # Start cron
 cron
 
