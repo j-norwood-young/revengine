@@ -8,7 +8,18 @@ const jxphelper = new JXPHelper({
     apikey: process.env.APIKEY,
 });
 
+const IGNORE_POST_IDS = [
+    "0", // Home
+    "29",
+    "30",
+    "1855",
+    "387188",
+    "119012",
+    "150"
+];
+
 export const get_article_data = async function (post_id) {
+    if (IGNORE_POST_IDS.includes(post_id)) return {};
     const save_to_db = !config.debug && !(process.env.NODE_ENV === "test");
     let sections = null;
     let tags = null;

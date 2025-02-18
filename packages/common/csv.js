@@ -1,4 +1,3 @@
-const fetch = require("node-fetch");
 const Papa = require("papaparse");
 
 const fetch_csv = async (url) => {

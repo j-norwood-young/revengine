@@ -3,19 +3,19 @@
 // 1.1 Check cache and skip to 3 if hit is in cache
 // 2. Get user segments and labels
 // 3. Respond to HTTP request with ok, user segments and labels
-// 4. Send to kafka queue_1 (topic-1)
-// 5. Listen to kafka queue_1 (topic-1)
+// 4. Send to BullMQ queue_1
+// 5. Process queue_1 message
 // 6. Get a message through queue_1
 // 7. Enrich message
-// 8. Sent to kafka queue_2 (topic-2)
-// 9. Listen to kafka queue_2 (topic-2)
-// 10. Get a message through queue_2 (topic-2)
+// 8. Send to BullMQ queue_2
+// 9. Process queue_2 message
+// 10. Get a message through queue_2
 // 11. Save to ElasticSearch
 
 
 // Imports
 import { EventTrackerMessage } from "./event_tracker_types";
-import { KafkaConsumer, KafkaProducer } from "@revengine/common/kafka";
+import { pub, sub } from "@revengine/common/queue";
 import config from "config";
 import * as http from "http";
 import { enrich_tracker } from "./enrich_tracker";
@@ -31,9 +31,6 @@ const tracker_name = process.env.TRACKER_NAME || config.name || "revengine";
 const cache = new Cache({ prefix: `event-tracker-${tracker_name}`, debug: false, ttl: 60 * 60 });
 const port = process.env.PORT || config.tracker.port || 3012;
 const host = process.env.TRACKER_HOST || config.tracker.host || "127.0.0.1";
-const topic = process.env.TRACKER_KAFKA_TOPIC || config.tracker.kafka_topic || `${tracker_name}_events`;
-const kafka_partitions = process.env.KAFKA_PARTITIONS || config.kafka.partitions || 1;
-const kafka_replication_factor = process.env.KAFKA_REPLICATION_FACTOR || config.kafka.replication_factor || 1;
 const cookie_name = process.env.TRACKER_COOKIE_NAME || config.tracker.cookie_name || "revengine_browser_id"
 const headers = {
     "Content-Type": "application/json; charset=UTF-8",
@@ -46,12 +43,40 @@ const headers = {
 const debug = process.env.DEBUG || config.debug;
 const index = process.env.INDEX || (debug ? "pageviews_test" : "pageviews");
 
-const queue_1 = new KafkaProducer({ topic: `${topic}-1`, partitions: kafka_partitions, replication_factor: kafka_replication_factor, debug });
-const queue_2 = new KafkaProducer({ topic: `${topic}-2`, partitions: kafka_partitions, replication_factor: kafka_replication_factor });
-const queue_test = new KafkaProducer({ topic: `${topic}-test`, partitions: kafka_partitions, replication_factor: kafka_replication_factor, debug });
+// Initialize queues
+const queue_1_publisher = new pub(`${tracker_name}_events_1`);
+const queue_2_publisher = new pub(`${tracker_name}_events_2`);
+const queue_test_publisher = new pub(`${tracker_name}_events_test`);
 
-const consumer_1 = new KafkaConsumer({ topic: `${topic}-1`, group: `${tracker_name}_group_1` });
-const consumer_2 = new KafkaConsumer({ topic: `${topic}-2`, group: `${tracker_name}_group_2` });
+// Initialize queue subscribers
+// Queue 1 subscriber - handles enrichment
+new sub(async (message: EventTrackerMessage) => {
+    try {
+        const esdata = await enrich_tracker(message);
+        // For testing, we don't want to send the test message to the next queue
+        if (message.action === "test") {
+            await queue_test_publisher.addJob("test", esdata);
+            return;
+        }
+        await queue_2_publisher.addJob("enrich", esdata);
+    } catch (err) {
+        console.error(err);
+    }
+}, `${tracker_name}_events_1`);
+
+// Queue 2 subscriber - handles elasticsearch storage
+new sub(async (message: EventTrackerMessage) => {
+    try {
+        const data = {
+            index,
+            document: message
+        };
+        const result = await esclient.index(data);
+        debug && console.log(result);
+    } catch (err) {
+        console.error(err);
+    }
+}, `${tracker_name}_events_2`);
 
 // Check esclient index
 const ensure_index = async () => await esclient.ensure_index(index, {
@@ -93,39 +118,6 @@ const get_ip = (req) => {
     }
     return ip;
 }
-
-// Queue listeners
-
-// Enrichment
-consumer_1.on("message", async (message: EventTrackerMessage) => {
-    try {
-        const esdata = await enrich_tracker(message);
-        // For testing, we don't want to send the test message to the next queue
-        if (message.action === "test") {
-            await queue_test.send(esdata);
-            return;
-        }
-        await queue_2.send(esdata);
-    } catch (err) {
-        console.error(err);
-    }
-});
-
-// ElasticSearch
-consumer_2.on("message", async (message: EventTrackerMessage) => {
-    try {
-        const data = {
-            index,
-            document: message
-        };
-        // console.log(data);
-        const result = await esclient.index(data);
-        // console.log(result);
-        debug && console.log(result);
-    } catch (err) {
-        console.error(err);
-    }
-});
 
 // Functions
 const parse_url = (url) => {
@@ -196,7 +188,10 @@ const handle_hit = async (data: EventTrackerMessage, req, res) => {
     res.end();
     try {
         if (!data) throw `No data ${url}`;
-        if (!data.action) throw `No action ${url}`;
+        if (!data.action) {
+            if (config.debug) console.log("No action", { status: "error", message: "no action" });
+            return;
+        }
         if (!data.url) {
             data.url = req.headers.referer;
         }
@@ -205,7 +200,7 @@ const handle_hit = async (data: EventTrackerMessage, req, res) => {
             return;
         }
         data.browser_id = browser_id;
-        await queue_1.send(data);
+        await queue_1_publisher.addJob("enrich", data);
     } catch (err) {
         console.error(err);
     }
@@ -268,6 +263,18 @@ export const app = http.createServer(async (req, res) => {
 }).listen(port, host, async () => {
     await ensure_index();
     debug && console.log(`RevEngine Tracker listening ${host}:${port}`);
+});
+
+// Cleanup on server shutdown
+process.on('SIGTERM', async () => {
+    debug && console.log('SIGTERM signal received: closing HTTP server');
+    await queue_1_publisher.close();
+    await queue_2_publisher.close();
+    await queue_test_publisher.close();
+    app.close(() => {
+        debug && console.log('HTTP server closed');
+        process.exit(0);
+    });
 });
 
 console.log(`===${tracker_name} Tracker Started===`);

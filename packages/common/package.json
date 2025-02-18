@@ -17,6 +17,7 @@
         "mongodb": "^6.3.0",
         "redis": "^4.6.13",
         "ioredis": "^5.4.1",
-        "restify-errors": "^8.0.2"
+        "restify-errors": "^8.0.2",
+        "bullmq": "^5.34.10"
     }
 }

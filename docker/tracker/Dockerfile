@@ -10,6 +10,6 @@ RUN yarn install
 COPY . .
 COPY packages/tracker/mmdb /usr/lib/mmdb
 ENV HOST=0.0.0.0
-ENV PORT=8080
-EXPOSE 8080
-CMD npm run prod:tracker
+ENV PORT=80
+EXPOSE 80
+CMD npx tsx watch -- packages/tracker/event_tracker.ts

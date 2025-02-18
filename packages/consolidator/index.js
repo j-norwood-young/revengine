@@ -1,3 +1,5 @@
+// DEPRECATED
+
 const config = require("config");
 const { KafkaConsumer } = require("@revengine/common/kafka");
 const esclient = require("@revengine/common/esclient");

@@ -1,3 +1,5 @@
+// DEPRECATED
+
 import config from "config";
 import http from "http";
 import { parse_user_agent } from "./user_agent";

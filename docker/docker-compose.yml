@@ -83,6 +83,7 @@ services:
       dockerfile: ./docker/tracker/Dockerfile
     volumes:
       - ../packages/tracker:/usr/src/app/packages/tracker
+      - ../packages/common:/usr/src/app/packages/common
     restart: always
     stdin_open: true
     tty: true
@@ -91,19 +92,23 @@ services:
       - redis_network
       - default
     ports:
-      - 4003:8080
+      - 4003:80
     env_file:
       - ../.env-prod
     environment:
       - NODE_ENV=production
-      - MMDB_FILE=/usr/lib/mmdb/dbip-city-lite-2024-02.mmdb
-      - KAFKA_SERVER=kafka1:9092
+      - MMDB_FILE=/usr/lib/mmdb/dbip-city-lite-2025-02.mmdb
       - REDIS_URL=redis://redis1:6379
-      - PORT=8080
+      - PORT=80
       - TRACKER_HOST=0.0.0.0
+      - REDIS_HOST=redis1
+      - REDIS_PORT=6379
+      - QUEUE_NAME=tracker
+      - NODE_ENV=production
+      - INDEX=pageviews_copy
+      - TRACKER_NAME=Pageviews
     depends_on:
       - api
-      - kafka1
       - redis1
     deploy:
       mode: replicated
@@ -113,7 +118,7 @@ services:
         delay: 60s
         order: start-first
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/ | grep -q '\"status\":\"ok\"'"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:80/ping | grep -q 'pong'"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -157,25 +162,27 @@ services:
     stdin_open: true
     tty: true
     networks:
-      - kafka_network
       - redis_network
       - default
     ports:
       - 4015:4015
     volumes:
       - ../packages/tracker:/usr/src/app/packages/tracker
+      - ../packages/common:/usr/src/app/packages/common
     env_file:
       - ../.env-prod
     environment:
       - PORT=4015
       - NODE_ENV=production
       - MMDB_FILE=/usr/lib/mmdb/dbip-city-lite-2024-02.mmdb
-      - KAFKA_SERVER=kafka1:9092
       - REDIS_URL=redis://redis1:6379
       - TRACKER_HOST=0.0.0.0
+      - REDIS_HOST=redis1
+      - REDIS_PORT=6379
+      - QUEUE_NAME=crossword_tracker
+      - TRACKER_NAME=crosswords
+      - INDEX=crosswords
     depends_on:
-      - api
-      - kafka1
       - redis1
     deploy:
       mode: replicated
@@ -199,28 +206,29 @@ services:
     stdin_open: true
     tty: true
     networks:
-      - kafka_network
       - redis_network
       - default
     ports:
       - 4016:4016
     volumes:
       - ../packages/tracker:/usr/src/app/packages/tracker
+      - ../packages/common:/usr/src/app/packages/common
     env_file:
       - ../.env-prod
     environment:
       - PORT=4016
       - NODE_ENV=production
       - MMDB_FILE=/usr/lib/mmdb/dbip-city-lite-2024-02.mmdb
-      - KAFKA_SERVER=kafka1:9092
       - REDIS_URL=redis://redis1:6379
       - TRACKER_HOST=0.0.0.0
       - TRACKER_NAME=mavio
-      - TRACKER_KAFKA_TOPIC=mavio
       - INDEX=mavio
+      - QUEUE_NAME=mavio_tracker
+      - NODE_ENV=production
+      - REDIS_HOST=redis1
+      - REDIS_PORT=6379
     depends_on:
       - api
-      - kafka1
       - redis1
     deploy:
       mode: replicated
