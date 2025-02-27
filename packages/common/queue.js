@@ -1,18 +1,18 @@
 import * as dotenv from "dotenv";
-import { Worker, Queue } from "bullmq";
+import { Worker, Queue, MetricsTime } from "bullmq";
 
 dotenv.config();
 
 export class sub {
 
-    constructor(fn, queue_name = process.env.QUEUE_NAME || "revengine") {
+    constructor(fn, queue_name = process.env.QUEUE_NAME || "revengine", concurrency = null) {
         if (!process.env.REDIS_HOST || !process.env.REDIS_PORT) {
             throw new Error("Please provide REDIS_HOST and REDIS_PORT");
         }
         this.worker = new Worker(
             queue_name,
             async (job) => {
-                job.data.channel = job.name;
+                job.data.jobName = job.name;
                 return await fn(job.data);
             },
             {
@@ -20,7 +20,11 @@ export class sub {
                     host: process.env.REDIS_HOST,
                     port: parseInt(process.env.REDIS_PORT),
                 },
-            }
+                metrics: {
+                    maxDataPoints: MetricsTime.ONE_WEEK * 2,
+                },
+                concurrency: concurrency,
+            },
         );
     }
 
@@ -39,7 +43,7 @@ export class pub {
             connection: {
                 host: process.env.REDIS_HOST,
                 port: parseInt(process.env.REDIS_PORT),
-            },
+            }
         });
     }
 
@@ -53,5 +57,12 @@ export class pub {
 
     async close() {
         await this.queue.close();
+    }
+
+    async getMetrics() {
+        // const complete = await this.queue.getMetrics("complete");
+        // const failed = await this.queue.getMetrics("failed");
+        const waiting = await this.queue.getWaitingCount();
+        return { waiting };
     }
 }

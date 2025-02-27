@@ -26,4 +26,7 @@ export interface EventTrackerMessage {
     author_id?: string;
     data?: any;
     test_id?: string;
+    time_updated?: string;
+    seconds_on_page?: number;
+    scroll_depth?: number;
 }

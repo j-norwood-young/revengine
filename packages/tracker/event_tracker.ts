@@ -3,19 +3,19 @@
 // 1.1 Check cache and skip to 3 if hit is in cache
 // 2. Get user segments and labels
 // 3. Respond to HTTP request with ok, user segments and labels
-// 4. Send to BullMQ queue_1
-// 5. Process queue_1 message
-// 6. Get a message through queue_1
+// 4. Send to Kafka topic 1
+// 5. Process topic 1 message
+// 6. Get a message through topic 1
 // 7. Enrich message
-// 8. Send to BullMQ queue_2
-// 9. Process queue_2 message
-// 10. Get a message through queue_2
+// 8. Send to Kafka topic 2
+// 9. Process topic 2 message
+// 10. Get a message through topic 2
 // 11. Save to ElasticSearch
 
 
 // Imports
 import { EventTrackerMessage } from "./event_tracker_types";
-import { pub, sub } from "@revengine/common/queue";
+import { pub, sub } from "@revengine/common/kafka-queue";
 import config from "config";
 import * as http from "http";
 import { enrich_tracker } from "./enrich_tracker";
@@ -25,6 +25,9 @@ import * as cookie from "cookie";
 import * as myCrypto from "crypto";
 import esclient from "@revengine/common/esclient";
 import Cache from "@revengine/common/cache";
+import * as dotenv from "dotenv";
+
+dotenv.config();
 
 // Constants
 const tracker_name = process.env.TRACKER_NAME || config.name || "revengine";
@@ -43,9 +46,16 @@ const headers = {
 const debug = process.env.DEBUG || config.debug;
 const index = process.env.INDEX || (debug ? "pageviews_test" : "pageviews");
 
-// Initialize queues
-const queue_1_publisher = new pub(`${tracker_name}_events_1`);
-const queue_2_publisher = new pub(`${tracker_name}_events_2`);
+// Initialize Redis cache for document tracking
+const doc_cache = new Cache({ 
+    prefix: `${tracker_name}-doc-mapping`,
+    debug: false,
+    ttl: 60 * 60 * 24 // 1 day
+});
+
+// Initialize queues with Kafka topics
+const queue_1_publisher = new pub(process.env.KAFKA_TOPIC);
+const queue_2_publisher = new pub(process.env.KAFKA_TOPIC_2);
 const queue_test_publisher = new pub(`${tracker_name}_events_test`);
 
 // Initialize queue subscribers
@@ -62,21 +72,53 @@ new sub(async (message: EventTrackerMessage) => {
     } catch (err) {
         console.error(err);
     }
-}, `${tracker_name}_events_1`);
+}, process.env.KAFKA_TOPIC, process.env.KAFKA_GROUP);
 
 // Queue 2 subscriber - handles elasticsearch storage
 new sub(async (message: EventTrackerMessage) => {
     try {
-        const data = {
-            index,
-            document: message
+        let docId = null;
+        // Check if we have an existing document for this browser_id and article_id
+        if (message.browser_id && message.post_id) {
+            const mappingKey = `${message.browser_id}:${message.post_id}`;
+            docId = await doc_cache.get(mappingKey);
+        }
+
+        // Add time_updated to track document modifications
+        const enrichedMessage = {
+            ...message,
+            time_updated: new Date().toISOString()
         };
-        const result = await esclient.index(data);
+        let result;
+        if (docId) {
+            // Update existing document
+            result = await esclient.update({
+                index,
+                id: docId,
+                doc: enrichedMessage,
+                doc_as_upsert: true
+            });
+            debug && console.log(`Updated existing document ${docId}`);
+        } else {
+            // Create new document
+            result = await esclient.index({
+                index,
+                document: enrichedMessage
+            });
+
+            // Store the mapping if we have browser_id and article_id
+            if (message.browser_id && message.post_id && result._id) {
+                const mappingKey = `${message.browser_id}:${message.post_id}`;
+                await doc_cache.set(mappingKey, result._id);
+                debug && console.log(`Created new document mapping ${mappingKey} -> ${result._id}`);
+            }
+        }
+        
         debug && console.log(result);
     } catch (err) {
         console.error(err);
     }
-}, `${tracker_name}_events_2`);
+}, process.env.KAFKA_TOPIC_2, process.env.KAFKA_GROUP_2);
 
 // Check esclient index
 const ensure_index = async () => await esclient.ensure_index(index, {
@@ -109,6 +151,9 @@ const ensure_index = async () => await esclient.ensure_index(index, {
     date_published: { type: "date" },
     data: { type: "object" },
     title: { type: "text" },
+    time_updated: { type: "date" },
+    seconds_on_page: { type: "integer" },
+    scroll_depth: { type: "integer" },
 });
 
 const get_ip = (req) => {
@@ -128,7 +173,6 @@ const parse_url = (url) => {
 };
 
 const handle_hit = async (data: EventTrackerMessage, req, res) => {
-    // console.log({data})
     let browser_id = null;
     const url = req.url;
     let cache_id = null;
@@ -158,7 +202,6 @@ const handle_hit = async (data: EventTrackerMessage, req, res) => {
             path: '/'
         };
         headers["Set-Cookie"] = cookie.serialize(cookie_name, browser_id, cookieOptions);
-
         cache_id = `GET-${browser_id}-${data.user_ip}`;
         debug && console.log({cache_id});
         const cached_user_data = await cache.get(cache_id);
@@ -279,3 +322,11 @@ process.on('SIGTERM', async () => {
 
 console.log(`===${tracker_name} Tracker Started===`);
 debug && console.log("Debug mode on");
+
+// Print metrics every minute
+setInterval(async () => {
+    const q1 = await queue_1_publisher.getMetrics();
+    const q2 = await queue_2_publisher.getMetrics();
+    const q3 = await queue_test_publisher.getMetrics();
+    console.log({q1, q2, q3});
+}, 60 * 1000);

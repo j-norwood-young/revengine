@@ -58,7 +58,7 @@ class KafkaProducer {
             ],
             (err, result) => {
                 if (err) {
-                    throw(err);
+                    throw (err);
                 }
             }
         );
@@ -72,22 +72,29 @@ class KafkaProducer {
      */
     send(data) {
         return new Promise((resolve, reject) => {
-            this.producer.send(
-                [
-                    {
-                        topic: this.topic,
-                        messages: JSON.stringify(data),
-                    },
-                ],
-                (err, result_data) => {
-                    if (err) return reject(err);
-                    if (this.debug) {
-                        console.log(`Sent Kafka data to ${this.topic}`);
-                        // console.log(result_data);
+            try {
+                // Ensure we're sending a string to Kafka
+                const message = typeof data === 'string' ? data : JSON.stringify(data);
+                this.producer.send(
+                    [
+                        {
+                            topic: this.topic,
+                            messages: message,
+                        },
+                    ],
+                    (err, result_data) => {
+                        if (err) return reject(err);
+                        if (this.debug) {
+                            console.log(`Sent Kafka data to ${this.topic}`);
+                            // console.log(result_data);
+                        }
+                        return resolve(result_data);
                     }
-                    return resolve(result_data);
-                }
-            );
+                );
+            } catch (error) {
+                console.error("Error in KafkaProducer.send:", error);
+                reject(error);
+            }
         });
     }
 
@@ -156,7 +163,7 @@ class KafkaConsumer extends EventEmitter {
             this.consumer.on("message", this.onMessage.bind(this));
             this.consumer.on("error", this.onError.bind(this));
             if (this.debug) console.log(`Kafka Consumer listening for topic ${opts.topic} in group ${kafkaOptions.groupId} on server ${kafkaOptions.kafkaHost}`);
-        } catch(err) {
+        } catch (err) {
             if (this.debug) console.error(err);
             throw err;
         }
@@ -169,16 +176,42 @@ class KafkaConsumer extends EventEmitter {
      */
     onMessage(message) {
         try {
-            if (!message.value) return;
-            const json = JSON.parse(message.value);
-            this.emit("message", json);
-            if (this.debug) {
-                console.log("Got message")
-                console.log(json);
+            if (!message || !message.value) {
+                if (this.debug) console.log("Received empty message");
+                return;
             }
-        } catch(err) {
-            if (this.debug) console.error(err);
-            throw err;
+
+            let parsedMessage;
+            const messageValue = message.value.toString();
+
+            try {
+                // Only try to parse if it looks like a JSON string
+                if (messageValue.startsWith('{') || messageValue.startsWith('[')) {
+                    parsedMessage = JSON.parse(messageValue);
+                } else {
+                    parsedMessage = messageValue;
+                }
+            } catch (error) {
+                if (this.debug) {
+                    console.error("Failed to parse message in Kafka consumer:", error);
+                    console.error("Raw message:", messageValue);
+                }
+                // Don't throw, just emit the raw message
+                parsedMessage = messageValue;
+            }
+
+            // Emit the message with the parsed or raw value
+            this.emit("message", { ...message, value: parsedMessage });
+
+            if (this.debug) {
+                console.log("Got message");
+                console.log(parsedMessage);
+            }
+        } catch (err) {
+            if (this.debug) {
+                console.error("Error in KafkaConsumer.onMessage:", err);
+            }
+            this.emit("error", err);
         }
     }
 

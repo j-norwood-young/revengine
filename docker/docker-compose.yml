@@ -5,6 +5,7 @@ services:
     build:
       context: ../.
       dockerfile: ./docker/api/Dockerfile
+      no_cache: true
     restart: always
     stdin_open: true
     tty: true
@@ -40,6 +41,7 @@ services:
     build:
       context: ../.
       dockerfile: ./docker/frontend/Dockerfile
+      no_cache: true
     restart: always
     stdin_open: true
     tty: true
@@ -107,6 +109,11 @@ services:
       - NODE_ENV=production
       - INDEX=pageviews_copy
       - TRACKER_NAME=Pageviews
+      - KAFKA_SERVER=kafka1:9092
+      - KAFKA_TOPIC=Pageviews_events_1
+      - KAFKA_GROUP=Pageviews_group
+      - KAFKA_TOPIC_2=Pageviews_events_2
+      - KAFKA_GROUP_2=Pageviews_group_2
     depends_on:
       - api
       - redis1
@@ -123,6 +130,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 20s
+    mem_limit: 3g
   consolidator:
     image: jasony/revengine-consolidator
     build:
@@ -140,11 +148,14 @@ services:
       - NODE_ENV=production
       - KAFKA_SERVER=kafka1:9092
       - REDIS_URL=redis://redis1:6379
+      - KAFKA_SERVER=kafka1:9092
+      - INDEX=pageviews_copy
     depends_on:
       - api
       - kafka1
     volumes:
       - ../packages/consolidator:/usr/src/app/packages/consolidator
+      - ../packages/common:/usr/src/app/packages/common
     # deploy:
     #   mode: global
     healthcheck:
@@ -197,6 +208,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 20s
+    mem_limit: 3g
   mavio_tracker:
     image: jasony/revengine-mavio-tracker
     build:
@@ -227,8 +239,12 @@ services:
       - NODE_ENV=production
       - REDIS_HOST=redis1
       - REDIS_PORT=6379
+      - KAFKA_SERVER=kafka1:9092
+      - KAFKA_TOPIC=mavio_tracker
+      - KAFKA_GROUP=mavio_tracker
+      - KAFKA_TOPIC_2=mavio_tracker_2
+      - KAFKA_GROUP_2=mavio_tracker_2
     depends_on:
-      - api
       - redis1
     deploy:
       mode: replicated
@@ -243,6 +259,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 20s
+    mem_limit: 3g
   listeners:
     image: jasony/revengine-listeners
     build:

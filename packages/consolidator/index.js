@@ -129,26 +129,37 @@ const flush = async () => {
     }
 }
 
-consumer.on('message', async (messages) => {
+consumer.on('message', async (message) => {
     try {
-        json = JSON.parse(messages[0].messages);
+        // The message value is already parsed by our Kafka consumer
+
+        const msg = message.value[0];
+        const json = JSON.parse(msg.messages);
         if (config.debug) {
-            console.log(JSON.stringify(json, null, "  "));
+            console.log("Received message:", JSON.stringify(json, null, "  "));
         }
-        for (let index of config.consolidator.indexes[json.index]) {
-            try {
-                cache.push({
-                    index: {
-                        _index: index,
-                        _type: "_doc",
-                    }
-                }, json);
-            } catch (err) {
-                console.error(err);
+
+        if (!json.index) {
+            if (config.debug) {
+                console.log(`Skipping message - no valid index configuration found for index: ${json.index}`);
             }
-        };
+            return;
+        }
+
+        try {
+            cache.push({
+                index: {
+                    _index: json.index,
+                    _type: "_doc",
+                }
+            }, json);
+        } catch (err) {
+            console.error("Error pushing to cache:", err);
+            console.error("Message content:", JSON.stringify(json));
+        }
     } catch (err) {
-        console.error(err);
+        console.error("Error processing message:", err);
+        console.error("Raw message:", message);
     }
 });
 

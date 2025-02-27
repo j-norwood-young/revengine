@@ -34,6 +34,9 @@
         "indexes": {
             "pageviews": [
                 "pageviews_copy"
+            ],
+            "pageviews_copy": [
+                "pageviews_copy"
             ]
         }
     },

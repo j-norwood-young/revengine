@@ -34,7 +34,9 @@ const headers = {
     "Access-Control-Allow-Headers": "Content-Type",
     "X-Powered-By": `${name}`,
 };
-const index = process.env.INDEX || config.debug ? "pageviews_test" : "pageviews";
+const index = process.env.INDEX || (config.debug ? "pageviews_test" : "pageviews_copy");
+
+console.log({index, debug: config.debug});
 
 let producer = null;
 try {
