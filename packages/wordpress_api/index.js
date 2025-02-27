@@ -9,7 +9,122 @@ const fetch = require("node-fetch");
 const dotenv = require("dotenv");
 dotenv.config();
 
-const server = restify.createServer();
+// Process monitoring
+process.on('SIGTERM', () => {
+    console.error('Received SIGTERM signal - process is being terminated');
+    logMemoryUsage();
+    process.exit(1);
+});
+
+process.on('SIGINT', () => {
+    console.error('Received SIGINT signal - process is being interrupted');
+    logMemoryUsage();
+    process.exit(1);
+});
+
+process.on('exit', (code) => {
+    console.error(`Process exit with code: ${code}`);
+    logMemoryUsage();
+});
+
+// Enhanced error tracking
+let lastError = null;
+let errorCount = 0;
+const trackError = (err, context = '') => {
+    errorCount++;
+    lastError = {
+        timestamp: new Date(),
+        error: err,
+        context,
+        memory: process.memoryUsage(),
+        stack: err.stack
+    };
+    console.error('Error tracked:', {
+        count: errorCount,
+        context,
+        error: err.message,
+        stack: err.stack,
+        memory: {
+            rss: `${Math.round(lastError.memory.rss / 1024 / 1024 * 100) / 100} MB`,
+            heapTotal: `${Math.round(lastError.memory.heapTotal / 1024 / 1024 * 100) / 100} MB`,
+            heapUsed: `${Math.round(lastError.memory.heapUsed / 1024 / 1024 * 100) / 100} MB`
+        }
+    });
+};
+
+// Memory usage logging
+const logMemoryUsage = () => {
+    const used = process.memoryUsage();
+    const metrics = {
+        rss: `${Math.round(used.rss / 1024 / 1024 * 100) / 100} MB`,
+        heapTotal: `${Math.round(used.heapTotal / 1024 / 1024 * 100) / 100} MB`,
+        heapUsed: `${Math.round(used.heapUsed / 1024 / 1024 * 100) / 100} MB`,
+        heapUsedPercentage: `${Math.round(used.heapUsed / used.heapTotal * 100)}%`,
+        external: `${Math.round(used.external / 1024 / 1024 * 100) / 100} MB`,
+    };
+    console.log('Memory usage:', metrics);
+
+    // Check for potential memory issues
+    // if (used.heapUsed / used.heapTotal > 0.9) {
+    //     console.warn('Warning: High memory usage detected');
+    //     console.warn('Triggering garbage collection');
+    //     if (global.gc) {
+    //         global.gc();
+    //     }
+    // }
+};
+
+// Enhanced uncaught exception handler
+process.on('uncaughtException', (err) => {
+    trackError(err, 'Uncaught Exception');
+    console.error('Uncaught Exception:', err);
+    console.error('Stack trace:', err.stack);
+    logMemoryUsage();
+});
+
+// Enhanced unhandled rejection handler
+process.on('unhandledRejection', (reason, promise) => {
+    trackError(reason, 'Unhandled Rejection');
+    console.error('Unhandled Rejection at:', promise);
+    console.error('Reason:', reason);
+    logMemoryUsage();
+});
+
+// Log memory usage every minute
+setInterval(logMemoryUsage, 60000);
+// Initial memory usage log
+logMemoryUsage();
+
+const server = restify.createServer({
+    handleUpgrades: true,
+    // log: console
+});
+
+// Enhanced error event handler
+server.on('error', (err) => {
+    trackError(err, 'Server Error');
+    console.error('Server error:', err);
+    logMemoryUsage();
+});
+
+// Enhanced uncaughtException handler
+server.on('uncaughtException', (req, res, route, err) => {
+    trackError(err, `Uncaught Exception in route: ${route.spec.path}`);
+    console.error('Uncaught exception:', err);
+    console.error('Route:', route);
+    console.error('Request:', {
+        url: req.url,
+        method: req.method,
+        headers: req.headers,
+        params: req.params,
+        query: req.query,
+        body: req.body
+    });
+    logMemoryUsage();
+    if (!res.headersSent) {
+        res.send(500, { status: "error", message: "Internal server error" });
+    }
+});
 
 server.use(restify.plugins.queryParser());
 server.use(restify.plugins.bodyParser());
@@ -149,7 +264,7 @@ const top_articles_report = async (params) => {
             "South Africa"
         ],
         "tags": [
-            "Devil’s Peak",
+            "Devil's Peak",
             "Fire",
             "NCC Wildfires",
             "Philip Kgosana Drive",
@@ -157,7 +272,7 @@ const top_articles_report = async (params) => {
             "South African National Parks",
             "Table Mountain"
         ],
-        "title": "‘Out-of-control’ Table Mountain fire forces UCT evacuation",
+        "title": "'Out-of-control' Table Mountain fire forces UCT evacuation",
         "urlid": "pyrocene-cape-out-of-control-wildfire-rages-on-slopes-of-table-mountain",
         "img_full": "https://www.dailymaverick.co.za/wp-content/uploads/fire-pic.jpeg",
         "img_medium": "https://www.dailymaverick.co.za/wp-content/uploads/fire-pic-480x360.jpeg",
@@ -218,6 +333,9 @@ server.get("/top_articles", apicache.middleware("5 minutes"), async (req, res) =
 
 server.get("/front_page", apicache.middleware("5 minutes"), async (req, res) => {
     try {
+        if (!process.env.REVENGINE_WORDPRESS_KEY) {
+            throw new Error("REVENGINE_WORDPRESS_KEY is not set");
+        }
         const result = await fetch(`${config.wordpress.server}/wp-json/revengine/v1/featured`, {
             method: 'get',
             headers: {
@@ -227,7 +345,7 @@ server.get("/front_page", apicache.middleware("5 minutes"), async (req, res) => 
         });
         const json_result = await result.json();
         if (json_result.code === "rest_forbidden") {
-            throw "Wordpress REST API error - rest_forbidden"
+            throw new Error("Wordpress REST API error - rest_forbidden");
         }
         const articles = json_result.data;
         const report = new Reports.TopLastHour();
@@ -237,10 +355,13 @@ server.get("/front_page", apicache.middleware("5 minutes"), async (req, res) => 
         }
         res.send(articles);
     } catch (err) {
-        console.error(err);
-        res.send(500, { status: "error", error: err });
+        console.error('Error in /front_page:', err);
+        console.error('Stack trace:', err.stack);
+        if (!res.headersSent) {
+            res.send(500, { status: "error", message: err.message || "Internal server error" });
+        }
     }
-})
+});
 
 server.get("/top_articles_by_section/:section", apicache.middleware("5 minutes"), async (req, res) => {
     try {
@@ -267,30 +388,61 @@ server.get("/top_articles_by_section/:section", apicache.middleware("5 minutes")
                 }
             }
         ])).data;
+
         for (let article of articles) {
-            article.hits_last_hour = top_articles.find(hit => hit.key === article.post_id).doc_count;
+            const hit = top_articles.find(hit => hit.key === article.post_id);
+            article.hits_last_hour = hit ? hit.doc_count : 0;
         }
         articles.sort((a, b) => b.hits_last_hour - a.hits_last_hour);
         res.send(articles);
     } catch (err) {
-        console.error(err);
-        res.send(500, { status: "error", error: err });
+        console.error('Error in /top_articles_by_section:', err);
+        console.error('Request params:', req.params);
+        console.error('Stack trace:', err.stack);
+        if (!res.headersSent) {
+            res.send(500, { status: "error", message: err.message || "Internal server error" });
+        }
     }
-})
+});
 
 server.get("/reader/:wordpress_id", apicache.middleware("5 minutes"), async (req, res) => {
     try {
         const wordpress_id = req.params.wordpress_id;
-        const reader = (await jxphelper.get("reader", { "filter[wordpress_id]": wordpress_id, "populate[segment]": "code", "fields": "segmentation_id" })).data.pop();
+        // console.log(`Fetching reader for wordpress_id: ${wordpress_id}`);
+
+        const reader = (await jxphelper.get("reader", {
+            "filter[wordpress_id]": wordpress_id,
+            "populate[segment]": "code",
+            "fields": "segmentation_id"
+        })).data.pop();
+
         if (!reader) {
-            return res.send(404, { status: "error", message: "Reader not found" });
+            console.log(`Reader not found for wordpress_id: ${wordpress_id}`);
+            res.send(404, { status: "error", message: "Reader not found" });
+            return;
         }
-        res.send({ status: "ok", data: { segments: reader.segment.map(segment => segment.code), labels: reader.lbl, authors: reader.authors, sections: reader.sections } });
+
+        const response = {
+            status: "ok",
+            data: {
+                segments: reader.segment ? reader.segment.map(segment => segment.code) : [],
+                labels: reader.lbl || [],
+                authors: reader.authors || [],
+                sections: reader.sections || []
+            }
+        };
+
+        res.send(response);
     } catch (err) {
-        console.error(err);
-        res.send({ status: "error" });
+        console.error('Error in /reader endpoint:', err);
+        console.error('Request params:', req.params);
+        console.error('Stack trace:', err.stack);
+
+        if (!res.headersSent) {
+            res.send(500, { status: "error", message: err.message || "Internal server error" });
+        }
     }
-})
+});
 
 server.get("/analytics/posts", async (req, res) => {
     try {
@@ -298,18 +450,36 @@ server.get("/analytics/posts", async (req, res) => {
         if (!Array.isArray(post_ids)) {
             post_ids = [post_ids];
         }
+
+        console.log('Processing analytics for post_ids:', post_ids);
+
         const report = new Reports.TopLastHour();
         const post_hits = await report.run({ article_id: post_ids.map(id => Number(id)) });
-        res.send(post_hits.map(a => ({ post_id: a.key, hits: a.doc_count, avg_scroll_depth: Math.round(a.avg_scroll_depth.value), avg_seconds_on_page: Math.round(a.avg_seconds_on_page.value) })));
+
+        const response = post_hits.map(a => ({
+            post_id: a.key,
+            hits: a.doc_count,
+            avg_scroll_depth: Math.round(a.avg_scroll_depth.value),
+            avg_seconds_on_page: Math.round(a.avg_seconds_on_page.value)
+        }));
+
+        res.send(response);
     } catch (err) {
-        console.error(err);
-        res.send(500, { status: "error", error: err });
+        console.error('Error in GET /analytics/posts:', err);
+        console.error('Request query:', req.query);
+        console.error('Stack trace:', err.stack);
+
+        if (!res.headersSent) {
+            res.send(500, { status: "error", message: err.message || "Internal server error" });
+        }
     }
 });
 
 server.post("/analytics/posts", async (req, res) => {
     try {
         let { post_ids } = req.body;
+        // console.log('Processing POST analytics for post_ids:', post_ids);
+
         if (!Array.isArray(post_ids)) {
             if (typeof post_ids === "object") {
                 post_ids = Object.values(post_ids);
@@ -317,32 +487,55 @@ server.post("/analytics/posts", async (req, res) => {
                 post_ids = [post_ids];
             }
         }
+
         post_ids = post_ids.map(id => Number(id));
         const report = new Reports.TopLastHour();
         const top_articles = await report.run({ article_id: post_ids });
+
         const result = [];
         for (let post_id of post_ids) {
             const post = top_articles.find(a => a.key === Number(post_id));
-            result.push({ post_id, hits: post ? post.doc_count : 0, avg_scroll_depth: post ? Math.round(post.avg_scroll_depth.value) : 0, avg_seconds_on_page: post ? Math.round(post.avg_seconds_on_page.value) : 0 });
+            result.push({
+                post_id,
+                hits: post ? post.doc_count : 0,
+                avg_scroll_depth: post ? Math.round(post.avg_scroll_depth.value) : 0,
+                avg_seconds_on_page: post ? Math.round(post.avg_seconds_on_page.value) : 0
+            });
         }
-        // console.log(result)
+
         res.send(result);
     } catch (err) {
-        console.error(err);
-        res.send(500, { status: "error", error: err });
+        console.error('Error in POST /analytics/posts:', err);
+        console.error('Request body:', req.body);
+        console.error('Stack trace:', err.stack);
+
+        if (!res.headersSent) {
+            res.send(500, { status: "error", message: err.message || "Internal server error" });
+        }
     }
 });
 
 server.post("/simulate/top_articles", async (req, res) => {
     try {
         const { posts } = req.body;
-        for (let post in posts) {
-            post.hits_last_hour = Math.floor(Math.random() * 100);
+        console.log('Simulating top articles for posts:', JSON.stringify(posts));
+
+        if (!Array.isArray(posts)) {
+            throw new Error('Posts must be an array');
         }
-        res.send(posts);
+
+        const simulatedPosts = posts.map(post => ({
+            ...post,
+            hits_last_hour: Math.floor(Math.random() * 100)
+        }));
+
+        console.log('Simulated posts:', JSON.stringify(simulatedPosts));
+        res.send(simulatedPosts);
     } catch (err) {
-        console.error(err);
-        res.send(500, { status: "error", error: err });
+        console.error('Error in /simulate/top_articles:', err);
+        console.error('Request body:', JSON.stringify(req.body));
+        console.error('Stack trace:', err.stack);
+        res.send(500, { status: "error", error: err.message });
     }
 });
 
