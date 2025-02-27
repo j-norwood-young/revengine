@@ -12,7 +12,7 @@
     "prod-fork:api": "env NODE_ENV=production env NODE_OPTIONS=--max-old-space-size=8192 node packages/api",
     "prod:frontend": "env NODE_ENV=production node --watch packages/frontend/bin/www",
     "prod:pipeline": "env NODE_ENV=production node packages/pipeline",
-    "prod:wordpress_api": "env NODE_ENV=production nodemon --watch packages/wordpress_api --watch packages/reports packages/wordpress_api",
+    "prod:wordpress_api": "env NODE_ENV=production node --watch packages/wordpress_api --watch packages/reports packages/wordpress_api",
     "prod:mailer": "env NODE_ENV=production node packages/mailer",
     "prod-fork:listeners": "env NODE_ENV=production nodemon --watch packages/mailer --watch packages/listeners packages/listeners",
     "prod-track:crosswords": "env NODE_ENV=production env TRACKER_NAME=crosswords TRACKER_KAFKA_TOPIC=crosswords INDEX=crosswords tsx watch -- packages/tracker/event_tracker.ts",
