@@ -41,3 +41,16 @@ docker build -t revengine-bqsync:latest -f docker/bqsync/Dockerfile .
 docker tag revengine-bqsync:latest harbor.revengine.dailymaverick.co.za/revengine/revengine-bqsync:latest
 docker push harbor.revengine.dailymaverick.co.za/revengine/revengine-bqsync:latest
 echo "----------------------------------------"
+
+echo "Building consolidator"
+docker build -t revengine-consolidator:latest -f docker/consolidator/Dockerfile .
+docker tag revengine-consolidator:latest harbor.revengine.dailymaverick.co.za/revengine/revengine-consolidator:latest
+docker push harbor.revengine.dailymaverick.co.za/revengine/revengine-consolidator:latest
+echo "----------------------------------------"
+
+echo "Building crossword-tracker"
+docker build -t revengine-crossword-tracker:latest -f docker/crossword-tracker/Dockerfile .
+docker tag revengine-crossword-tracker:latest harbor.revengine.dailymaverick.co.za/revengine/revengine-crossword-tracker:latest
+docker push harbor.revengine.dailymaverick.co.za/revengine/revengine-crossword-tracker:latest
+echo "----------------------------------------"
+
