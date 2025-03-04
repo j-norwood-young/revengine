@@ -442,8 +442,12 @@ async function map_reader_to_sailthru(reader, use_cache = true, cached_subscript
             if (revio_payment_method) {
                 vars["subscription_revio_payment_method"] = revio_payment_method.value;
             }
-            vars["subscription_created_date"] = new Date(subscription.date_created || subscription.createdAt).toISOString().slice(0, 10);
-            vars["subscription_modified_date"] = new Date(subscription.date_modified || subscription.updatedAt).toISOString().slice(0, 10);
+            if (subscription.date_created) {
+                vars["subscription_created_date"] = new Date(subscription.date_created).toISOString().slice(0, 10);
+            }
+            if (subscription.date_modified) {
+                vars["subscription_modified_date"] = new Date(subscription.date_modified).toISOString().slice(0, 10);
+            }
         }
     } else {
         // console.log(`No subscription found for ${reader.email}`)
