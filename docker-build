@@ -1,56 +1,129 @@
 #!/bin/bash
 
-echo "Building revengine-api"
-docker build -t revengine-api:latest -f docker/api/Dockerfile .
-docker tag revengine-api:latest harbor.revengine.dailymaverick.co.za/revengine/revengine-api:latest
-docker push harbor.revengine.dailymaverick.co.za/revengine/revengine-api:latest
-echo "----------------------------------------"
+# Array of available components
+components=(
+    "revengine-api"
+    "revengine-frontend"
+    "revengine-mavio-tracker"
+    "revengine-tracker"
+    "revengine-consolidator"
+    "revengine-crossword-tracker"
+    "revengine-listeners"
+    "revengine-wordpress-api"
+    "revengine-bqsync"
+)
 
-echo "Building revengine-frontend"
-docker build -t revengine-frontend:latest -f docker/frontend/Dockerfile .
-docker tag revengine-frontend:latest harbor.revengine.dailymaverick.co.za/revengine/revengine-frontend:latest
-docker push harbor.revengine.dailymaverick.co.za/revengine/revengine-frontend:latest
-echo "----------------------------------------"
+# Function to build a specific component
+build_component() {
+    component=$1
+    echo "Building $component"
+    
+    case $component in
+        "revengine-api")
+            docker build -t $component:latest -f docker/api/Dockerfile .
+            docker tag $component:latest harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            docker push harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            ;;
+        "revengine-frontend")
+            docker build -t $component:latest -f docker/frontend/Dockerfile .
+            docker tag $component:latest harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            docker push harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            ;;
+        "revengine-mavio-tracker")
+            docker build -t $component:latest -f docker/mavio-tracker/Dockerfile .
+            docker tag $component:latest harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            docker push harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            ;;
+        "revengine-tracker")
+            docker build -t $component:latest -f docker/tracker/Dockerfile .
+            docker tag $component:latest harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            docker push harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            ;;
+        "revengine-consolidator")
+            docker build -t $component:latest -f docker/consolidator/Dockerfile .
+            docker tag $component:latest harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            docker push harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            ;;
+        "revengine-crossword-tracker")
+            docker build -t $component:latest -f docker/crossword-tracker/Dockerfile .
+            docker tag $component:latest harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            docker push harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            ;;
+        "revengine-listeners")
+            docker build -t $component:latest -f docker/listeners/Dockerfile .
+            docker tag $component:latest harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            docker push harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            ;;
+        "revengine-wordpress-api")
+            docker build -t $component:latest -f docker/wordpress-api/Dockerfile .
+            docker tag $component:latest harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            docker push harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            ;;
+        "revengine-bqsync")
+            docker build -t $component:latest -f docker/bqsync/Dockerfile .
+            docker tag $component:latest harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            docker push harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            ;;
+    esac
+    
+    echo "----------------------------------------"
+}
 
-echo "Building revengine-mavio-tracker"
-docker build -t revengine-mavio-tracker:latest -f docker/mavio-tracker/Dockerfile .
-docker tag revengine-mavio-tracker:latest harbor.revengine.dailymaverick.co.za/revengine/revengine-mavio-tracker:latest
-docker push harbor.revengine.dailymaverick.co.za/revengine/revengine-mavio-tracker:latest
-echo "----------------------------------------"
+# Display menu function
+display_menu() {
+    clear
+    echo "=== Docker Build Menu ==="
+    echo "Select components to build (comma-separated numbers) or choose an option:"
+    echo ""
+    
+    for i in "${!components[@]}"; do
+        echo "[$((i+1))] ${components[$i]}"
+    done
+    
+    echo ""
+    echo "[a] Build all components"
+    echo "[q] Quit"
+    echo ""
+    echo -n "Your choice: "
+}
 
-echo "Building revengine-tracker"
-docker build -t revengine-tracker:latest -f docker/tracker/Dockerfile .
-docker tag revengine-tracker:latest harbor.revengine.dailymaverick.co.za/revengine/revengine-tracker:latest
-docker push harbor.revengine.dailymaverick.co.za/revengine/revengine-tracker:latest
-echo "----------------------------------------"
+# Main function
+main() {
+    while true; do
+        display_menu
+        read -r choice
+        
+        # Handle quit option
+        if [[ "$choice" == "q" || "$choice" == "Q" ]]; then
+            echo "Exiting docker build script."
+            exit 0
+        fi
+        
+        # Handle build all option
+        if [[ "$choice" == "a" || "$choice" == "A" ]]; then
+            echo "Building all components..."
+            for component in "${components[@]}"; do
+                build_component "$component"
+            done
+            echo "All components built successfully."
+            read -p "Press Enter to continue..."
+            continue
+        fi
+        
+        # Handle multiple selections (comma-separated)
+        IFS=',' read -ra selected <<< "$choice"
+        for sel in "${selected[@]}"; do
+            if [[ "$sel" =~ ^[0-9]+$ ]] && [ "$sel" -ge 1 ] && [ "$sel" -le "${#components[@]}" ]; then
+                build_component "${components[$((sel-1))]}"
+            else
+                echo "Invalid selection: $sel"
+            fi
+        done
+        
+        read -p "Press Enter to continue..."
+    done
+}
 
-echo "Building listeners"
-docker build -t revengine-listeners:latest -f docker/listeners/Dockerfile .
-docker tag revengine-listeners:latest harbor.revengine.dailymaverick.co.za/revengine/revengine-listeners:latest
-docker push harbor.revengine.dailymaverick.co.za/revengine/revengine-listeners:latest
-echo "----------------------------------------"
-
-echo "Building wordpress-api"
-docker build -t revengine-wordpress-api:latest -f docker/wordpress-api/Dockerfile .
-docker tag revengine-wordpress-api:latest harbor.revengine.dailymaverick.co.za/revengine/revengine-wordpress-api:latest
-docker push harbor.revengine.dailymaverick.co.za/revengine/revengine-wordpress-api:latest
-echo "----------------------------------------"
-
-echo "Building bqsync"
-docker build -t revengine-bqsync:latest -f docker/bqsync/Dockerfile .
-docker tag revengine-bqsync:latest harbor.revengine.dailymaverick.co.za/revengine/revengine-bqsync:latest
-docker push harbor.revengine.dailymaverick.co.za/revengine/revengine-bqsync:latest
-echo "----------------------------------------"
-
-echo "Building consolidator"
-docker build -t revengine-consolidator:latest -f docker/consolidator/Dockerfile .
-docker tag revengine-consolidator:latest harbor.revengine.dailymaverick.co.za/revengine/revengine-consolidator:latest
-docker push harbor.revengine.dailymaverick.co.za/revengine/revengine-consolidator:latest
-echo "----------------------------------------"
-
-echo "Building crossword-tracker"
-docker build -t revengine-crossword-tracker:latest -f docker/crossword-tracker/Dockerfile .
-docker tag revengine-crossword-tracker:latest harbor.revengine.dailymaverick.co.za/revengine/revengine-crossword-tracker:latest
-docker push harbor.revengine.dailymaverick.co.za/revengine/revengine-crossword-tracker:latest
-echo "----------------------------------------"
+# Run the main function
+main
 
