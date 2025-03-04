@@ -3,7 +3,7 @@ const router = express.Router();
 const config = require("config");
 
 const JXPHelper = require("jxp-helper");
-const apihelper = new JXPHelper({ server: config.api.server });
+const apihelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server });
 const Collections = require("../libs/collections");
 const collections = new Collections;
 
@@ -25,7 +25,7 @@ router.get("/json/raw/:type", async (req, res) => {
         }, res.locals.query)
         const data = (await req.apihelper.get(req.params.type, q));
         res.send(data);
-    } catch(err) {
+    } catch (err) {
         console.error(err);
         res.status(500).send({ message: "An error occured", state: "error", error: err });
     }
@@ -35,7 +35,7 @@ router.get("/json/:type", populate, async (req, res) => {
     try {
         const data = (await apihelper.get(res.locals.type, { fields: res.locals.fields, page: res.locals.page, limit: res.locals.limit, "sort[createdAt]": -1 }));
         res.send(data);
-    } catch(err) {
+    } catch (err) {
         console.error(err);
         res.status(500).send({ message: "An error occured", state: "error", error: err });
     }

@@ -1,7 +1,7 @@
 const config = require("config");
 const JXPHelper = require("jxp-helper");
 require("dotenv").config();
-const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
+const jxphelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 const moment = require("moment-timezone");
 moment.tz.setDefault(config.timezone || "UTC");
 const esclient = require("@revengine/common/esclient");
@@ -49,7 +49,7 @@ class Sessions {
                             "min_doc_count": 1
                         }
                     },
-                    
+
                 },
             }
         }
@@ -62,7 +62,7 @@ class Sessions {
         };
     }
 
-    async get_logged_in_users(period="week") {
+    async get_logged_in_users(period = "week") {
         let query = {
             index: "pageviews_copy",
             track_total_hits: true,
@@ -95,7 +95,7 @@ class Sessions {
                             }
                         }
                     },
-                    
+
                 },
             }
         }
@@ -116,7 +116,7 @@ class Sessions {
         };
     }
 
-    async get_users_by_utm_source(utm_source, period="week") {
+    async get_users_by_utm_source(utm_source, period = "week") {
         let query = {
             index: "pageviews_copy",
             track_total_hits: true,
@@ -149,7 +149,7 @@ class Sessions {
                             }
                         }
                     },
-                    
+
                 },
             }
         }
@@ -171,7 +171,7 @@ class Sessions {
         };
     }
 
-    async get_users_by_label(label, period="week") {
+    async get_users_by_label(label, period = "week") {
         let query = {
             index: "pageviews_copy",
             track_total_hits: true,
@@ -204,7 +204,7 @@ class Sessions {
                             }
                         }
                     },
-                    
+
                 },
             }
         }
@@ -226,7 +226,7 @@ class Sessions {
         };
     }
 
-    async get_users_by_segment(segment, period="week") {
+    async get_users_by_segment(segment, period = "week") {
         let query = {
             index: "pageviews_copy",
             track_total_hits: true,
@@ -259,7 +259,7 @@ class Sessions {
                             }
                         }
                     },
-                    
+
                 },
             }
         }

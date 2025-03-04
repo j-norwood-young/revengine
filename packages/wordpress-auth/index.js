@@ -1,11 +1,11 @@
-const {Command} = require("commander");
+const { Command } = require("commander");
 const CryptoJS = require("crypto-js");
 const padZeroPadding = require('crypto-js/pad-zeropadding');
 require("dotenv").config();
 const config = require("config");
 const expect = require("expect");
 const Apihelper = require("jxp-helper");
-const apihelper = new Apihelper({ server: config.api.server, apikey: process.env.APIKEY });
+const apihelper = new Apihelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 const axios = require("axios");
 const tbp = require('@revengine/mailer/touchbase');
 
@@ -47,9 +47,9 @@ if (options.test) {
         "email": "test@test.com"
     }
     const encrypted = encrypt(test_data);
-    console.log({encrypted});
+    console.log({ encrypted });
     const decrypted = decrypt(encrypted);
-    console.log({decrypted});
+    console.log({ decrypted });
     expect(decrypted).toEqual(test_data);
     console.log("Encryption test passed.");
 }
@@ -79,7 +79,7 @@ const add_reader_to_list = async (reader_id, list_id, custom_fields = {}) => {
         }], list.list_id);
         if (config.debug) console.log(result);
         return result;
-    } catch(err) {
+    } catch (err) {
         console.error(err);
     }
 }
@@ -131,12 +131,12 @@ const sync_reader = async (reader_id) => {
                     },
                 });
                 if (config.debug) console.log(result.status, result.data);
-            } catch(err) {
+            } catch (err) {
                 console.log(err.response.status, err.response.statusText);
                 console.log(err.response.data);
             }
         }
-    } catch(err) {
+    } catch (err) {
         console.error(err);
     }
 }
@@ -149,7 +149,7 @@ const sync_list = async (list_id) => {
             { $match: { "list_id": `ObjectId(\"${list_id}\")` } },
             { $lookup: { from: "readers", localField: "email", foreignField: "email", as: "reader" } },
             { $unwind: "$reader" },
-            { $project: { _id: 0, "wordpress_id": "$reader.wordpress_id", "revengine_id": "$_id", "email": "$reader.email", "first_name": "$reader.first_name",  "last_name":"$reader.last_name", "reader_id": "$reader._id", "data": 1 } },
+            { $project: { _id: 0, "wordpress_id": "$reader.wordpress_id", "revengine_id": "$_id", "email": "$reader.email", "first_name": "$reader.first_name", "last_name": "$reader.last_name", "reader_id": "$reader._id", "data": 1 } },
         ]
         // console.log(pipeline);
         const subscribers = (await apihelper.aggregate("touchbasesubscriber", pipeline)).data;
@@ -184,7 +184,7 @@ const sync_list = async (list_id) => {
         // console.log(JSON.stringify(update, null, 2));
         const result = await tbp.add_readers_to_list(update, list.list_id);
         console.log(result);
-    } catch(err) {
+    } catch (err) {
         console.error(JSON.stringify(err.response.data, null, 2));
     }
 }
@@ -216,7 +216,7 @@ const force_sync_reader = async (reader_id, list_id) => {
             },
         });
         if (config.debug) console.log(result.status, result.data);
-    } catch(err) {
+    } catch (err) {
         console.log(err.response.status, err.response.statusText);
         console.log(err.response.data);
     }
@@ -233,8 +233,8 @@ async function generate_by_id(reader_id) {
     return encrypt(data);
 }
 
-async function generate_by_email (email) {
-    const readers = (await apihelper.get("reader", {"filter[email]": email, fields: "wordpress_id,revengine_id,email"})).data;
+async function generate_by_email(email) {
+    const readers = (await apihelper.get("reader", { "filter[email]": email, fields: "wordpress_id,revengine_id,email" })).data;
     if (readers.length === 0) throw new Error(`No readers found for email ${email}`);
     const reader = readers[0];
     const data = {
@@ -252,7 +252,7 @@ async function generate(param) {
         } else {
             console.log(await generate_by_id(param));
         }
-    } catch(err) {
+    } catch (err) {
         console.log(err);
         process.exit(1);
     }

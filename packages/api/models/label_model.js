@@ -2,7 +2,7 @@ const config = require("config");
 require("dotenv").config();
 const moment = require("moment");
 const JXPHelper = require('jxp-helper');
-const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
+const jxphelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 const fix_query = require("jxp/libs/query_manipulation").fix_query;
 const ss = require("simple-statistics");
 const crypto = require("crypto");
@@ -10,13 +10,13 @@ const crypto = require("crypto");
 const LabelSchema = new JXPSchema({
     name: { type: String, unique: true },
     rules: {
-        type: [String], 
+        type: [String],
         validate: {
             validator: function (v) {
                 try {
                     JSON.parse(v);
                     return true;
-                } catch(err) {
+                } catch (err) {
                     console.log({ v });
                     return false;
                 }
@@ -113,7 +113,7 @@ const applyLabel = async function (label) {
             const data = (await fn()({ jxphelper, moment, ss })).data;
             const post_data = data.map(d => {
                 const _id = d._id;
-                delete(d._id);
+                delete (d._id);
                 return {
                     _id,
                     label_data: d
@@ -133,18 +133,18 @@ const applyLabel = async function (label) {
                 await Reader.updateMany(q, u);
             }
             const updates = post_data.map(item => {
-				const updateQuery = {
-					"updateOne": {
-						"upsert": true
-					}
-				}
+                const updateQuery = {
+                    "updateOne": {
+                        "upsert": true
+                    }
+                }
                 const update_item = Object.assign({}, item);
-                delete(update_item._id);
-				updateQuery.updateOne.update = update_item;
-				updateQuery.updateOne.filter = {};
-				updateQuery.updateOne.filter["_id"] = item["_id"];
-				return updateQuery;
-			});
+                delete (update_item._id);
+                updateQuery.updateOne.update = update_item;
+                updateQuery.updateOne.filter = {};
+                updateQuery.updateOne.filter["_id"] = item["_id"];
+                return updateQuery;
+            });
             const optimised_updates = optimiseBulkUpdate(updates);
             if (process.env.NODE_ENV !== "production") console.timeEnd("fn");
             if (process.env.NODE_ENV !== "production") console.time("bulkWrite");
@@ -224,9 +224,9 @@ const applyLabel = async function (label) {
     }
 }
 
-LabelSchema.statics.apply_label = async function(data) {
+LabelSchema.statics.apply_label = async function (data) {
     try {
-        if (!data.id) throw("id required");
+        if (!data.id) throw ("id required");
         const label = await Label.findById(data.id);
         console.time(`apply_label_${label._id}`);
         console.log(`Applying ${label.name}`);
@@ -241,8 +241,8 @@ LabelSchema.statics.apply_label = async function(data) {
 const apply_labels = async function () {
     try {
         console.time("apply_labels");
-        if (process.env.NODE_ENV !== "production")  console.log("Applying labels");
-        const labels = await Label.find({ name: { $exists: 1 }, _deleted: { $ne: true}}).sort({ last_count_date: 1 });
+        if (process.env.NODE_ENV !== "production") console.log("Applying labels");
+        const labels = await Label.find({ name: { $exists: 1 }, _deleted: { $ne: true } }).sort({ last_count_date: 1 });
         let results = {};
         for (let label of labels) {
             console.log(`Applying ${label.name}`);
@@ -259,7 +259,7 @@ const apply_labels = async function () {
 
 LabelSchema.statics.apply_labels = apply_labels;
 
-LabelSchema.post('save', async function(doc) {
+LabelSchema.post('save', async function (doc) {
     console.log(`Applying ${doc.name}`);
     await applyLabel(doc);
 });

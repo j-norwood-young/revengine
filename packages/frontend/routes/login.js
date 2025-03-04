@@ -4,7 +4,7 @@ const config = require("config");
 const jwt = require("jsonwebtoken")
 const Mail = require("@revengine/common/mail")
 const JXPHelper = require("jxp-helper");
-const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
+const apihelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 
 router.use((req, res, next) => {
     res.locals.sitename = config.frontend.sitename;

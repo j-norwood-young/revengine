@@ -1,7 +1,7 @@
 const config = require("config");
 const JXPHelper = require("jxp-helper");
 require("dotenv").config();
-const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
+const jxphelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 const moment = require("moment-timezone");
 moment.tz.setDefault(config.timezone || "UTC");
 
@@ -9,7 +9,7 @@ const TopNewsletterSubscribers = async (days = 30, min_hits = 10, event = "click
     const from_date = moment();
     from_date.subtract(days, "days");
     const query = [
-        { 
+        {
             "$match": {
                 "event": event,
                 "timestamp": {
@@ -48,8 +48,8 @@ const TopNewsletterSubscribers = async (days = 30, min_hits = 10, event = "click
                 "email": "$_id.email",
                 "count": 1,
                 "wordpress_id": "$reader.wordpress_id",
-                "wordpress_link": { "$concat": [ "https://www.dailymaverick.co.za/wp-admin/user-edit.php?user_id=", { "$toString": "$reader.wordpress_id" } ] },
-                "revengine_link": { "$concat": [ `${config.frontend.url}reader/view/`, { "$toString": "$reader._id" } ] }
+                "wordpress_link": { "$concat": ["https://www.dailymaverick.co.za/wp-admin/user-edit.php?user_id=", { "$toString": "$reader.wordpress_id" }] },
+                "revengine_link": { "$concat": [`${config.frontend.url}reader/view/`, { "$toString": "$reader._id" }] }
             }
         },
         {
@@ -58,7 +58,7 @@ const TopNewsletterSubscribers = async (days = 30, min_hits = 10, event = "click
             }
         }
     ];
-    const result = await jxphelper.aggregate("touchbaseevent", query,  { allowDiskUse: true });
+    const result = await jxphelper.aggregate("touchbaseevent", query, { allowDiskUse: true });
 
     return result;
 }
@@ -67,7 +67,7 @@ const TopNewsletterSubscribersWithSubscriptions = async (days = 30, min_hits = 1
     const from_date = moment();
     from_date.subtract(days, "days");
     const query = [
-        { 
+        {
             "$match": {
                 "source": source,
                 "timestamp": {

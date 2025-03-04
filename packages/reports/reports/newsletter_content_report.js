@@ -3,7 +3,7 @@ require("dotenv").config();
 const pug = require("pug");
 const path = require("path");
 const JXPHelper = require("jxp-helper");
-const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
+const jxphelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 const moment = require("moment-timezone");
 const Reports = require("@revengine/reports");
 const numberFormat = new Intl.NumberFormat(config.locale || "en-GB", { maximumFractionDigits: 1 });

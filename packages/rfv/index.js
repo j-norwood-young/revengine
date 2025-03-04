@@ -2,7 +2,7 @@ const config = require("config");
 require("dotenv").config();
 const moment = require("moment");
 const JXPHelper = require('jxp-helper');
-const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
+const jxphelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 const Reports = require("@revengine/reports");
 const rfv = new Reports.RFV();
 const cron = require("node-cron");
@@ -63,8 +63,8 @@ const save_rfv = (data, date) => {
             }
         })
         return jxphelper.bulk("rfv", update);
-    } catch(err) {
-        throw(err);
+    } catch (err) {
+        throw (err);
     }
 }
 
@@ -83,7 +83,7 @@ const calc_frequency = async (date) => {
             // const result = await jxphelper.bulk_postput("reader", "email", frequencies.splice(0, 1000))
             // console.log(JSON.stringify(result.data, null, "\t"));
         }
-    } catch(err) {
+    } catch (err) {
         console.error(err);
     }
     console.timeEnd("calc_frequency");
@@ -125,7 +125,7 @@ const calc_recency = async (date) => {
             // console.log(JSON.stringify(result.data, null, "\t"));
         }
         // 7. Use labels to calculate groups
-    } catch(err) {
+    } catch (err) {
         console.error(err);
     }
     console.timeEnd("calc_recency");
@@ -144,7 +144,7 @@ const calc_volume = async (date) => {
             // const result = await jxphelper.bulk_postput("reader", "email", volumes.splice(0, 1000))
             // console.log(JSON.stringify(result.data, null, "\t"));
         }
-    } catch(err) {
+    } catch (err) {
         console.error(err);
     }
     console.timeEnd("calc_volume");
@@ -160,12 +160,12 @@ const main = async () => {
         await calc_volume(date);
         await assign_reader_ids();
         console.log(`rfv ${date.format("YYYY-MM-DD")} done`);
-    } catch(err) {
+    } catch (err) {
         console.error(err);
     }
 }
 
-const historical = async(start_date, end_date) => {
+const historical = async (start_date, end_date) => {
     try {
         let date = moment(new Date(start_date || "2021-01-01"));
         const to_date = end_date ? moment(new Date(end_date)) : moment();
@@ -178,18 +178,18 @@ const historical = async(start_date, end_date) => {
         }
         await assign_reader_ids();
         console.log("historical rfv done");
-    } catch(err) {
+    } catch (err) {
         console.error(err);
     }
 }
 
-const assign_reader_ids = async() => {
+const assign_reader_ids = async () => {
     try {
         const readers = (await jxphelper.get("reader", { "fields": "email" })).data.filter(reader => (reader.email));
         console.log(`Sycing ${readers.length} emails...`)
         const total = readers.length;
-        while(readers.length) {
-            const query = readers.splice(0,1000).map(reader => {
+        while (readers.length) {
+            const query = readers.splice(0, 1000).map(reader => {
                 return {
                     "updateMany": {
                         "update": { reader_id: reader._id },
@@ -200,7 +200,7 @@ const assign_reader_ids = async() => {
             console.log(`${readers.length} / ${total} (${Math.round((readers.length / total) * 100)}%)`);
             const result = await jxphelper.bulk("rfv", query);
         }
-    } catch(err) {
+    } catch (err) {
         console.error(err);
     }
 }

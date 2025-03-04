@@ -24,7 +24,7 @@ const sync_wordpress = require("@revengine/sync/wordpress");
 const ml = require("@revengine/ml");
 const wordpress_auth = require("@revengine/wordpress_auth");
 const JXPHelper = require("jxp-helper");
-const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
+const apihelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 
 // const woocommerce = require("./woocommerce");
 

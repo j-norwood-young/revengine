@@ -3,7 +3,7 @@ const JXPHelper = require("jxp-helper");
 const config = require("config");
 require("dotenv").config();
 
-const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
+const jxphelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 
 class Save extends Action {
     constructor(...params) {
@@ -18,7 +18,7 @@ class Save extends Action {
                 const resolved_data = await Promise.all(this.data);
                 let result = [];
                 const pages = Math.ceil(resolved_data.length / 1000);
-                for(let x = 0; x < pages; x++) {
+                for (let x = 0; x < pages; x++) {
                     // console.log(x, "/", pages, resolved_data.length);
                     result.push(await jxphelper.bulk_postput(this.instructions.collection, this.instructions.key, resolved_data.splice(0, 1000)));
                 }

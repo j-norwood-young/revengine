@@ -8,11 +8,11 @@ router.use("/login", require("./login"));
 
 /* Login */
 router.use(async (req, res, next) => {
-	res.locals.sitename = config.name 
+	res.locals.sitename = config.name
 	if (!req.body.login) return next();
 	try {
-		const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
-		// console.log({ server: config.api.server, apikey: process.env.APIKEY });
+		const apihelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
+		// console.log({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 		let login_data = await apihelper.login(req.body.email, req.body.password);
 		if (login_data.status === "fail") {
 			res.render('login', { title: 'Login', "msg": "Incorrect username or password" });
@@ -25,7 +25,7 @@ router.use(async (req, res, next) => {
 		req.session.apikey = login_data.data.apikey;
 		req.session.user = login_data.user;
 		res.redirect("/");
-	} catch(err) {
+	} catch (err) {
 		console.error(err);
 		res.render('login', { title: 'Login', "msg": err.msg || "An unknown error occured" });
 		return;
@@ -44,18 +44,18 @@ router.use((req, res, next) => {
 })
 
 /* Log in from Wordpress */
-router.use(async(req, res, next) => {
+router.use(async (req, res, next) => {
 	if (res.locals.query.apikey) {
 		req.session.apikey = res.locals.query.apikey;
 		try {
 			if (!res.locals.query.user_id) {
-				throw("Missing user_id");
+				throw ("Missing user_id");
 			}
 			const user_id = res.locals.query.user_id;
-			const user_apihelper = new JXPHelper({ server: config.api.server, apikey: req.session.apikey });
+			const user_apihelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: req.session.apikey });
 			req.session.user = await user_apihelper.getOne("user", user_id);
 			next();
-		} catch(err) {
+		} catch (err) {
 			res.status(400).send({ error: err });
 		}
 	} else {
@@ -82,7 +82,7 @@ router.use((req, res, next) => {
 	res.locals.apiserver = config.api.server;
 	res.locals.pipelineserver = config.pipeline.server;
 	// res.locals.daemonserver = config.daemon_api.url;
-	req.apihelper = new JXPHelper({ server: config.api.server, apikey: req.session.apikey });
+	req.apihelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: req.session.apikey });
 	next();
 })
 
@@ -94,7 +94,7 @@ router.use((req, res, next) => {
 })
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
+router.get('/', function (req, res, next) {
 	res.redirect("/dashboard");
 });
 

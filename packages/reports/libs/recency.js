@@ -1,7 +1,7 @@
 const config = require("config");
 const JXPHelper = require("jxp-helper");
 require("dotenv").config();
-const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
+const jxphelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 const moment = require("moment-timezone");
 moment.tz.setDefault(config.timezone || "UTC");
 const esclient = require("@revengine/common/esclient");

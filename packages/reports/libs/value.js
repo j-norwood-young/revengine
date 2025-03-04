@@ -1,7 +1,7 @@
 const config = require("config");
 const JXPHelper = require("jxp-helper");
 require("dotenv").config();
-const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
+const jxphelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 const moment = require("moment-timezone");
 moment.tz.setDefault(config.timezone || "UTC");
 
@@ -12,7 +12,7 @@ moment.tz.setDefault(config.timezone || "UTC");
 // Last 6 months (24 weeks) = 2
 // Last year = 1
 const Value = async (reader_id) => {
-    const reader = (await jxphelper.getOne("reader", reader_id, { "fields": "wordpress_id"})).data;
+    const reader = (await jxphelper.getOne("reader", reader_id, { "fields": "wordpress_id" })).data;
     if (!reader.wordpress_id) return false;
     const subscription_result = await jxphelper.get("woocommerce_subscription", { "filter[customer_id]": reader.wordpress_id, "filter[status]": "active", "order_by": "timestamp", "order_dir": -1, "limit": 1 });
     if (!subscription_result.count) return false;

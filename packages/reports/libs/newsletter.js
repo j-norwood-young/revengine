@@ -1,6 +1,6 @@
 const config = require("config");
 const JXPHelper = require("jxp-helper");
-const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
+const jxphelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 require("dotenv").config();
 const moment = require("moment-timezone");
 moment.tz.setDefault(config.timezone || "UTC");
@@ -55,7 +55,7 @@ class Newsletter {
                     timestamp: 1
                 }
             }
-            
+
         ];
         console.time("touchbaseevent-aggregate");
         const aggregate_result = await jxphelper.aggregate("touchbaseevent", aggregate);
@@ -107,7 +107,7 @@ class Newsletter {
     async list_report() {
         // console.log("list_report");
         const lists = (await jxphelper.get("touchbaselist", { "sort[name]": 1 })).data;
-        const stats = (await jxphelper.get("touchbaseliststats", { "sort[total_active_subscribers]": -1, "filter[date]": `${ moment().utc().startOf("day").format("YYYY-MM-DD") }`, "populate[touchbaselist]": "name" })).data;
+        const stats = (await jxphelper.get("touchbaseliststats", { "sort[total_active_subscribers]": -1, "filter[date]": `${moment().utc().startOf("day").format("YYYY-MM-DD")}`, "populate[touchbaselist]": "name" })).data;
         return {
             lists,
             stats

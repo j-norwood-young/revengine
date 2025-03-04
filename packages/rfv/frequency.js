@@ -1,7 +1,7 @@
 const config = require("config");
 const JXPHelper = require("jxp-helper");
 require("dotenv").config();
-const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
+const jxphelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 const moment = require("moment-timezone");
 moment.tz.setDefault(config.timezone || "UTC");
 const ss = require("simple-statistics");
@@ -26,13 +26,13 @@ class Frequency {
             score = 2;
         } else if (freq > 1) {
             score = 1;
-        } 
+        }
         return score;
     }
 
     async touchbase() {
         const f_pipeline = [
-            { 
+            {
                 $match: {
                     "timestamp": {
                         $gte: `new Date(\"${this.date}\")`,

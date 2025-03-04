@@ -1,7 +1,7 @@
 const config = require("config");
 require("dotenv").config();
 const JXPHelper = require("jxp-helper");
-const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
+const apihelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 const moment = require("moment");
 const esclient = require("@revengine/common/esclient");
 const crypto = require("crypto");
@@ -29,7 +29,7 @@ const consolidate_touchbase_events = async () => {
                     _id: "$email"
                 }
             },
-            { 
+            {
                 $sort: { _id: 1 }
             }
         ];
@@ -43,16 +43,17 @@ const consolidate_touchbase_events = async () => {
                         email,
                     },
                 },
-                { 
-                    $group: { 
-                        _id: { 
+                {
+                    $group: {
+                        _id: {
                             $dateToString: { format: "%Y-%m-%d", date: "$timestamp" }
                         },
                         count: { $sum: 1 }
                     }
                 },
-                { $sort: { _id: 1 } 
-            }];
+                {
+                    $sort: { _id: 1 }
+                }];
             const result = await apihelper.aggregate("touchbaseevent", query);
             if (!result.data.length) continue;
             // console.log(email);
@@ -89,13 +90,13 @@ const consolidate_touchbase_events = async () => {
                 const touchbase_clicks_previous_7_days = touchbase_events.filter(event => new Date(event.date) < days_7 && new Date(event.date) > days_14 && event.action === "clicks").map(event => event.count).reduce((prev, curr) => prev + curr, 0);
                 const touchbase_clicks_last_30_days = touchbase_events.filter(event => new Date(event.date) > days_30 && event.action === "clicks").map(event => event.count).reduce((prev, curr) => prev + curr, 0);
                 const touchbase_clicks_previous_30_days = touchbase_events.filter(event => new Date(event.date) <= days_30 && new Date(event.date) > days_60 && event.action === "clicks").map(event => event.count).reduce((prev, curr) => prev + curr, 0);
-                
+
                 if (touchbase_events.length) {
                     await apihelper.put("reader", reader._id, { touchbase_events, touchbase_events_last_7_days, touchbase_events_previous_7_days, touchbase_events_last_30_days, touchbase_events_previous_30_days, touchbase_clicks_last_7_days, touchbase_clicks_previous_7_days, touchbase_clicks_last_30_days, touchbase_clicks_previous_30_days, touchbase_opens_last_7_days, touchbase_opens_previous_7_days, touchbase_opens_last_30_days, touchbase_opens_previous_30_days });
                 }
             }
         }
-    } catch(err) {
+    } catch (err) {
         console.error(err);
     }
 }
@@ -131,7 +132,7 @@ const ensure_touchbase_readers = async () => {
     }
 }
 
-const merge_es_hits = async(start_time, end_time) => {
+const merge_es_hits = async (start_time, end_time) => {
     const articles = (await apihelper.get("article", { fields: "post_id" })).data;
     const readers = (await apihelper.get("reader", { fields: "wordpress_id" })).data;
     const query = {
@@ -165,7 +166,7 @@ const merge_es_hits = async(start_time, end_time) => {
     for await (const result of scrollSearch) {
         const docs = result.documents.map(doc => {
             const result = {
-                uid: md5(`pageview-${ doc.user_agent }-${ doc.time }`),
+                uid: md5(`pageview-${doc.user_agent}-${doc.time}`),
                 timestamp: new Date(doc.time),
                 url: doc.url,
                 user_agent: doc.user_agent,
@@ -200,7 +201,7 @@ const merge_touchbase_hits = async (start_time, end_time) => {
     const articles = (await apihelper.get("article", { fields: "urlid", "order_by": "email" })).data;
     const readers = (await apihelper.get("reader", { fields: "email" })).data;
     for (let page = 0; page < pages; page++) {
-        const touchbaseevents = await apihelper.get("touchbaseevent", { "filter[timestamp]": `$gte:${moment(start_time).toDate()}`, order_by: "timestamp", limit, page  });
+        const touchbaseevents = await apihelper.get("touchbaseevent", { "filter[timestamp]": `$gte:${moment(start_time).toDate()}`, order_by: "timestamp", limit, page });
         const docs = [];
         for (let doc of touchbaseevents.data) {
             const email = doc.email.toLowerCase();
@@ -237,14 +238,14 @@ const merge_touchbase_hits = async (start_time, end_time) => {
     // console.log(docs.slice(1,100));
 }
 
-const merge_hits = async() => {
+const merge_hits = async () => {
     const start_time = moment().subtract(1, "week").toDate();
     const end_time = new Date();
     // await merge_es_hits(start_time, end_time);
     await merge_touchbase_hits(start_time, end_time);
 }
 
-const rfv = async() => {
+const rfv = async () => {
     console.time("rfv");
     const rfvs = await RFV();
     const per_page = 10000;
@@ -255,7 +256,7 @@ const rfv = async() => {
     console.timeEnd("rfv");
 }
 
-const monetary_value = async() => {
+const monetary_value = async () => {
     console.time("monetary_value");
     const monetary_values = await Monetary_Value();
     const per_page = 10000;
@@ -278,7 +279,7 @@ const total_lifetime_value = async () => {
     console.timeEnd("total_lifetime_value");
 }
 
-const favourites = async() => {
+const favourites = async () => {
     console.time("favourites");
     const favourites = await Favourites();
     const per_page = 10000;
