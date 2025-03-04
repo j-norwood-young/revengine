@@ -4,7 +4,7 @@ import * as dotenv from "dotenv";
 import { get_post } from "@revengine/common/revengine_wordpress"
 dotenv.config();
 const jxphelper = new JXPHelper({
-    server: config.api.server,
+    server: process.env.API_SERVER || config.api.server,
     apikey: process.env.APIKEY,
 });
 

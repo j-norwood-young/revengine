@@ -3,7 +3,7 @@ import JXPHelper from "jxp-helper";
 import * as dotenv from "dotenv";
 dotenv.config();
 const jxphelper = new JXPHelper({
-    server: config.api.server,
+    server: process.env.API_SERVER || config.api.server,
     apikey: process.env.APIKEY,
 });
 
