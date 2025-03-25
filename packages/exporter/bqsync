@@ -1,5 +1,6 @@
 #!/bin/sh
 gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+gcloud config set project $GOOGLE_PROJECT_ID
 
 mongoexport -h "rfvengine1,rfvengine2,rfvengine3" -d revengine-prod -c woocommerce_subscriptions -o ~/data/woocommerce_subscriptions.csv --type csv --fields id,billing_interval,billing_period,cancelled_email_sent,created_via,customer_id,customer_ip_address,customer_note,customer_user_agent,date_completed,date_created,date_modified,date_paid,payment_method,products.0.name,products.0.total,schedule_next_payment,schedule_start,status,suspension_count,total,utm_source,utm_medium,utm_campaign,utm_term,device_type
 
