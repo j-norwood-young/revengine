@@ -158,7 +158,7 @@ server.post("/random", async (req, res) => {
         res.send({ size, ignore_post_ids, published_start_date, published_end_date, jitter_factor, result });
     } catch (err) {
         console.error(err);
-        res.send(500, { status: "error", error: err });
+        res.send(500, { status: "error" });
     }
 })
 
@@ -307,7 +307,7 @@ server.get("/top_articles/:period", apicache.middleware("5 minutes"), async (req
         res.send(articles);
     } catch (err) {
         console.error(err);
-        res.send(500, { status: "error", error: err });
+        res.send(500, { status: "error" });
     }
 })
 
@@ -327,7 +327,7 @@ server.get("/top_articles", apicache.middleware("5 minutes"), async (req, res) =
         res.send(articles);
     } catch (err) {
         console.error(err);
-        res.send(500, { status: "error", error: err });
+        res.send(500, { status: "error" });
     }
 })
 
