@@ -183,6 +183,12 @@ const post_hit = async (req, res) => {
                         user_segments,
                         browser_id: data.browser_id,
                         user_ip: data.user_ip,
+                        derived_city: data.derived_city,
+                        derived_country: data.derived_country,
+                        derived_country_code: data.derived_country_code,
+                        derived_latitude: data.derived_latitude,
+                        derived_longitude: data.derived_longitude,
+                        derived_region: data.derived_region,
                     })
                 );
                 res.end();
@@ -279,6 +285,12 @@ const get_hit = async (req, res) => {
             user_labels: data?.user_labels,
             user_segments: data?.user_segments,
             browser_id,
+            derived_city: data?.derived_city,
+            derived_country: data?.derived_country,
+            derived_country_code: data?.derived_country_code,
+            derived_latitude: data?.derived_latitude,
+            derived_longitude: data?.derived_longitude,
+            derived_region: data?.derived_region,
         })
     );
     res.end();
