@@ -29,4 +29,10 @@ export interface EventTrackerMessage {
     time_updated?: string;
     seconds_on_page?: number;
     scroll_depth?: number;
+    derived_city?: string;
+    derived_country?: string;
+    derived_country_code?: string;
+    derived_latitude?: number;
+    derived_longitude?: number;
+    derived_region?: string;
 }

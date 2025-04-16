@@ -175,6 +175,13 @@ const post_hit = async (req, res) => {
                 res.setHeader('Set-Cookie', cookie.serialize(cookie_name, data.browser_id, cookieOptions));
 
                 data.user_ip = data.user_ip || get_ip(req);
+                const location = await geolocate_ip(data.user_ip);
+                data.derived_city = location.derived_city;
+                data.derived_country = location.derived_country;
+                data.derived_country_code = location.derived_country_code;
+                data.derived_latitude = location.derived_latitude;
+                data.derived_longitude = location.derived_longitude;
+                data.derived_region = location.derived_region;
                 res.writeHead(200, headers);
                 res.write(
                     JSON.stringify({
@@ -183,12 +190,14 @@ const post_hit = async (req, res) => {
                         user_segments,
                         browser_id: data.browser_id,
                         user_ip: data.user_ip,
-                        derived_city: data.derived_city,
-                        derived_country: data.derived_country,
-                        derived_country_code: data.derived_country_code,
-                        derived_latitude: data.derived_latitude,
-                        derived_longitude: data.derived_longitude,
-                        derived_region: data.derived_region,
+                        location: {
+                            city: data.derived_city,
+                            country: data.derived_country,
+                            country_code: data.derived_country_code,
+                            latitude: data.derived_latitude,
+                            longitude: data.derived_longitude,
+                            region: data.derived_region,
+                        }
                     })
                 );
                 res.end();
@@ -275,6 +284,13 @@ const get_hit = async (req, res) => {
             data.user_segments = user_segments || {};
             await cache.set(cache_id, {user_labels, user_segments});
         }
+        const location = await geolocate_ip(data.user_ip);
+        data.derived_city = location.derived_city;
+        data.derived_country = location.derived_country;
+        data.derived_country_code = location.derived_country_code;
+        data.derived_latitude = location.derived_latitude;
+        data.derived_longitude = location.derived_longitude;
+        data.derived_region = location.derived_region;
     } catch (err) {
         console.error(err.toString());
     }
@@ -285,12 +301,14 @@ const get_hit = async (req, res) => {
             user_labels: data?.user_labels,
             user_segments: data?.user_segments,
             browser_id,
-            derived_city: data?.derived_city,
-            derived_country: data?.derived_country,
-            derived_country_code: data?.derived_country_code,
-            derived_latitude: data?.derived_latitude,
-            derived_longitude: data?.derived_longitude,
-            derived_region: data?.derived_region,
+            location: {
+                city: data?.derived_city,
+                country: data?.derived_country,
+                country_code: data?.derived_country_code,
+                latitude: data?.derived_latitude,
+                longitude: data?.derived_longitude,
+                region: data?.derived_region,
+            }
         })
     );
     res.end();

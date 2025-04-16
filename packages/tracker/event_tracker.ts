@@ -26,6 +26,7 @@ import * as myCrypto from "crypto";
 import esclient from "@revengine/common/esclient";
 import Cache from "@revengine/common/cache";
 import * as dotenv from "dotenv";
+import { geolocate_ip } from "./geolocate_ip";
 
 dotenv.config();
 
@@ -216,6 +217,13 @@ const handle_hit = async (data: EventTrackerMessage, req, res) => {
             data.user_segments = user_segments || [];
             await cache.set(cache_id, {user_labels, user_segments});
         }
+        const location = await geolocate_ip(data.user_ip);
+        data.derived_city = location.derived_city;
+        data.derived_country = location.derived_country;
+        data.derived_country_code = location.derived_country_code;
+        data.derived_latitude = location.derived_latitude;
+        data.derived_longitude = location.derived_longitude;
+        data.derived_region = location.derived_region;
     } catch (err) {
         console.error(err);
     }
@@ -226,6 +234,14 @@ const handle_hit = async (data: EventTrackerMessage, req, res) => {
             user_labels: data?.user_labels,
             user_segments: data?.user_segments,
             browser_id,
+            location: {
+                city: data?.derived_city,
+                country: data?.derived_country,
+                country_code: data?.derived_country_code,
+                latitude: data?.derived_latitude,
+                longitude: data?.derived_longitude,
+                region: data?.derived_region,
+            }
         })
     );
     res.end();
