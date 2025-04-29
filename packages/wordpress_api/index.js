@@ -9,21 +9,31 @@ const fetch = require("node-fetch");
 const dotenv = require("dotenv");
 dotenv.config();
 
+// Enhanced logging setup
+const bunyan = require('bunyan');
+const log = bunyan.createLogger({
+    name: 'wordpress-api',
+    streams: [{
+        level: 'info',
+        stream: process.stdout
+    }]
+});
+
 // Process monitoring
 process.on('SIGTERM', () => {
-    console.error('Received SIGTERM signal - process is being terminated');
+    log.error('Received SIGTERM signal - process is being terminated');
     logMemoryUsage();
     process.exit(1);
 });
 
 process.on('SIGINT', () => {
-    console.error('Received SIGINT signal - process is being interrupted');
+    log.error('Received SIGINT signal - process is being interrupted');
     logMemoryUsage();
     process.exit(1);
 });
 
 process.on('exit', (code) => {
-    console.error(`Process exit with code: ${code}`);
+    log.error(`Process exit with code: ${code}`);
     logMemoryUsage();
 });
 
@@ -39,7 +49,7 @@ const trackError = (err, context = '') => {
         memory: process.memoryUsage(),
         stack: err.stack
     };
-    console.error('Error tracked:', {
+    log.error({
         count: errorCount,
         context,
         error: err.message,
@@ -62,31 +72,22 @@ const logMemoryUsage = () => {
         heapUsedPercentage: `${Math.round(used.heapUsed / used.heapTotal * 100)}%`,
         external: `${Math.round(used.external / 1024 / 1024 * 100) / 100} MB`,
     };
-    console.log('Memory usage:', metrics);
-
-    // Check for potential memory issues
-    // if (used.heapUsed / used.heapTotal > 0.9) {
-    //     console.warn('Warning: High memory usage detected');
-    //     console.warn('Triggering garbage collection');
-    //     if (global.gc) {
-    //         global.gc();
-    //     }
-    // }
+    log.info('Memory usage:', metrics);
 };
 
 // Enhanced uncaught exception handler
 process.on('uncaughtException', (err) => {
     trackError(err, 'Uncaught Exception');
-    console.error('Uncaught Exception:', err);
-    console.error('Stack trace:', err.stack);
+    log.error('Uncaught Exception:', err);
+    log.error('Stack trace:', err.stack);
     logMemoryUsage();
 });
 
 // Enhanced unhandled rejection handler
 process.on('unhandledRejection', (reason, promise) => {
     trackError(reason, 'Unhandled Rejection');
-    console.error('Unhandled Rejection at:', promise);
-    console.error('Reason:', reason);
+    log.error('Unhandled Rejection at:', promise);
+    log.error('Reason:', reason);
     logMemoryUsage();
 });
 
@@ -97,22 +98,22 @@ logMemoryUsage();
 
 const server = restify.createServer({
     handleUpgrades: true,
-    // log: console
+    log: log
 });
 
 // Enhanced error event handler
 server.on('error', (err) => {
     trackError(err, 'Server Error');
-    console.error('Server error:', err);
+    log.error('Server error:', err);
     logMemoryUsage();
 });
 
 // Enhanced uncaughtException handler
 server.on('uncaughtException', (req, res, route, err) => {
     trackError(err, `Uncaught Exception in route: ${route.spec.path}`);
-    console.error('Uncaught exception:', err);
-    console.error('Route:', route);
-    console.error('Request:', {
+    log.error('Uncaught exception:', err);
+    log.error('Route:', route);
+    log.error('Request:', {
         url: req.url,
         method: req.method,
         headers: req.headers,
@@ -124,6 +125,23 @@ server.on('uncaughtException', (req, res, route, err) => {
     if (!res.headersSent) {
         res.send(500, { status: "error", message: "Internal server error" });
     }
+});
+
+// Add request logging middleware
+server.use((req, res, next) => {
+    const start = Date.now();
+    res.on('finish', () => {
+        const duration = Date.now() - start;
+        log.info({
+            method: req.method,
+            url: req.url,
+            status: res.statusCode,
+            duration: `${duration}ms`,
+            userAgent: req.headers['user-agent'],
+            ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress
+        });
+    });
+    next();
 });
 
 server.use(restify.plugins.queryParser());
@@ -407,6 +425,9 @@ server.get("/top_articles_by_section/:section", apicache.middleware("5 minutes")
 
 server.get("/reader/:wordpress_id", apicache.middleware("5 minutes"), async (req, res) => {
     try {
+        // Return a 503 for now
+        res.send(503, { status: "error", message: "Reader endpoint is currently disabled" });
+        return;
         const wordpress_id = req.params.wordpress_id;
         // console.log(`Fetching reader for wordpress_id: ${wordpress_id}`);
 
@@ -444,11 +465,19 @@ server.get("/reader/:wordpress_id", apicache.middleware("5 minutes"), async (req
     }
 });
 
-server.get("/analytics/posts", async (req, res) => {
+server.get("/analytics/posts", apicache.middleware("5 minutes"), async (req, res) => {
     try {
         let post_ids = req.query.post_ids;
+        if (!post_ids) {
+            res.send([]);
+            return;
+        }
         if (!Array.isArray(post_ids)) {
             post_ids = [post_ids];
+        }
+        if (post_ids.length === 0) {
+            res.send([]);
+            return;
         }
 
         console.log('Processing analytics for post_ids:', post_ids);
@@ -475,7 +504,7 @@ server.get("/analytics/posts", async (req, res) => {
     }
 });
 
-server.post("/analytics/posts", async (req, res) => {
+server.post("/analytics/posts", apicache.middleware("5 minutes"), async (req, res) => {
     try {
         let { post_ids } = req.body;
         // console.log('Processing POST analytics for post_ids:', post_ids);
@@ -515,7 +544,7 @@ server.post("/analytics/posts", async (req, res) => {
     }
 });
 
-server.post("/simulate/top_articles", async (req, res) => {
+server.post("/simulate/top_articles", apicache.middleware("5 minutes"), async (req, res) => {
     try {
         const { posts } = req.body;
         console.log('Simulating top articles for posts:', JSON.stringify(posts));
