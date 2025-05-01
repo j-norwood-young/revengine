@@ -14,7 +14,7 @@ const bunyan = require('bunyan');
 const log = bunyan.createLogger({
     name: 'wordpress-api',
     streams: [{
-        level: 'info',
+        level: process.env.LOG_LEVEL || 'error',
         stream: process.stdout
     }]
 });
@@ -426,8 +426,8 @@ server.get("/top_articles_by_section/:section", apicache.middleware("5 minutes")
 server.get("/reader/:wordpress_id", apicache.middleware("5 minutes"), async (req, res) => {
     try {
         // Return a 503 for now
-        res.send(503, { status: "error", message: "Reader endpoint is currently disabled" });
-        return;
+        // res.send(503, { status: "error", message: "Reader endpoint is currently disabled" });
+        // return;
         const wordpress_id = req.params.wordpress_id;
         // console.log(`Fetching reader for wordpress_id: ${wordpress_id}`);
 
