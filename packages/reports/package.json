@@ -11,6 +11,10 @@
     "dependencies": {
         "moment-timezone": "0.5.31",
         "simple-statistics": "^7.7.0",
-        "puppeteer": "^10.4.0"
-    }
+        "puppeteer": "^10.4.0",
+        "date-fns": "^4.1.0",
+        "csv-stringify": "^6.5.2",
+        "yargs": "^17.7.1"
+    },
+    "type": "module"
 }
