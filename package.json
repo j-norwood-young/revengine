@@ -65,8 +65,9 @@
     "config": "^3.3.9",
     "dotenv": "^16.3.1",
     "jxp-helper": "^1.4.3",
-    "npm-run-all": "^4.1.5",
-    "nodemon": "^3.1.0"
+    "kafkajs": "^2.2.4",
+    "nodemon": "^3.1.0",
+    "npm-run-all": "^4.1.5"
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",

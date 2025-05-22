@@ -1,4 +1,4 @@
-const kafka = require('kafka-node');
+const { Kafka } = require('kafkajs');
 const config = require("config");
 const dotenv = require('dotenv');
 dotenv.config();
@@ -26,43 +26,57 @@ class KafkaProducer {
      * @param {string} opts.server - The Kafka server address. If not provided, it will use the default server address from the configuration.
      * @param {string} opts.topic - The topic to produce messages to.
      * @param {boolean} [opts.debug=false] - Whether to enable debug mode.
-     * @param {string} [opts.server] - The Kafka server address. If not provided, it will use the default server address from the configuration.
      * @param {number} [opts.partitions] - The number of partitions for the topic. If not provided, it will use the default number of partitions from the configuration.
      * @param {number} [opts.replication_factor] - The replication factor for the topic. If not provided, it will use the default replication factor from the configuration.
      */
     constructor(opts) {
         if (!opts.topic) throw "Topic required";
         this.debug = opts.debug || false;
-        const Producer = kafka.Producer;
         this.server = opts.server || kafka_server;
-        const client = new kafka.KafkaClient({
-            kafkaHost: this.server,
-        });
-        this.producer = new Producer(client);
         this.topic = opts.topic;
-        // Check if topic exists
-        const topics = client.topicMetadata;
-        if (topics[this.topic]) {
-            if (this.debug) {
-                console.log(`Topic ${this.topic} already exists`);
+
+        const kafka = new Kafka({
+            brokers: [this.server],
+            retry: {
+                initialRetryTime: 100,
+                retries: 8
             }
-            return;
-        }
-        client.createTopics(
-            [
-                {
-                    topic: this.topic,
-                    partitions: process.env.PARTITIONS || opts.partitions || config.kafka.partitions || 10,
-                    replicationFactor: opts.replication_factor || config.kafka.replication_factor || 1,
-                },
-            ],
-            (err, result) => {
-                if (err) {
-                    throw (err);
+        });
+
+        this.producer = kafka.producer();
+        this.admin = kafka.admin();
+
+        // Initialize producer and create topic if needed
+        this.init(opts);
+    }
+
+    async init(opts) {
+        try {
+            await this.producer.connect();
+            await this.admin.connect();
+
+            // Check if topic exists and create if it doesn't
+            const topics = await this.admin.listTopics();
+            if (!topics.includes(this.topic)) {
+                if (this.debug) {
+                    console.log(`Creating topic ${this.topic}`);
                 }
+                await this.admin.createTopics({
+                    topics: [{
+                        topic: this.topic,
+                        numPartitions: process.env.PARTITIONS || opts.partitions || config.kafka.partitions || 10,
+                        replicationFactor: opts.replication_factor || config.kafka.replication_factor || 1
+                    }]
+                });
             }
-        );
-        if (this.debug) console.log(`Kafka Producer created for topic ${this.topic} on server ${this.server}`);
+
+            if (this.debug) {
+                console.log(`Kafka Producer created for topic ${this.topic} on server ${this.server}`);
+            }
+        } catch (error) {
+            console.error('Error initializing producer:', error);
+            throw error;
+        }
     }
 
     /**
@@ -70,46 +84,37 @@ class KafkaProducer {
      * @param {Object} data - The data to be sent.
      * @returns {Promise} A promise that resolves with the result data if successful, or rejects with an error if unsuccessful.
      */
-    send(data) {
-        return new Promise((resolve, reject) => {
-            try {
-                // Ensure we're sending a string to Kafka
-                const message = typeof data === 'string' ? data : JSON.stringify(data);
-                this.producer.send(
-                    [
-                        {
-                            topic: this.topic,
-                            messages: message,
-                        },
-                    ],
-                    (err, result_data) => {
-                        if (err) return reject(err);
-                        if (this.debug) {
-                            console.log(`Sent Kafka data to ${this.topic}`);
-                            // console.log(result_data);
-                        }
-                        return resolve(result_data);
-                    }
-                );
-            } catch (error) {
-                console.error("Error in KafkaProducer.send:", error);
-                reject(error);
+    async send(data) {
+        try {
+            const message = typeof data === 'string' ? data : JSON.stringify(data);
+            const result = await this.producer.send({
+                topic: this.topic,
+                messages: [{ value: message }]
+            });
+
+            if (this.debug) {
+                console.log(`Sent Kafka data to ${this.topic}`);
             }
-        });
+            return result;
+        } catch (error) {
+            console.error("Error in KafkaProducer.send:", error);
+            throw error;
+        }
     }
 
     /**
      * Closes the Kafka producer.
-     * @returns {Promise<any>} A promise that resolves when the producer is closed.
+     * @returns {Promise<void>}
      */
     async close() {
-        return new Promise((resolve, reject) => {
-            this.producer.close((err, result) => {
-                if (err) return reject(err);
-                if (this.debug) console.log("Kafka producer closed");
-                return resolve(result);
-            })
-        })
+        try {
+            await this.producer.disconnect();
+            await this.admin.disconnect();
+            if (this.debug) console.log("Kafka producer closed");
+        } catch (error) {
+            console.error("Error closing producer:", error);
+            throw error;
+        }
     }
 }
 
@@ -138,7 +143,7 @@ class KafkaConsumer extends EventEmitter {
      * @param {boolean} [opts.debug=false] - Whether to enable debug mode.
      * @param {string} opts.group - The consumer group ID.
      * @param {Object} opts.options - Additional options for the Kafka consumer.
-     * @throws {string} Throws an error if the topic is not provided.
+     * @throws {string} Throws an error if the topic or group is not provided.
      */
     constructor(opts) {
         try {
@@ -146,26 +151,59 @@ class KafkaConsumer extends EventEmitter {
             if (!opts.topic) throw "Topic required";
             if (!opts.group) throw "Group required";
             this.debug = opts.debug || false;
-            const kafkaOptions = Object.assign({
-                kafkaHost: opts.server || kafka_server,
+
+            const kafka = new Kafka({
+                brokers: [opts.server || kafka_server],
+                retry: {
+                    initialRetryTime: 100,
+                    retries: 8
+                }
+            });
+
+            this.consumer = kafka.consumer({
                 groupId: opts.group || config.kafka.group,
-                autoCommit: true,
-                autoCommitIntervalMs: 5000,
                 sessionTimeout: 15000,
-                fetchMaxBytes: 10 * 1024 * 1024, // 10 MB
-                protocol: ['roundrobin'],
-                fromOffset: 'earliest',
-                outOfRangeOffset: 'earliest'
-            }, opts.options);
-            if (this.debug) console.log(kafkaOptions);
-            const kafkaConsumerGroup = kafka.ConsumerGroup;
-            this.consumer = new kafkaConsumerGroup(kafkaOptions, opts.topic);
-            this.consumer.on("message", this.onMessage.bind(this));
-            this.consumer.on("error", this.onError.bind(this));
-            if (this.debug) console.log(`Kafka Consumer listening for topic ${opts.topic} in group ${kafkaOptions.groupId} on server ${kafkaOptions.kafkaHost}`);
+                maxBytes: 10 * 1024 * 1024, // 10 MB
+                ...opts.options
+            });
+
+            this.topic = opts.topic;
+            this.init();
+
+            if (this.debug) {
+                console.log(`Kafka Consumer listening for topic ${opts.topic} in group ${opts.group} on server ${opts.server || kafka_server}`);
+            }
         } catch (err) {
             if (this.debug) console.error(err);
             throw err;
+        }
+    }
+
+    async init() {
+        try {
+            await this.consumer.connect();
+            await this.consumer.subscribe({
+                topic: this.topic,
+                fromBeginning: true
+            });
+
+            await this.consumer.run({
+                eachMessage: async ({ topic, partition, message }) => {
+                    try {
+                        this.onMessage({
+                            topic,
+                            partition,
+                            offset: message.offset,
+                            value: message.value,
+                            key: message.key
+                        });
+                    } catch (error) {
+                        this.onError(error);
+                    }
+                }
+            });
+        } catch (error) {
+            this.onError(error);
         }
     }
 
@@ -196,11 +234,9 @@ class KafkaConsumer extends EventEmitter {
                     console.error("Failed to parse message in Kafka consumer:", error);
                     console.error("Raw message:", messageValue);
                 }
-                // Don't throw, just emit the raw message
                 parsedMessage = messageValue;
             }
 
-            // Emit the message with the parsed or raw value
             this.emit("message", { ...message, value: parsedMessage });
 
             if (this.debug) {
@@ -227,33 +263,33 @@ class KafkaConsumer extends EventEmitter {
 
     /**
      * Pauses the Kafka consumer.
-     * @returns {void}
+     * @returns {Promise<void>}
      */
-    pause() {
-        return this.consumer.pause();
+    async pause() {
+        await this.consumer.pause([{ topic: this.topic }]);
     }
 
     /**
      * Resumes the Kafka consumer.
-     * @returns {void}
+     * @returns {Promise<void>}
      */
-    resume() {
-        return this.consumer.resume();
+    async resume() {
+        await this.consumer.resume([{ topic: this.topic }]);
     }
 
     /**
      * Closes the Kafka consumer.
-     * @param {boolean} force - Whether to force close the consumer.
-     * @returns {Promise<any>} A promise that resolves when the consumer is closed.
+     * @returns {Promise<void>}
      */
-    async close(force = false) {
-        return new Promise((resolve, reject) => {
-            this.consumer.close(force, (err, result) => {
-                if (err) return reject(err);
-                if (this.debug) console.log("Kafka consumer closed");
-                return resolve(result);
-            })
-        })
+    async close() {
+        try {
+            await this.consumer.stop();
+            await this.consumer.disconnect();
+            if (this.debug) console.log("Kafka consumer closed");
+        } catch (error) {
+            console.error("Error closing consumer:", error);
+            throw error;
+        }
     }
 }
 

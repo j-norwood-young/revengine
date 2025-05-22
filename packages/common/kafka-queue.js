@@ -15,7 +15,14 @@ export class sub extends EventEmitter {
         this.consumer = new KafkaConsumer({
             topic,
             group,
-            debug: process.env.DEBUG === "true"
+            debug: process.env.DEBUG === "true",
+            options: {
+                // Add some KafkaJS specific options for better reliability
+                retry: {
+                    initialRetryTime: 100,
+                    retries: 8
+                }
+            }
         });
 
         this.consumer.on("message", async (message) => {
@@ -54,7 +61,13 @@ export class sub extends EventEmitter {
                     data.jobName = "default";
                 }
 
-                await fn(data);
+                try {
+                    await fn(data);
+                } catch (processingError) {
+                    console.error("Error in message processing function:", processingError);
+                    // Emit error event for better error handling
+                    this.emit('error', processingError);
+                }
             } catch (error) {
                 console.error("Error processing message:", error);
                 if (message?.value) {
@@ -64,12 +77,24 @@ export class sub extends EventEmitter {
                             : message.value.toString()
                     );
                 }
+                // Emit error event for better error handling
+                this.emit('error', error);
             }
+        });
+
+        this.consumer.on("error", (error) => {
+            console.error("Kafka consumer error:", error);
+            this.emit('error', error);
         });
     }
 
     async close() {
-        await this.consumer.close();
+        try {
+            await this.consumer.close();
+        } catch (error) {
+            console.error("Error closing consumer:", error);
+            throw error;
+        }
     }
 }
 
@@ -81,7 +106,14 @@ export class pub {
 
         this.producer = new KafkaProducer({
             topic,
-            debug: process.env.DEBUG === "true"
+            debug: process.env.DEBUG === "true",
+            // Add some KafkaJS specific options for better reliability
+            options: {
+                retry: {
+                    initialRetryTime: 100,
+                    retries: 8
+                }
+            }
         });
     }
 
@@ -112,7 +144,12 @@ export class pub {
     }
 
     async close() {
-        await this.producer.close();
+        try {
+            await this.producer.close();
+        } catch (error) {
+            console.error("Error closing producer:", error);
+            throw error;
+        }
     }
 
     async getMetrics() {
