@@ -35,4 +35,6 @@ export interface EventTrackerMessage {
     derived_latitude?: number;
     derived_longitude?: number;
     derived_region?: string;
+    session?: string;
+    email?: string;
 }

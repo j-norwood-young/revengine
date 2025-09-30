@@ -8,6 +8,7 @@ import { parse_referer } from "./referer";
 import { parse_utm } from "./utm";
 import { get_article_data } from "./article";
 import { get_user_data } from "./user";
+import { get_session } from "./session";
 import { KafkaProducer } from "@revengine/common/kafka";
 import Cache from "@revengine/common/cache";
 
@@ -145,9 +146,10 @@ const post_hit = async (req, res) => {
                 );
                 if (!check_result) throw "Missing fields";
                 data.user_id = Number(data.user_id) || 0;
-                let { user_labels, user_segments } = await get_user_data(data.user_id);
+                let { user_labels, user_segments, user_email } = await get_user_data(data.user_id);
                 data.user_labels = user_labels || {};
                 data.user_segments = user_segments || {};
+                data.email = user_email || null;
                 if (config.debug) {
                     console.log(data);
                 }
@@ -165,7 +167,7 @@ const post_hit = async (req, res) => {
                 }
 
                 // Set the cookie with proper attributes
-                const cookieOptions: cookie.CookieSerializeOptions = {
+                const cookieOptions: cookie.SerializeOptions = {
                     httpOnly: true,
                     secure: process.env.NODE_ENV === 'production', // Set to true in production
                     sameSite: 'lax', // or 'strict' or 'none', depending on your requirements
@@ -182,6 +184,7 @@ const post_hit = async (req, res) => {
                 data.derived_latitude = location.derived_latitude;
                 data.derived_longitude = location.derived_longitude;
                 data.derived_region = location.derived_region;
+                data.session = get_session(data.browser_id, data.user_ip);
                 res.writeHead(200, headers);
                 res.write(
                     JSON.stringify({
@@ -259,7 +262,7 @@ const get_hit = async (req, res) => {
         }
         
         // Set the cookie with proper attributes
-        const cookieOptions: cookie.CookieSerializeOptions = {
+        const cookieOptions: cookie.SerializeOptions = {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production', // Set to true in production
             sameSite: 'lax', // or 'strict' or 'none', depending on your requirements
@@ -277,12 +280,14 @@ const get_hit = async (req, res) => {
             if (config.debug) console.log("Cache hit", cached_user_data);
             data.user_labels = cached_user_data.user_labels;
             data.user_segments = cached_user_data.user_segments;
+            data.email = cached_user_data.user_email;
         } else {
             if (config.debug) console.log("Cache miss");
-            let { user_labels, user_segments } = await get_user_data(data.user_id);
+            let { user_labels, user_segments, user_email } = await get_user_data(data.user_id);
             data.user_labels = user_labels || {};
             data.user_segments = user_segments || {};
-            await cache.set(cache_id, {user_labels, user_segments});
+            data.email = user_email || null;
+            await cache.set(cache_id, {user_labels, user_segments, user_email});
         }
         const location = await geolocate_ip(data.user_ip);
         data.derived_city = location.derived_city;
@@ -291,6 +296,7 @@ const get_hit = async (req, res) => {
         data.derived_latitude = location.derived_latitude;
         data.derived_longitude = location.derived_longitude;
         data.derived_region = location.derived_region;
+        data.session = get_session(data.browser_id, data.user_ip);
     } catch (err) {
         console.error(err.toString());
     }

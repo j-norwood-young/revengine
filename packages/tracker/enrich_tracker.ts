@@ -28,6 +28,8 @@ export async function enrich_tracker(message: EventTrackerMessage) {
             data: message.data,
             seconds_on_page: Math.round(message.seconds_on_page || 0),
             scroll_depth: Math.round(message.scroll_depth || 0),
+            session: message.session,
+            email: message.email,
         },
         parse_user_agent(message.user_agent),
         await geolocate_ip(message.user_ip),

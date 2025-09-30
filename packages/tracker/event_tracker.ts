@@ -20,6 +20,7 @@ import config from "config";
 import * as http from "http";
 import { enrich_tracker } from "./enrich_tracker";
 import { get_user_data } from "./user";
+import { get_session } from "./session";
 import qs from "qs";
 import * as cookie from "cookie";
 import * as myCrypto from "crypto";
@@ -195,7 +196,7 @@ const handle_hit = async (data: EventTrackerMessage, req, res) => {
         }
 
         // Set the cookie with proper attributes
-        const cookieOptions: cookie.CookieSerializeOptions = {
+        const cookieOptions: cookie.SerializeOptions = {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production', // Set to true in production
             sameSite: 'lax', // or 'strict' or 'none', depending on your requirements
@@ -210,12 +211,14 @@ const handle_hit = async (data: EventTrackerMessage, req, res) => {
             debug && console.log("Cache hit", cached_user_data);
             data.user_labels = cached_user_data.user_labels || [];
             data.user_segments = cached_user_data.user_segments || [];
+            data.email = cached_user_data.user_email || null;
         } else {
             debug && console.log("Cache miss");
-            let { user_labels, user_segments } = await get_user_data(data.user_id);
+            let { user_labels, user_segments, user_email } = await get_user_data(data.user_id);
             data.user_labels = user_labels || [];
             data.user_segments = user_segments || [];
-            await cache.set(cache_id, {user_labels, user_segments});
+            data.email = user_email || null;
+            await cache.set(cache_id, {user_labels, user_segments, user_email});
         }
         const location = await geolocate_ip(data.user_ip);
         data.derived_city = location.derived_city;
@@ -224,6 +227,7 @@ const handle_hit = async (data: EventTrackerMessage, req, res) => {
         data.derived_latitude = location.derived_latitude;
         data.derived_longitude = location.derived_longitude;
         data.derived_region = location.derived_region;
+        data.session = get_session(data.browser_id, data.user_ip);
     } catch (err) {
         console.error(err);
     }

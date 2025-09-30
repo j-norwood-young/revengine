@@ -7,11 +7,12 @@ const jxphelper = new JXPHelper({
     apikey: process.env.APIKEY,
 });
 
-export const get_user_data = async function (user_id): Promise<{ user_labels: string[], user_segments: string[] }> {
-    if (!Number.isInteger(user_id * 1)) return { user_labels: [], user_segments: [] };
-    if (!user_id) return { user_labels: [], user_segments: [] };
+export const get_user_data = async function (user_id): Promise<{ user_labels: string[], user_segments: string[], user_email: string }> {
+    if (!Number.isInteger(user_id * 1)) return { user_labels: [], user_segments: [], user_email: null };
+    if (!user_id) return { user_labels: [], user_segments: [], user_email: null };
     let user_labels = [];
     let user_segments = [];
+    let user_email = null;
     const result = (
         await jxphelper.aggregate("reader", [
             {
@@ -39,6 +40,7 @@ export const get_user_data = async function (user_id): Promise<{ user_labels: st
                 $project: { 
                     "labels.code": 1,
                     "segments.code": 1,
+                    "email": 1,
                 } 
             },
         ])
@@ -50,8 +52,11 @@ export const get_user_data = async function (user_id): Promise<{ user_labels: st
         if (result.segments) {
             user_segments = result.segments.map(segment => segment.code);
         }
+        if (result.email) {
+            user_email = result.email;
+        }
     }
-    return { user_labels, user_segments };
+    return { user_labels, user_segments, user_email };
 }
 
 export const get_user_data_test = async function () {
