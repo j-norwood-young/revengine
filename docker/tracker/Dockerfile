@@ -1,7 +1,6 @@
 FROM node:lts
 
 RUN apt update && apt install build-essential -y
-RUN npm install -g nodemon
 WORKDIR /usr/src/app
 COPY package.json ./
 COPY packages/tracker/package.json ./packages/tracker/

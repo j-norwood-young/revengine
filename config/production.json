@@ -68,7 +68,8 @@
     "kafka": {
         "server": "kafka:9092",
         "partitions": 1,
-        "replication_factor": 0
+        "replication_factor": 10,
+        "group": "revengine_consumers"
     },
     "listeners": {
         "public_port": 4020,

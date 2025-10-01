@@ -56,8 +56,8 @@ const doc_cache = new Cache({
 });
 
 // Initialize queues with Kafka topics
-const queue_1_publisher = new pub(process.env.KAFKA_TOPIC);
-const queue_2_publisher = new pub(process.env.KAFKA_TOPIC_2);
+const queue_1_publisher = new pub(process.env.KAFKA_TOPIC || config.tracker.kafka_topic);
+const queue_2_publisher = new pub(process.env.KAFKA_TOPIC_2 || `${config.tracker.kafka_topic}_2`);
 const queue_test_publisher = new pub(`${tracker_name}_events_test`);
 
 // Initialize queue subscribers
@@ -74,7 +74,7 @@ new sub(async (message: EventTrackerMessage) => {
     } catch (err) {
         console.error(err);
     }
-}, process.env.KAFKA_TOPIC, process.env.KAFKA_GROUP);
+}, process.env.KAFKA_TOPIC || config.tracker.kafka_topic, process.env.KAFKA_GROUP || config.kafka.group);
 
 // Queue 2 subscriber - handles elasticsearch storage
 new sub(async (message: EventTrackerMessage) => {
@@ -120,7 +120,7 @@ new sub(async (message: EventTrackerMessage) => {
     } catch (err) {
         console.error(err);
     }
-}, process.env.KAFKA_TOPIC_2, process.env.KAFKA_GROUP_2);
+}, process.env.KAFKA_TOPIC_2 || `${config.tracker.kafka_topic}_2`, process.env.KAFKA_GROUP_2 || `${config.kafka.group}_2`);
 
 // Check esclient index
 const ensure_index = async () => await esclient.ensure_index(index, {

@@ -1,23 +1,32 @@
 // DEPRECATED
 
-const config = require("config");
-const { KafkaConsumer } = require("@revengine/common/kafka");
-const esclient = require("@revengine/common/esclient");
-const fs = require("fs");
-const Cache = require("@revengine/common/cache");
+import config from "config";
+import { KafkaConsumer } from "@revengine/common/kafka.js";
+import esclient from "@revengine/common/esclient.js";
+import fs from "fs";
+import Cache from "@revengine/common/cache.js";
+import dotenv from "dotenv";
+dotenv.config();
+
+const debug = process.env.DEBUG === "true";
 
 const redis_cache = new Cache({
-    debug: config.debug,
+    debug: debug,
     prefix: "consolidator",
     ttl: 60 * 60 * 24 // 1 day
 });
 
+const topic = process.env.KAFKA_TOPIC || config.tracker.kafka_topic || "consolidator_events";
+const group = process.env.KAFKA_GROUP || config.kafka.group || "consolidator";
+
+console.log({ topic, group, debug });
+
 let consumer;
 try {
     consumer = new KafkaConsumer({
-        topic: config.tracker.kafka_topic,
-        group: config.kafka.group || "consolidator",
-        debug: config.debug
+        topic,
+        group,
+        debug: debug
     });
 } catch (err) {
     console.error(err);
@@ -27,8 +36,10 @@ try {
 var cache = [];
 var count = 0;
 
-const cache_size = config.consolidator.cache_size || 1000;
+const cache_size = process.env.CACHE_SIZE || config.consolidator.cache_size || 1000;
 let isFlushing = false;
+let isRebalancing = false;
+let rebalancingTimeout = null;
 
 const flush = async () => {
     if (isFlushing) return;
@@ -36,7 +47,7 @@ const flush = async () => {
         try {
             isFlushing = true;
             consumer.pause();
-            if (config.debug) {
+            if (debug) {
                 console.log("Cache length:", cache.length);
             }
 
@@ -58,7 +69,7 @@ const flush = async () => {
 
                     if (existingId) {
                         // Update existing document
-                        if (config.debug) {
+                        if (debug) {
                             console.log(`Updating existing record for ${mappingKey} (ID: ${existingId})`);
                         }
                         processedCache.push({
@@ -74,7 +85,7 @@ const flush = async () => {
                         });
                     } else {
                         // Create new document
-                        if (config.debug) {
+                        if (debug) {
                             console.log(`Creating new record for ${mappingKey}`);
                         }
                         processedCache.push(action);
@@ -82,7 +93,7 @@ const flush = async () => {
                     }
                 } else {
                     // No browser_id or article_id, just pass through
-                    if (config.debug) {
+                    if (debug) {
                         console.log('Processing record without browser_id or article_id');
                     }
                     processedCache.push(action);
@@ -91,6 +102,8 @@ const flush = async () => {
             }
 
             const result = await esclient.bulk({ body: processedCache });
+
+            console.log({ result: JSON.stringify(result.items.slice(0, 3), null, "   "), size: result.items.length });
 
             // Update Redis cache with results
             result.items.forEach((item, index) => {
@@ -109,7 +122,7 @@ const flush = async () => {
             cache = [];
             fs.writeFileSync("/tmp/consolidator.json", JSON.stringify(result, null, 2));
 
-            if (config.debug) {
+            if (debug) {
                 console.log(JSON.stringify(result, null, "  "));
                 console.log(`Flushed cache, loop ${count++}, items ${result.items.length}`);
                 for (let item of result.items) {
@@ -135,12 +148,12 @@ consumer.on('message', async (message) => {
 
         const msg = message.value[0];
         const json = JSON.parse(msg.messages);
-        if (config.debug) {
+        if (debug) {
             console.log("Received message:", JSON.stringify(json, null, "  "));
         }
 
         if (!json.index) {
-            if (config.debug) {
+            if (debug) {
                 console.log(`Skipping message - no valid index configuration found for index: ${json.index}`);
             }
             return;
@@ -164,12 +177,107 @@ consumer.on('message', async (message) => {
 });
 
 consumer.on("error", err => {
-    console.error(err);
-})
+    console.error("Kafka consumer error:", err);
+});
 
-const interval = config.consolidator.test_interval || 5000;
+// Handle rebalancing events
+consumer.on("rebalancing", (payload) => {
+    console.log("Consumer group is rebalancing - pausing message processing");
+    isRebalancing = true;
+    consumer.pause();
+    
+    // Set a timeout to force resume if rebalancing takes too long
+    if (rebalancingTimeout) {
+        clearTimeout(rebalancingTimeout);
+    }
+    rebalancingTimeout = setTimeout(() => {
+        if (isRebalancing) {
+            console.warn("Rebalancing timeout - forcing resume after 60 seconds");
+            isRebalancing = false;
+            consumer.resume();
+        }
+    }, 60000); // 60 second timeout
+});
+
+consumer.on("rebalancingComplete", (payload) => {
+    console.log("Consumer group rebalancing completed - resuming message processing");
+    isRebalancing = false;
+    if (rebalancingTimeout) {
+        clearTimeout(rebalancingTimeout);
+        rebalancingTimeout = null;
+    }
+    consumer.resume();
+});
+
+consumer.on("connect", (payload) => {
+    console.log("Consumer connected");
+    if (payload && payload.groupId) {
+        console.log(`Group ID: ${payload.groupId}`);
+    }
+});
+
+consumer.on("disconnect", (payload) => {
+    console.log("Consumer disconnected");
+    if (payload && payload.groupId) {
+        console.log(`Group ID: ${payload.groupId}`);
+    }
+});
+
+consumer.on("crash", (payload) => {
+    console.error("Consumer crashed");
+    if (payload) {
+        if (payload.groupId) {
+            console.error(`Group ID: ${payload.groupId}`);
+        }
+        if (payload.error) {
+            console.error("Error:", payload.error);
+        }
+    }
+});
+
+const interval = process.env.TEST_INTERVAL || config.consolidator.test_interval || 5000;
 console.log(`===${config.name} Consolidator Started===`);
-if (config.debug) {
+if (debug) {
     console.log(`${config.name} Consolidator listening for kafka messages; flushing cache every ${interval / 1000}s`);
 }
+
+// Graceful shutdown handling
+let isShuttingDown = false;
+const gracefulShutdown = async (signal) => {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
+    
+    console.log(`Received ${signal}, starting graceful shutdown...`);
+    
+    try {
+        // Pause consumer to stop receiving new messages
+        await consumer.pause();
+        console.log("Consumer paused");
+        
+        // Flush any remaining cache
+        if (cache.length > 0) {
+            console.log(`Flushing remaining ${cache.length} items in cache...`);
+            await flush();
+        }
+        
+        // Close consumer
+        await consumer.close();
+        console.log("Consumer closed");
+        
+        // Close Redis cache
+        await redis_cache.close();
+        console.log("Redis cache closed");
+        
+        console.log("Graceful shutdown completed");
+        process.exit(0);
+    } catch (error) {
+        console.error("Error during graceful shutdown:", error);
+        process.exit(1);
+    }
+};
+
+// Handle shutdown signals
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
 setInterval(flush, interval);

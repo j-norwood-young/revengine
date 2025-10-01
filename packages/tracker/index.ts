@@ -26,6 +26,8 @@ const topic = process.env.TRACKER_KAFKA_TOPIC || config.tracker.kafka_topic || `
 const cookie_name = process.env.TRACKER_COOKIE_NAME || config.tracker.cookie_name || "revengine_browser_id"
 const allow_origin = process.env.TRACKER_ALLOWED_ORIGINS || config.tracker.allow_origin || "*";
 
+console.log({ topic, debug: config.debug });
+
 const headers = {
     "Content-Type": "application/json; charset=UTF-8",
     "Content-Disposition": "inline",
@@ -84,6 +86,8 @@ const set_esdata = async (data) => {
             time_updated: new Date().toISOString(),
             seconds_on_page: Math.round(data.seconds_on_page) || 0,
             scroll_depth: Math.round(data.scroll_depth) || 0,
+            session: data.session,
+            email: data.email,
         },
         parse_user_agent(data.user_agent),
         await geolocate_ip(data.user_ip),

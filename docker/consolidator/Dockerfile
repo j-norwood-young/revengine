@@ -7,4 +7,4 @@ COPY packages/consolidator/package.json ./packages/consolidator/
 COPY packages/common/package.json ./packages/common/
 RUN yarn install
 COPY . .
-CMD node --watch packages/consolidator/index.js
+CMD npx tsx watch --clear-screen=false -- packages/consolidator/index.ts

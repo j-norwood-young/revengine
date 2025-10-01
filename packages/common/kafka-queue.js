@@ -9,7 +9,7 @@ export class sub extends EventEmitter {
         super();
         console.log("Initializing Kafka subscriber with:", { topic, group });
         if (!topic || !group) {
-            throw new Error("Please provide KAFKA_TOPIC and KAFKA_GROUP in environment variables");
+            throw new Error(`Please provide topic and group. Got topic: ${topic}, group: ${group}`);
         }
 
         this.consumer = new KafkaConsumer({
@@ -85,6 +85,17 @@ export class sub extends EventEmitter {
         this.consumer.on("error", (error) => {
             console.error("Kafka consumer error:", error);
             this.emit('error', error);
+        });
+
+        // Handle rebalancing events
+        this.consumer.on("rebalancing", (payload) => {
+            console.log("Consumer group is rebalancing - pausing message processing");
+            this.consumer.pause();
+        });
+
+        this.consumer.on("rebalancingComplete", (payload) => {
+            console.log("Consumer group rebalancing completed - resuming message processing");
+            this.consumer.resume();
         });
     }
 

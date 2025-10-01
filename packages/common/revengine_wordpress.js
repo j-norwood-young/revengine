@@ -1,6 +1,6 @@
-const config = require('config')
-const dotenv = require('dotenv')
-const moment = require('moment')
+import config from 'config'
+import dotenv from 'dotenv'
+import moment from 'moment'
 dotenv.config()
 
 const headers = {
@@ -70,7 +70,7 @@ const get_post = async (post_id) => {
     }
 }
 
-module.exports = {
+export {
     get_articles,
     get_post,
     get_opinions,

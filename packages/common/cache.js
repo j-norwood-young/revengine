@@ -1,6 +1,8 @@
-const config = require("config");
-const Redis = require("ioredis")
-const dotenv = require("dotenv");
+import config from "config";
+import Redis from "ioredis";
+import dotenv from "dotenv";
+import errs from 'restify-errors';
+import crypto from "crypto";
 dotenv.config();
 
 let redis;
@@ -21,9 +23,6 @@ if (process.env.REDIS_CLUSTER) {
 redis.on("error", (err) => {
     console.error("Redis error", err);
 });
-
-const errs = require('restify-errors');
-const crypto = require("crypto");
 
 /**
  * Calculates the MD5 hash of a given string.
@@ -127,6 +126,22 @@ class Cache {
     }
 
     /**
+     * Close the Redis connection.
+     * @returns {Promise<void>} - A promise that resolves when the connection is closed.
+     */
+    async close() {
+        try {
+            await this.redis.quit();
+            if (this.debug) {
+                console.log("Redis connection closed");
+            }
+        } catch (err) {
+            console.error("Error closing Redis connection:", err);
+            throw err;
+        }
+    }
+
+    /**
      * Middleware function for caching GET requests for Restify.
      * @param {Object} req - The request object.
      * @param {Object} res - The response object.
@@ -183,4 +198,4 @@ class Cache {
     }
 }
 
-module.exports = Cache;
+export default Cache;

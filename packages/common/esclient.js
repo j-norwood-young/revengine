@@ -1,7 +1,7 @@
-const config = require("config");
-const dotenv = require("dotenv");
+import config from "config";
+import dotenv from "dotenv";
 dotenv.config();
-const elasticsearch = require("@elastic/elasticsearch");
+import elasticsearch from "@elastic/elasticsearch";
 
 const es_config = Object.assign(config.elasticsearch, {
     auth: {
@@ -33,4 +33,4 @@ esclient.ensure_index = async function (index_name, index_mapping) {
     return null;
 }
 
-module.exports = esclient;
+export default esclient;

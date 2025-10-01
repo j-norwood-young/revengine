@@ -3,8 +3,8 @@
  * @module mongo
  */
 
-const { MongoClient, ObjectId } = require('mongodb');
-const config = require('config');
+import { MongoClient, ObjectId } from 'mongodb';
+import config from 'config';
 
 const connection_string = config.api.mongo.connection_string;
 const client = new MongoClient(connection_string);
@@ -14,7 +14,7 @@ let is_connected = false;
  * Connects to the MongoDB server.
  * @async
  */
-module.exports.connect = async () => {
+export const connect = async () => {
     if (!is_connected) await client.connect();
     is_connected = true;
 };
@@ -26,7 +26,7 @@ module.exports.connect = async () => {
  * @param {object} data - The document to be inserted.
  * @returns {object} - The result of the insertion operation.
  */
-module.exports.insertOne = async (collection, data) => {
+export const insertOne = async (collection, data) => {
     try {
         if (!is_connected) await this.connect();
         const db = client.db(config.api.mongo.db);
@@ -44,7 +44,7 @@ module.exports.insertOne = async (collection, data) => {
  * @param {object[]} data - The documents to be inserted.
  * @returns {object} - The result of the insertion operation.
  */
-module.exports.insertMany = async (collection, data) => {
+export const insertMany = async (collection, data) => {
     try {
         if (!is_connected) await this.connect();
         const db = client.db(config.api.mongo.db);
@@ -62,7 +62,7 @@ module.exports.insertMany = async (collection, data) => {
  * @param {object} query - The query to filter the documents.
  * @returns {object} - The matched document.
  */
-module.exports.findOne = async (collection, query) => {
+export const findOne = async (collection, query) => {
     try {
         if (!is_connected) await this.connect();
         const db = client.db(config.api.mongo.db);
@@ -80,7 +80,7 @@ module.exports.findOne = async (collection, query) => {
  * @param {object} query - The query to filter the documents.
  * @returns {object[]} - The matched documents.
  */
-module.exports.find = async (collection, query) => {
+export const find = async (collection, query) => {
     try {
         if (!is_connected) await this.connect();
         const db = client.db(config.api.mongo.db);
@@ -99,7 +99,7 @@ module.exports.find = async (collection, query) => {
  * @param {object} update - The update query. Note you must use the $set operator to update the document.
  * @returns {object} - The result of the update operation.
  */
-module.exports.updateOne = async (collection, query, update) => {
+export const updateOne = async (collection, query, update) => {
     try {
         if (!is_connected) await this.connect();
         const db = client.db(config.api.mongo.db);
@@ -118,7 +118,7 @@ module.exports.updateOne = async (collection, query, update) => {
  * @param {object} update - The update query. Note you need to use the $set operator to update specific fields.
  * @returns {object} - The result of the update operation.
  */
-module.exports.updateMany = async (collection, query, update) => {
+export const updateMany = async (collection, query, update) => {
     try {
         if (!is_connected) await this.connect();
         const db = client.db(config.api.mongo.db);
@@ -136,7 +136,7 @@ module.exports.updateMany = async (collection, query, update) => {
  * @param {object} query - The query to filter the documents.
  * @returns {object} - The result of the delete operation.
  */
-module.exports.deleteOne = async (collection, query) => {
+export const deleteOne = async (collection, query) => {
     try {
         if (!is_connected) await this.connect();
         const db = client.db(config.api.mongo.db);
@@ -154,7 +154,7 @@ module.exports.deleteOne = async (collection, query) => {
  * @param {object} query - The query to filter the documents.
  * @returns {object} - The result of the delete operation.
  */
-module.exports.deleteMany = async (collection, query) => {
+export const deleteMany = async (collection, query) => {
     try {
         if (!is_connected) await this.connect();
         const db = client.db(config.api.mongo.db);
@@ -171,7 +171,7 @@ module.exports.deleteMany = async (collection, query) => {
  * @param {string} collection - The name of the collection to drop.
  * @returns {object} - The result of the drop operation.
  */
-module.exports.dropCollection = async (collection) => {
+export const dropCollection = async (collection) => {
     try {
         if (!is_connected) await this.connect();
         const db = client.db(config.api.mongo.db);
@@ -188,7 +188,7 @@ module.exports.dropCollection = async (collection) => {
  * @param {string} collection - The name of the collection to check.
  * @returns {boolean} - True if the collection exists, false otherwise.
  */
-module.exports.collectionExists = async (collection) => {
+export const collectionExists = async (collection) => {
     try {
         if (!is_connected) await this.connect();
         const db = client.db(config.api.mongo.db);
@@ -206,7 +206,7 @@ module.exports.collectionExists = async (collection) => {
  * @param {object[]} pipeline - The aggregation pipeline.
  * @returns {object[]} - The result of the aggregation operation.
  */
-module.exports.aggregate = async (collection, pipeline) => {
+export const aggregate = async (collection, pipeline) => {
     try {
         if (!is_connected) await this.connect();
         const db = client.db(config.api.mongo.db);
@@ -224,7 +224,7 @@ module.exports.aggregate = async (collection, pipeline) => {
  * @param {object[]} operations - The bulk write operations.
  * @returns {object} - The result of the bulk write operation.
  */
-module.exports.bulkWrite = async (collection, operations) => {
+export const bulkWrite = async (collection, operations) => {
     try {
         if (!is_connected) await this.connect();
         const db = client.db(config.api.mongo.db);
@@ -235,7 +235,7 @@ module.exports.bulkWrite = async (collection, operations) => {
     }
 };
 
-module.exports.ensureIndex = async (collection, index) => {
+export const ensureIndex = async (collection, index) => {
     try {
         if (!is_connected) await this.connect();
         const db = client.db(config.api.mongo.db);
@@ -250,7 +250,7 @@ module.exports.ensureIndex = async (collection, index) => {
  * @param {string} id - The id to convert to ObjectId.
  * @returns {ObjectId} - The converted id.
  */
-module.exports.toObjectId = (id) => {
+export const toObjectId = (id) => {
     return new ObjectId(id);
 }
 
@@ -258,7 +258,7 @@ module.exports.toObjectId = (id) => {
  * Closes the connection to the MongoDB server.
  * @async
  */
-module.exports.close = async () => {
+export const close = async () => {
     if (!is_connected) return;
     if (!client) return;
     await client.close();

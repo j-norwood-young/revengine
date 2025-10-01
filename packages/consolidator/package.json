@@ -1,8 +1,9 @@
 {
   "name": "@revengine/consolidator",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "Consolidates RevEngine hits from Kafka to Elasticsearch",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1",

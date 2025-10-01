@@ -1,4 +1,4 @@
-const Papa = require("papaparse");
+import Papa from "papaparse";
 
 const fetch_csv = async (url) => {
     const csv = await fetch(url).then(res => res.text());
@@ -6,6 +6,6 @@ const fetch_csv = async (url) => {
     return data;
 }
 
-module.exports = {
+export {
     fetch_csv
 }
