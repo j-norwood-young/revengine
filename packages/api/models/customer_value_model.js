@@ -24,8 +24,7 @@ const CustomerValueSchema = new JXPSchema({
         perms: {
             admin: "crud",
             owner: "crud",
-            user: "r",
-            all: "r"
+            user: "r"
         }
     });
 
