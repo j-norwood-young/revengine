@@ -1,5 +1,5 @@
-const config = require("config")
-const nodemailer = require("nodemailer")
+import config from "config";
+import nodemailer from "nodemailer";
 
 class Mail {
     constructor() {
@@ -37,4 +37,4 @@ class Mail {
     }
 }
 
-module.exports = Mail;
+export default Mail;
