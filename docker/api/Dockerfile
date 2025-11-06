@@ -1,4 +1,4 @@
-FROM node:lts
+FROM node:20
 
 RUN apt update && apt install build-essential -y
 WORKDIR /usr/src/app
