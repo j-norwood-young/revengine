@@ -63,7 +63,7 @@ const WhitebeardContentSchema = new JXPSchema({
         perms: {
             admin: "crud",
             owner: "crud",
-            user: "cr",
+            user: "r",
             all: ""
         }
     });
