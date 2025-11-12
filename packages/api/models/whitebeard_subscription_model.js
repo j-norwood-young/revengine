@@ -33,6 +33,6 @@ WhitebeardSubscriptionSchema.index({ nextRenewal: 1 });
 WhitebeardSubscriptionSchema.index({ group: 1 });
 WhitebeardSubscriptionSchema.index({ paymentMethod: 1 });
 
-const WhitebeardOrder = JXPSchema.model('WhitebeardOrder', WhitebeardSubscriptionSchema);
-module.exports = WhitebeardOrder;
+const WhitebeardSubscription = JXPSchema.model('WhitebeardSubscription', WhitebeardSubscriptionSchema);
+module.exports = WhitebeardSubscription;
 
