@@ -1,6 +1,6 @@
 /* global JXPSchema */
 
-const WhitebeardOrderSchema = new JXPSchema({
+const WhitebeardSubscriptionSchema = new JXPSchema({
     id: { type: String, index: true, unique: true },
     activationDate: { type: Date, index: true },
     deactivationDate: { type: Date, index: true },
@@ -26,13 +26,13 @@ const WhitebeardOrderSchema = new JXPSchema({
         }
     });
 
-WhitebeardOrderSchema.index({ status: 1 });
-WhitebeardOrderSchema.index({ activationDate: 1 });
-WhitebeardOrderSchema.index({ deactivationDate: 1 });
-WhitebeardOrderSchema.index({ nextRenewal: 1 });
-WhitebeardOrderSchema.index({ group: 1 });
-WhitebeardOrderSchema.index({ paymentMethod: 1 });
+WhitebeardSubscriptionSchema.index({ status: 1 });
+WhitebeardSubscriptionSchema.index({ activationDate: 1 });
+WhitebeardSubscriptionSchema.index({ deactivationDate: 1 });
+WhitebeardSubscriptionSchema.index({ nextRenewal: 1 });
+WhitebeardSubscriptionSchema.index({ group: 1 });
+WhitebeardSubscriptionSchema.index({ paymentMethod: 1 });
 
-const WhitebeardOrder = JXPSchema.model('WhitebeardOrder', WhitebeardOrderSchema);
+const WhitebeardOrder = JXPSchema.model('WhitebeardOrder', WhitebeardSubscriptionSchema);
 module.exports = WhitebeardOrder;
 
