@@ -40,6 +40,6 @@ WhitebeardCustomerSchema.index({ creationDate: 1 });
 WhitebeardCustomerSchema.index({ tags: 1 });
 WhitebeardCustomerSchema.index({ segments: 1 });
 
-const WhitebeardCustomer = JXPSchema.model('WhitebeardCustomer', WhitebeardCustomerSchema);
+const WhitebeardCustomer = JXPSchema.model('whitebeardcustomer', WhitebeardCustomerSchema);
 module.exports = WhitebeardCustomer;
 

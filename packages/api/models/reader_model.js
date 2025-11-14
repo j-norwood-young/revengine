@@ -1,9 +1,5 @@
 /* global JXPSchema ObjectId Mixed */
 
-const TouchbaseSubscriber = require("./touchbasesubscriber_model");
-const TouchbaseList = require("./touchbaselist_model");
-const WoocommerceSubscription = require("./woocommerce_subscription_model");
-
 const ReaderSchema = new JXPSchema({
     // Basics
     email: { type: String, index: true, unique: true, lowercase: true, trim: true, sparse: true },
@@ -17,6 +13,7 @@ const ReaderSchema = new JXPSchema({
     // woocommercecustomer_id: [{ type: ObjectId, link: "WoocommerceCustomer" }],
     // woocommercesubscription_id: [{ type: ObjectId, link: "WoocommerceSubscription" }],
     wordpressuser_id: { type: ObjectId, link: "wordpressuser", index: true },
+    whitebeardcustomer_id: { type: ObjectId, link: "whitebeardcustomer", index: true },
 
     // Segments and labels
     label_id: [{ type: ObjectId, link: "Label", map_to: "label" }],
@@ -31,6 +28,7 @@ const ReaderSchema = new JXPSchema({
     paying_customer: Boolean,
 
     wordpress_id: { type: Number, index: true, unique: true },
+    external_id: { type: String, index: true, unique: true },
     test_wordpress_id: { type: Number, index: true }, // To be deprecated after testing
 
     remp_beam_id: Number,
@@ -119,73 +117,6 @@ function toSet(a) {
     return [...new Set(a)];
 }
 
-// Trimmed lowercase email
-// ReaderSchema.pre("save", function() {
-//     this.email = this.email.toLowerCase().trim();
-// })
-
-// Newsletters
-ReaderSchema.pre("save", async function () {
-    const item = this;
-    let lists = [];
-    if (!item.touchbasesubscriber) {
-        item.newsletters = lists;
-        return;
-    }
-    for (touchbasesubscriber_id of item.touchbasesubscriber) {
-        try {
-            let tbp = await TouchbaseSubscriber.findById(touchbasesubscriber_id);
-            let list = await TouchbaseList.findById(tbp.list_id);
-            if (list.name !== "Daily Maverick Main List") {
-                lists.push(list.name);
-            } else {
-                for (d of tbp.data) {
-                    if (d.Key === "[DailyMaverickNewsletters]") lists.push(d.Value);
-                }
-            }
-        } catch (err) {
-            console.error(`Failed to find touchbase subscriber ${touchbasesubscriber_id}`);
-        }
-    }
-    item.newsletters = lists;
-    // await item.save();
-})
-
-// first_name and last_name
-ReaderSchema.pre("save", async function () {
-    const item = this;
-    // wordpresslocal > woocommercecustomer > woocommercesubscription > touchbasesubscriber
-    if (item.touchbasesubscriber && item.touchbasesubscriber.length) {
-        let user = await TouchbaseSubscriber.findById(item.touchbasesubscriber[0]);
-        if (user.name) {
-            item.first_name = user.name;
-        }
-        let last_name = user.data.find(d => (d.Key === "[Surname]"));
-        if (last_name) item.last_name = last_name.Value;
-    }
-    if (item.woocommercesubscription && item.woocommercesubscription.length) {
-        let user = await WoocommerceSubscription.findById(item.woocommercesubscription[0]);
-        if (user.first_name) item.first_name = user.first_name;
-        if (user.last_name) item.last_name = user.last_name;
-    }
-    if (item.woocommercecustomer && item.woocommercecustomer.length) {
-        let user = await WoocommerceCustomer.findById(item.woocommercecustomer[0]);
-        if (user.first_name) item.first_name = user.first_name;
-        if (user.last_name) item.last_name = user.last_name;
-    }
-});
-
-// Touchbase data
-ReaderSchema.pre("save", async function () {
-    const item = this;
-    if (!item.touchbasesubscriber) return;
-    if (!item.touchbasesubscriber.length) return;
-    for (let subscriber_id of item.touchbasesubscriber) {
-        let subscriber = await TouchbaseSubscriber.findById(subscriber_id);
-        if (subscriber.email_client) item.email_client = subscriber.email_client;
-    }
-
-});
 
 // const Reader 
 const Reader = JXPSchema.model('reader', ReaderSchema);

@@ -46,6 +46,7 @@ const ArticleSchema = new JXPSchema({
     status: String,
     comment_status: String,
     comment_count: Number,
+    whitebeardcontent_id: { type: ObjectId, link: "whitebeardcontent", index: true },
 },
     {
         perms: {

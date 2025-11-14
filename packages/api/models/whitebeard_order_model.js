@@ -41,6 +41,6 @@ WhitebeardOrderSchema.index({ lastUpdate: 1 });
 WhitebeardOrderSchema.index({ paymentMethod: 1 });
 WhitebeardOrderSchema.index({ shippingStatus: 1 });
 
-const WhitebeardOrder = JXPSchema.model('WhitebeardOrder', WhitebeardOrderSchema);
+const WhitebeardOrder = JXPSchema.model('whitebeardorder', WhitebeardOrderSchema);
 module.exports = WhitebeardOrder;
 

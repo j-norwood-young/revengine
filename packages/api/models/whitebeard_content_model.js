@@ -73,6 +73,6 @@ WhitebeardContentSchema.index({ "dm-article-theme": 1 });
 WhitebeardContentSchema.index({ categories: 1 });
 WhitebeardContentSchema.index({ keywords: 1 });
 
-const WhitebeardContent = JXPSchema.model('WhitebeardContent', WhitebeardContentSchema);
+const WhitebeardContent = JXPSchema.model('whitebeardcontent', WhitebeardContentSchema);
 module.exports = WhitebeardContent;
 
