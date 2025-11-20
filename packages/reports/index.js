@@ -1,8 +1,9 @@
 // Generate a report of article performance for the last 7 days
-const config = require("config");
-const JXPHelper = require("jxp-helper");
-require("dotenv").config();
-const moment = require("moment-timezone");
+import config from "config";
+import JXPHelper from "jxp-helper";
+import dotenv from "dotenv";
+import moment from "moment-timezone";
+dotenv.config();
 const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
 moment.tz.setDefault(config.timezone || "UTC");
 
@@ -237,19 +238,29 @@ class ArticleLongTails {
     }
 }
 
-module.exports = { 
+import TopLastHour from "./libs/top_last_hour.js";
+import TopLastPeriod from "./libs/top_last_period.js";
+import Hits24H from "./libs/hits_24h.js";
+import Newsletter from "./libs/newsletter.js";
+import { TopNewsletterSubscribers, TopNewsletterSubscribersWithSubscriptions } from "./libs/top_newsletter_subscribers.js";
+import Facets from "./libs/facets.js";
+import RFV from "./libs/rfv.js";
+import Random from "./libs/random.js";
+import Sessions from "./libs/sessions.js";
+
+export { 
     ArticleHits, 
     ArticleTags, 
     ArticleSections, 
     CompareFeatures, 
     ArticleLongTails,
-    TopLastHour: require("./libs/top_last_hour"),
-    TopLastPeriod: require("./libs/top_last_period"),
-    Hits24H: require("./libs/hits_24h"),
-    Newsletter: require("./libs/newsletter"),
-    NewsletterSubscribers: require("./libs/top_newsletter_subscribers"),
-    Facets: require("./libs/facets"),
-    RFV: require("./libs/rfv"),
-    Random: require("./libs/random"),
-    Sessions: require("./libs/sessions"),
+    TopLastHour,
+    TopLastPeriod,
+    Hits24H,
+    Newsletter,
+    TopNewsletterSubscribers as NewsletterSubscribers,
+    Facets,
+    RFV,
+    Random,
+    Sessions,
 };

@@ -1,12 +1,11 @@
-const config = require("config");
-const JXPHelper = require("jxp-helper");
-require("dotenv").config();
-const jxphelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
-const moment = require("moment-timezone");
-moment.tz.setDefault(config.timezone || "UTC");
-const esclient = require("@revengine/common/esclient");
+import config from "config";
+import dotenv from "dotenv";
+import moment from "moment-timezone";
+import esclient from "@revengine/common/esclient.js";
+import es_period_filter from "./es_period_filter.js";
 
-const es_period_filter = require("./es_period_filter");
+dotenv.config();
+moment.tz.setDefault(config.timezone || "UTC");
 
 class Sessions {
     constructor(start_date, end_date) {
@@ -283,4 +282,4 @@ class Sessions {
 
 }
 
-module.exports = Sessions;
+export default Sessions;

@@ -4,7 +4,7 @@ import caching from '@fastify/caching';
 import formbody from '@fastify/formbody';
 import Redis from 'ioredis';
 import config from 'config';
-import Reports from '@revengine/reports';
+import { TopLastPeriod, Random, TopLastHour } from '@revengine/reports';
 import JXPHelper from 'jxp-helper';
 import dotenv from 'dotenv';
 import bunyan from 'bunyan';
@@ -235,7 +235,7 @@ app.setErrorHandler((error, request, reply) => {
 app.post('/random', async (request, reply) => {
     try {
         const { size = 1, ignore_post_ids = [], published_start_date = null, published_end_date = null, jitter_factor = 10 } = request.body;
-        const report = new Reports.Random({ size, published_start_date, published_end_date, ignore_post_ids, jitter_factor });
+        const report = new Random({ size, published_start_date, published_end_date, ignore_post_ids, jitter_factor });
         const result = await report.random_articles();
         return { size, ignore_post_ids, published_start_date, published_end_date, jitter_factor, result };
     } catch (err) {
@@ -247,7 +247,7 @@ app.post('/random', async (request, reply) => {
 // Top articles report function
 const top_articles_report = async (params) => {
     try {
-        const report = new Reports.TopLastPeriod();
+        const report = new TopLastPeriod();
         const default_params = {
             size: 5,
             start_period: "now-1h/h",
@@ -339,27 +339,29 @@ app.get('/top_articles', async (request, reply) => {
 // Front page endpoint
 app.get('/front_page', async (request, reply) => {
     try {
-        if (!process.env.REVENGINE_WORDPRESS_KEY) {
-            throw new Error("REVENGINE_WORDPRESS_KEY is not set");
-        }
-        const result = await fetch(`${config.wordpress.server}/wp-json/revengine/v1/featured`, {
-            method: 'get',
-            headers: {
-                'Authorization': `Bearer ${process.env.REVENGINE_WORDPRESS_KEY}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        const json_result = await result.json();
-        if (json_result.code === "rest_forbidden") {
-            throw new Error("Wordpress REST API error - rest_forbidden");
-        }
-        const articles = json_result.data;
-        const report = new Reports.TopLastHour();
-        for (let article of articles) {
-            const hits = await report.run({ article_id: article.post_id });
-            article.hits = hits[0] ? hits[0].doc_count : 0;
-        }
-        return articles;
+        // This is deprecated, use /top_articles instead
+        return await top_articles_report({ size: 5, start_period: "now-1h/h", end_period: "now/h" });
+        // if (!process.env.REVENGINE_WORDPRESS_KEY) {
+        //     throw new Error("REVENGINE_WORDPRESS_KEY is not set");
+        // }
+        // const result = await fetch(`${config.wordpress.server}/wp-json/revengine/v1/featured`, {
+        //     method: 'get',
+        //     headers: {
+        //         'Authorization': `Bearer ${process.env.REVENGINE_WORDPRESS_KEY}`,
+        //         'Content-Type': 'application/json'
+        //     }
+        // });
+        // const json_result = await result.json();
+        // if (json_result.code === "rest_forbidden") {
+        //     throw new Error("Wordpress REST API error - rest_forbidden");
+        // }
+        // const articles = json_result.data;
+        // const report = new Reports.TopLastHour();
+        // for (let article of articles) {
+        //     const hits = await report.run({ article_id: article.post_id });
+        //     article.hits = hits[0] ? hits[0].doc_count : 0;
+        // }
+        // return articles;
     } catch (err) {
         log.error('Error in /front_page:', err);
         log.error('Stack trace:', err.stack);
@@ -370,7 +372,7 @@ app.get('/front_page', async (request, reply) => {
 // Top articles by section endpoint
 app.get('/top_articles_by_section/:section', async (request, reply) => {
     try {
-        const report = new Reports.TopLastHour();
+        const report = new TopLastHour();
         const size = request.query.size || 5;
         const top_articles = await report.run({ size, section: request.params.section });
         const articles = (await jxphelper.aggregate("article", [
@@ -472,7 +474,7 @@ app.get('/analytics/posts', async (request, reply) => {
 
         log.info('Processing analytics for post_ids:', post_ids);
 
-        const report = new Reports.TopLastHour();
+        const report = new TopLastHour();
         const post_hits = await report.run({ article_id: post_ids });
 
         return post_hits.map(a => ({
@@ -536,7 +538,7 @@ app.post('/analytics/posts', async (request, reply) => {
         }
 
         log.info('Cache miss for analytics posts');
-        const report = new Reports.TopLastHour();
+        const report = new TopLastHour();
         const top_articles = await report.run({ article_id: post_ids });
 
         const result = [];

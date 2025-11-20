@@ -1,8 +1,10 @@
-const config = require("config");
-const JXPHelper = require("jxp-helper");
+import config from "config";
+import JXPHelper from "jxp-helper";
+import dotenv from "dotenv";
+import moment from "moment-timezone";
+
+dotenv.config();
 const jxphelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
-require("dotenv").config();
-const moment = require("moment-timezone");
 moment.tz.setDefault(config.timezone || "UTC");
 
 const sort_obj = obj => {
@@ -115,4 +117,4 @@ class Newsletter {
     }
 }
 
-module.exports = Newsletter;
+export default Newsletter;

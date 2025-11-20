@@ -1,8 +1,10 @@
-const config = require("config");
-const JXPHelper = require("jxp-helper");
-require("dotenv").config();
+import config from "config";
+import JXPHelper from "jxp-helper";
+import dotenv from "dotenv";
+import moment from "moment-timezone";
+
+dotenv.config();
 const jxphelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
-const moment = require("moment-timezone");
 moment.tz.setDefault(config.timezone || "UTC");
 
 const TopNewsletterSubscribers = async (days = 30, min_hits = 10, event = "clicks") => {
@@ -156,4 +158,4 @@ const TopNewsletterSubscribersWithSubscriptions = async (days = 30, min_hits = 1
     return result;
 }
 
-module.exports = { TopNewsletterSubscribers, TopNewsletterSubscribersWithSubscriptions };
+export { TopNewsletterSubscribers, TopNewsletterSubscribersWithSubscriptions };

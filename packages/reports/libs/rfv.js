@@ -1,11 +1,13 @@
 // Combines recency, frequency, value in one step, and can handle multiple readers
-const config = require("config");
-const JXPHelper = require("jxp-helper");
-require("dotenv").config();
+import config from "config";
+import JXPHelper from "jxp-helper";
+import dotenv from "dotenv";
+import moment from "moment-timezone";
+import { quantileRankSorted } from "simple-statistics";
+
+dotenv.config();
 const jxphelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
-const moment = require("moment-timezone");
 moment.tz.setDefault(config.timezone || "UTC");
-const ss = require("simple-statistics");
 
 const calc_recency_score = last_hit => {
     const now = moment();
@@ -139,7 +141,7 @@ class RFV {
         const values = frequency_result.map(a => a.count).sort((a, b) => a - b);
         for (let frequency of frequency_result) {
             frequency.email = frequency.email.toLowerCase();
-            frequency.quantile_rank = ss.quantileRankSorted(values, frequency.count)
+            frequency.quantile_rank = quantileRankSorted(values, frequency.count)
         }
         return frequency_result;
     }
@@ -186,7 +188,7 @@ class RFV {
         const values = recency_result.map(a => a.recency);
         // console.log(values.length);
         for (let recency of recency_result) {
-            recency.quantile_rank = ss.quantileRankSorted(values, recency.recency)
+            recency.quantile_rank = quantileRankSorted(values, recency.recency)
         }
         return recency_result;
     }
@@ -227,10 +229,10 @@ class RFV {
         const values = volume_result.map(a => a.count).sort((a, b) => a - b);
         for (let volume of volume_result) {
             volume.email = volume.email.toLowerCase();
-            volume.quantile_rank = ss.quantileRankSorted(values, volume.count)
+            volume.quantile_rank = quantileRankSorted(values, volume.count)
         }
         return volume_result;
     }
 }
 
-module.exports = RFV;
+export default RFV;

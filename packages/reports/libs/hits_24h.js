@@ -1,9 +1,10 @@
-const config = require("config");
-const JXPHelper = require("jxp-helper");
-require("dotenv").config();
-const moment = require("moment-timezone");
+import config from "config";
+import dotenv from "dotenv";
+import moment from "moment-timezone";
+import esclient from "@revengine/common/esclient.js";
+
+dotenv.config();
 moment.tz.setDefault(config.timezone || "UTC");
-const esclient = require("@revengine/common/esclient");
 
 class Hits24H {
     constructor(opts) {
@@ -54,4 +55,4 @@ class Hits24H {
     }
 }
 
-module.exports = Hits24H;
+export default Hits24H;
