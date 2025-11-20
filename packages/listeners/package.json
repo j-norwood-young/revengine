@@ -3,6 +3,7 @@
     "version": "0.0.2",
     "description": "RevEngine Listeners - servers that listen to the interwebs for changes",
     "main": "index.js",
+    "type": "module",
     "scripts": {
       "start": "node index.js",
       "test": "echo \"Error: no test specified\" && exit 1",

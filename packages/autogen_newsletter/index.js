@@ -1,9 +1,9 @@
-const config = require("config");
-require("dotenv").config();
-const apihelper = require("@revengine/common/apihelper");
+import config from "config";
+import dotenv from "dotenv";
+dotenv.config();
 const period = "week";
-const axios = require("axios");
-const summarise_article = require("./summarise_article");
+import axios from "axios";
+import summarise_article from "./summarise_article.js";
 // import { Configuration, OpenAIApi } from "openai";
 
 async function find_top_articles(sections) {
@@ -13,7 +13,7 @@ async function find_top_articles(sections) {
     return result.data;
 }
 
-const generate = async (sections) => {
+export default async function generate(sections) {
     try {
         const articles = await find_top_articles(sections);
         const summaries = [];
@@ -29,9 +29,5 @@ const generate = async (sections) => {
         console.error(err.data ? JSON.stringify(err.data, null, 2) : err);
         return { error: err.toString() };
     }
-}
-
-module.exports = {
-    generate
 }
 

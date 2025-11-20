@@ -1,14 +1,15 @@
-const config = require("config");
-const restify = require("restify");
-const errs = require('restify-errors');
-const corsMiddleware = require('restify-cors-middleware2')
+import config from "config";
+import restify from "restify";
+import errs from 'restify-errors';
+import corsMiddleware from 'restify-cors-middleware2';
+import protected_server from "@revengine/http_server";
+import * as Reports from "@revengine/reports";
+import esclient from "@revengine/common/esclient.js";
+
 const public_server = restify.createServer({
     name: config.api_name
 });
-const protected_server = require("@revengine/http_server");
 protected_server.use(restify.plugins.bodyParser());
-const Reports = require("@revengine/reports");
-const esclient = require("@revengine/common/esclient");
 
 const cors = corsMiddleware({
     origins: ['*'],
@@ -18,80 +19,32 @@ public_server.use(restify.plugins.bodyParser());
 public_server.use(restify.plugins.queryParser());
 public_server.use(cors.preflight);
 public_server.use(cors.actual);
-const touchbase = require("@revengine/mailer/touchbase");
-const sailthru = require("@revengine/mailer/sailthru");
-const sync_wordpress = require("@revengine/sync/wordpress");
-const ml = require("@revengine/ml");
-const wordpress_auth = require("@revengine/wordpress_auth");
-const JXPHelper = require("jxp-helper");
+import touchbase from "@revengine/mailer/touchbase.js";
+import { prediction_dump } from "@revengine/ml";
+import JXPHelper from "jxp-helper";
+import autogen_newsletter from "@revengine/autogen_newsletter";
+
 const apihelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 
-// const woocommerce = require("./woocommerce");
+const deprecated = async (req, res) => {
+    try {
+        res.send({ status: "deprecated" });
+    } catch (err) {
+        console.error(err);
+    }
+}
 
 public_server.get("/test", async (req, res) => {
     res.send({ status: "ok" });
 });
 
-public_server.post("/wp/woocommerce/subscription/update", touchbase.woocommerce_subscriptions_callback, async (req, res) => {
-    try {
-        res.send({ status: "ok" });
-        if (config.debug) {
-            console.log(JSON.stringify(req.body, null, 2));
-        }
-        const wordpress_user_id = req.body.subscription.customer_id;
-        const data = await sync_wordpress.sync_user(wordpress_user_id);
-        if (config.debug) console.log(data);
-        const subscription_data = await sync_wordpress.sync_subscription(wordpress_user_id);
-        if (config.debug) console.log(subscription_data);
-        // Is this a new subscription?
-        if (req.body.old === "pending" && req.body.new === "active") {
+public_server.post("/wp/woocommerce/subscription/update", deprecated);
 
-        }
-    } catch (err) {
-        console.error(err);
-    }
-});
+public_server.post("/wp/wordpress/user/update", deprecated);
 
-public_server.post("/wp/wordpress/user/update", async (req, res) => {
-    try {
-        res.send({ status: "ok" });
-        if (config.debug) console.log(JSON.stringify(req.body, null, 2));
-        const wordpress_user_id = req.body.user.ID;
-        const data = await sync_wordpress.sync_user(wordpress_user_id);
-        if (config.debug) console.log(data);
-        const reader = (await apihelper.get("reader", { "filter[wordpress_id]": req.body.user.data.ID, "fields": "_id" })).data.pop();
-        if (!reader) throw "Reader not found";
-        await wordpress_auth.sync_reader(reader._id);
-        if (config.debug) console.log("Synced existing user", wordpress_user_id);
-    } catch (err) {
-        console.error(err);
-    }
-});
+public_server.post("/wp/wordpress/user/create", deprecated);
 
-public_server.post("/wp/wordpress/user/create", async (req, res) => {
-    try {
-        res.send({ status: "ok" });
-        // Pause for 1 sec
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        if (config.debug) console.log(JSON.stringify(req.body, null, 2));
-        const wordpress_user_id = req.body.user.data.ID;
-        const data = await sync_wordpress.sync_user(wordpress_user_id);
-        if (config.debug) console.log(data);
-        if (config.debug) console.log("Synced new user", wordpress_user_id);
-    } catch (err) {
-        console.error(err);
-    }
-});
-
-public_server.post("/wp/wordpress/user/delete", async (req, res) => {
-    try {
-        if (config.debug) console.log(JSON.stringify(req.body, null, 2));
-        res.send({ status: "not implemented" });
-    } catch (err) {
-        console.error(err);
-        res.send(500, { status: "error", error: err.toString() });
-    }
-});
+public_server.post("/wp/wordpress/user/delete", deprecated);
 
 public_server.post("/wp/reader/labels", async (req, res) => {
     try {
@@ -206,9 +159,9 @@ public_server.post("/wp/test", async (req, res) => {
     res.send({ status: "ok" });
 });
 
-public_server.post("/woocommerce/subscriptions/zapier/callback", touchbase.woocommerce_subscriptions_zapier_callback);
+public_server.post("/woocommerce/subscriptions/zapier/callback", deprecated);
 
-public_server.post("/ml/prediction_dump", ml.prediction_dump);
+public_server.post("/ml/prediction_dump", prediction_dump);
 
 public_server.listen(config.listeners.public_port || 3020, function () {
     console.log('%s listening at %s', public_server.name, public_server.url);
@@ -223,23 +176,9 @@ protected_server.get("/email/mailrun/:mailrun_id", async (req, res) => {
     }
 });
 
-protected_server.post("/add_autologin", async (req, res) => {
-    try {
-        const user_id = req.body.user_id;
-        const tbp_list_id = req.body.list_id;
-        if (!user_id) throw "No user_id";
-        if (!tbp_list_id) throw "No list_id";
-        const list = (await apihelper.get("touchbaselist", { "filter[list_id]": tbp_list_id })).data.pop();
-        if (!list) throw "List not found";
-        await wordpress_auth.force_sync_reader(user_id, list._id);
-        res.send({ status: "ok" });
-    } catch (err) {
-        res.send(500, { error: err.toString() });
-    }
-});
+protected_server.post("/add_autologin", deprecated);
 
 public_server.get("/autogen_newsletter", async (req, res) => {
-    const autogen_newsletter = require("@revengine/autogen_newsletter");
     try {
         const section_query = req.query.sections || "";
         const sections = section_query.split(",").map(topic => topic.trim());
@@ -250,7 +189,7 @@ public_server.get("/autogen_newsletter", async (req, res) => {
     }
 });
 
-protected_server.get("/email/automated/monthly_uber_mail", touchbase.monthly_uber_mail);
+protected_server.get("/email/automated/monthly_uber_mail", deprecated);
 
 protected_server.get("/report/logged_in_users", async (req, res) => {
     try {
@@ -295,129 +234,18 @@ protected_server.get("/report/users_by_segment", async (req, res) => {
     }
 });
 
-protected_server.get("/sailthru/queue", sailthru.serve_queue);
-protected_server.get("/sailthru/full_queue", sailthru.serve_full_queue);
-protected_server.get("/sailthru/job_status/:job_id", sailthru.serve_job_status);
-protected_server.get("/sailthru/push/:uid/:page", sailthru.serve_push);
-protected_server.post("/sailthru/subscribe_email_to_list", async (req, res) => {
-    try {
-        const email = req.body.email;
-        const list_name = req.body.list_name;
-        if (!email) throw "No email";
-        if (!list_name) throw "No list_name";
-        const result = await sailthru.subscribe_email_to_list(email, list_name);
-        res.send(result);
-        // res.send({ status: "ok" });
-    } catch (err) {
-        res.send(500, { error: err.toString() });
-    }
-})
-protected_server.post("/sailthru/subscribe_to_list", async (req, res) => {
-    try {
-        const email = req.body.email;
-        const reader_id = req.body.reader_id;
-        const list_name = req.body.list_name;
-        let result;
-        if (!list_name) throw "No list_name";
-        if (email) {
-            result = await sailthru.subscribe_email_to_list(email, list_name);
-        } else if (reader_id) {
-            result = await sailthru.subscribe_reader_to_list(reader_id, list_name);
-        } else {
-            throw "No email or reader_id";
-        }
-        res.send(result);
-        // res.send({ status: "ok" });
-    } catch (err) {
-        res.send(500, { error: err.toString() });
-    }
-})
-protected_server.post("/sailthru/unsubscribe_email_from_list", async (req, res) => {
-    try {
-        const email = req.body.email;
-        const list_name = req.body.list_name;
-        if (!email) throw "No email";
-        if (!list_name) throw "No list_name";
-        const result = await sailthru.unsubscribe_email_from_list(email, list_name);
-        res.send(result);
-        // res.send({ status: "ok" });
-    } catch (err) {
-        res.send(500, { error: err.toString() });
-    }
-})
-protected_server.post("/sailthru/unsubscribe_from_list", async (req, res) => {
-    try {
-        const email = req.body.email;
-        const reader_id = req.body.reader_id;
-        const list_name = req.body.list_name;
-        let result;
-        if (!list_name) throw "No list_name";
-        if (email) {
-            result = await sailthru.unsubscribe_email_from_list(email, list_name);
-        } else if (reader_id) {
-            result = await sailthru.unsubscribe_reader_from_list(reader_id, list_name);
-        } else {
-            throw "No email or reader_id";
-        }
-        res.send(result);
-        // res.send({ status: "ok" });
-    } catch (err) {
-        res.send(500, { error: err.toString() });
-    }
-})
-
-protected_server.get("/sailthru/get_lists", async (req, res) => {
-    try {
-        const lists = await sailthru.get_lists();
-        res.send({ lists });
-    } catch (err) {
-        res.send(500, { error: err.toString() });
-    }
-})
-
-protected_server.get("/sailthru/get_users_in_list", async (req, res) => {
-    try {
-        const list = req.query.list;
-        if (!list) throw "No list";
-        const users = await sailthru.get_users_in_list(list);
-        res.send({ users });
-    } catch (err) {
-        console.error(err);
-        res.send(500, { error: err.toString() });
-    }
-})
-
-protected_server.post("/sailthru/sync_user", async (req, res) => {
-    try {
-        const email = req.body.email;
-        const user_id = req.body.user_id;
-        const reader_id = req.body.reader_id;
-        // if (!email && !user_id) throw "No email or user_id";
-        let result;
-        if (email) {
-            result = await sailthru.sync_user_by_email(email);
-        } else if (user_id) {
-            result = await sailthru.sync_user_by_wordpress_id(user_id);
-        } else if (reader_id) {
-            result = await sailthru.sync_user_by_reader_id(reader_id);
-        } else {
-            throw "No email, user_id or reader_id";
-        }
-        res.send(result);
-    } catch (err) {
-        res.send(500, { error: err.toString() });
-    }
-})
-
-protected_server.get("/wordpress/sync_readers_missing_in_wordpress", async (req, res) => {
-    try {
-        await sync_wordpress.sync_readers_missing_in_wordpress();
-        res.send({ status: "ok" });
-    } catch (err) {
-        console.error(err);
-        res.send(new errs.InternalServerError(err));
-    }
-});
+protected_server.get("/sailthru/queue", deprecated);
+protected_server.get("/sailthru/full_queue", deprecated);
+protected_server.get("/sailthru/job_status/:job_id", deprecated);
+protected_server.get("/sailthru/push/:uid/:page", deprecated);
+protected_server.post("/sailthru/subscribe_email_to_list", deprecated);
+protected_server.post("/sailthru/subscribe_to_list", deprecated);
+protected_server.post("/sailthru/unsubscribe_email_from_list", deprecated);
+protected_server.post("/sailthru/unsubscribe_from_list", deprecated);
+protected_server.get("/sailthru/get_lists", deprecated);
+protected_server.get("/sailthru/get_users_in_list", deprecated);
+protected_server.post("/sailthru/sync_user", deprecated);
+protected_server.get("/wordpress/sync_readers_missing_in_wordpress", deprecated);
 
 protected_server.post("/elasticsearch", async (req, res) => {
     try {
