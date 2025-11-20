@@ -13,7 +13,7 @@ const ReaderSchema = new JXPSchema({
     // woocommercecustomer_id: [{ type: ObjectId, link: "WoocommerceCustomer" }],
     // woocommercesubscription_id: [{ type: ObjectId, link: "WoocommerceSubscription" }],
     wordpressuser_id: { type: ObjectId, link: "wordpressuser", index: true },
-    whitebeardcustomer_id: { type: ObjectId, link: "whitebeardcustomer", index: true },
+    whitebeardcustomer_id: { type: ObjectId, link: "whitebeard_customer", index: true },
 
     // Segments and labels
     label_id: [{ type: ObjectId, link: "Label", map_to: "label" }],
@@ -28,7 +28,7 @@ const ReaderSchema = new JXPSchema({
     paying_customer: Boolean,
 
     wordpress_id: { type: Number, index: true, unique: true },
-    external_id: { type: String, index: true, unique: true },
+    external_id: { type: Number, index: true, unique: true },
     test_wordpress_id: { type: Number, index: true }, // To be deprecated after testing
 
     remp_beam_id: Number,
