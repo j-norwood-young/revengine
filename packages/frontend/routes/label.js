@@ -1,7 +1,7 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const config = require("config");
-const moment = require("moment");
+import config from "config";
+import moment from "moment";
 
 router.use("/", (req, res, next) => {
     res.locals.pg="label";
@@ -35,4 +35,4 @@ router.get("/download/csv/:label_id", async (req, res) => {
     }
 })
 
-module.exports = router;
+export default router;

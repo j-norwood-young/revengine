@@ -52,10 +52,11 @@ class Typedef {
 
     async table() {
         const result = await this.data();
+        // Pug template loaded by webpack pug-loader
         const template = require("../views/table.pug");
         return template({ table_fields: this.table_fields, data: result.data });
     }
 
 }
 
-module.exports = Typedef;
+export default Typedef;

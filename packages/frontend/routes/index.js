@@ -1,10 +1,12 @@
-var express = require('express');
-var router = express.Router();
-const config = require("config");
-const JXPHelper = require("jxp-helper");
-require("dotenv").config();
+import express from 'express';
+const router = express.Router();
+import config from "config";
+import JXPHelper from "jxp-helper";
+import dotenv from "dotenv";
+dotenv.config();
 
-router.use("/login", require("./login"));
+import loginRouter from "./login.js";
+router.use("/login", loginRouter);
 
 /* Login */
 router.use(async (req, res, next) => {
@@ -72,8 +74,8 @@ router.use((req, res, next) => {
 });
 
 /* State Variables */
-router.use((req, res, next) => {
-	const Reader = require("../src/javascripts/typedefs/reader");
+router.use(async (req, res, next) => {
+	const { default: Reader } = await import("../src/javascripts/typedefs/reader.js");
 	const reader = new Reader();
 	res.locals.typedefs = { reader };
 	res.locals.sitename = config.frontend.sitename;
@@ -87,9 +89,11 @@ router.use((req, res, next) => {
 })
 
 /* Useful shit */
-router.use((req, res, next) => {
-	res.locals.moment = require("moment-timezone");
-	res.locals.formatNumber = require("../libs/formatNumber");
+router.use(async (req, res, next) => {
+	const moment = (await import("moment-timezone")).default;
+	const formatNumber = (await import("../libs/formatNumber.js")).default;
+	res.locals.moment = moment;
+	res.locals.formatNumber = formatNumber;
 	next();
 })
 
@@ -103,23 +107,42 @@ router.get("/test", (req, res) => {
 	res.render("test")
 })
 
-router.use("/account", require("./account"));
-router.use("/dashboard", require("./dashboard"));
-router.use("/list", require("./list"));
-router.use("/item", require("./item"));
-router.use("/search", require("./search"));
-router.use("/reader", require("./reader"));
-router.use("/stats", require("./stats"));
-router.use("/api", require("./api"));
-router.use("/config", require("./config"));
-router.use("/mails", require("./mails"));
-router.use("/report", require("./report"));
-router.use("/voucher", require("./voucher"));
-router.use("/label", require("./label"));
-router.use("/segmentation", require("./segmentation"));
-router.use("/goals", require("./goals"));
-router.use("/settings", require("./settings"));
-router.use("/article", require("./article"));
-router.use("/download", require("./download"));
+import accountRouter from "./account.js";
+import dashboardRouter from "./dashboard.js";
+import listRouter from "./list.js";
+import itemRouter from "./item.js";
+import searchRouter from "./search.js";
+import readerRouter from "./reader.js";
+import statsRouter from "./stats.js";
+import apiRouter from "./api.js";
+import configRouter from "./config.js";
+import mailsRouter from "./mails.js";
+import reportRouter from "./report.js";
+import voucherRouter from "./voucher.js";
+import labelRouter from "./label.js";
+import segmentationRouter from "./segmentation.js";
+import goalsRouter from "./goals.js";
+import settingsRouter from "./settings.js";
+import articleRouter from "./article.js";
+import downloadRouter from "./download.js";
 
-module.exports = router;
+router.use("/account", accountRouter);
+router.use("/dashboard", dashboardRouter);
+router.use("/list", listRouter);
+router.use("/item", itemRouter);
+router.use("/search", searchRouter);
+router.use("/reader", readerRouter);
+router.use("/stats", statsRouter);
+router.use("/api", apiRouter);
+router.use("/config", configRouter);
+router.use("/mails", mailsRouter);
+router.use("/report", reportRouter);
+router.use("/voucher", voucherRouter);
+router.use("/label", labelRouter);
+router.use("/segmentation", segmentationRouter);
+router.use("/goals", goalsRouter);
+router.use("/settings", settingsRouter);
+router.use("/article", articleRouter);
+router.use("/download", downloadRouter);
+
+export default router;

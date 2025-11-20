@@ -1,25 +1,25 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const config = require("config");
-const moment = require("moment");
-const mailer = require("@revengine/mailer");
-const wordpress_auth = require("@revengine/wordpress_auth");
+import config from "config";
+import moment from "moment";
+import { mailer_names } from "@revengine/mailer";
+import { encrypt as encrypt_wordpress_auth } from "@revengine/wordpress_auth";
 
-const JXPHelper = require("jxp-helper");
-const {
+import JXPHelper from "jxp-helper";
+import {
     run_transactional,
     // add_readers_to_list, 
     // create_list, 
     // get_touchbase_lists, 
     // get_touchbase_list, 
-    ensure_custom_fields
-} = require('@revengine/mailer/touchbase');
-const {
-    get_lists,
-    get_list,
-    create_list,
-    add_readers_to_list,
-} = require('@revengine/mailer/sailthru');
+    // ensure_custom_fields
+} from '@revengine/mailer/touchbase.js';
+import {
+    // get_lists,
+    // get_list,
+    // create_list,
+    // add_readers_to_list,
+} from '@revengine/mailer/sailthru.js';
 
 const apihelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 
@@ -42,16 +42,18 @@ router.get("/", async (req, res) => {
 
 router.get("/reports", async (req, res) => {
     res.send({
-        reports: mailer.mailer_names
+        reports: mailer_names
     })
 })
 
 // Testing Sailthru
 router.get("/lists", async (req, res) => {
     try {
-        const lists = await get_lists();
-        res.send(lists);
+        // TODO: Update for Whitebeard
+        // const lists = await get_lists();
+        const lists = [];
         // res.render("mail/lists", { title: "Mailing Lists", lists });
+        res.render("mail/lists", { title: "Mailing Lists", lists });
     } catch (err) {
         console.error(err);
         res.status(500).send(err);
@@ -253,7 +255,7 @@ async function subscribe_readers_to_list(readers, list, custom_fields = {}, incl
                 if (config.debug) {
                     // console.log(reader_data);
                 }
-                reader.custom_fields.auto_login_id = wordpress_auth.encrypt(reader_data);
+                reader.custom_fields.auto_login_id = encrypt_wordpress_auth(reader_data);
             }
         }
         if (include_vouchers) {
@@ -293,8 +295,10 @@ async function subscribe_readers_to_list(readers, list, custom_fields = {}, incl
         if (config.debug) {
             console.log(readers);
         }
-        const result = await add_readers_to_list(readers, list_id);
-        return result;
+        // TODO: Update for Whitebeard
+        // const result = await add_readers_to_list(readers, list_id);
+        // return result;
+        return [];
     } catch (err) {
         return Promise.reject(err);
     }
@@ -362,4 +366,4 @@ router.get("/vouchertest/:segment_id", async (req, res) => {
 //     console.log(readers_without_vouchers);
 // }
 
-module.exports = router;
+export default router;

@@ -47,4 +47,4 @@ const isEmpty = function () {
     return true;
 }
 
-module.exports = { formatNumber, htmlEntities, bytesToString, imgContain, imgResize, parser, isEmpty };
+export { formatNumber, htmlEntities, bytesToString, imgContain, imgResize, parser, isEmpty };

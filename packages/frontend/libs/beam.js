@@ -1,5 +1,5 @@
-const axios = require("axios");
-const Charts = require("./charts");
+import axios from "axios";
+import Charts from "./charts.js";
 
 class Beam {
     constructor() {
@@ -32,4 +32,4 @@ class Beam {
     
 }
 
-module.exports = Beam;
+export default Beam;

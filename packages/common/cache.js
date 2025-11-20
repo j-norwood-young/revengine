@@ -5,24 +5,109 @@ import errs from 'restify-errors';
 import crypto from "crypto";
 dotenv.config();
 
-let redis;
+let redis = null;
+let connectionFailed = false;
 
-if (process.env.REDIS_CLUSTER) {
-    const nodes = process.env.REDIS_CLUSTER_NODES.split(",");
-    redis = new Redis.Cluster(nodes.map(node => {
-        const [host, port] = node.split(":");
-        return { host, port };
-    }));
-} else if (config.redis.cluster) {
-    redis = new Redis.Cluster(config.redis.cluster);
-} else {
-    const redis_url = process.env.REDIS_URL || config.redis.url;
-    redis = new Redis(redis_url);
+function getRedisConnection() {
+    if (redis && !connectionFailed) {
+        return redis;
+    }
+    
+    // Reset failed flag if we're recreating
+    connectionFailed = false;
+    
+    try {
+        if (process.env.REDIS_CLUSTER) {
+            const nodes = process.env.REDIS_CLUSTER_NODES.split(",");
+            redis = new Redis.Cluster(nodes.map(node => {
+                const [host, port] = node.split(":");
+                return { host, port };
+            }), {
+                maxRedirections: 3,
+                retryStrategy: (times) => {
+                    // Stop retrying after 10 attempts to prevent infinite loops
+                    if (times > 10) {
+                        console.error("Redis cluster connection failed after 10 retries");
+                        connectionFailed = true;
+                        return null; // Stop retrying
+                    }
+                    const delay = Math.min(times * 50, 2000);
+                    return delay;
+                },
+                enableOfflineQueue: true,
+                enableReadyCheck: true,
+                clusterRetryStrategy: (times) => {
+                    if (times > 10) {
+                        console.error("Redis cluster retry failed after 10 attempts");
+                        connectionFailed = true;
+                        return null;
+                    }
+                    return Math.min(times * 50, 2000);
+                }
+            });
+        } else if (config.redis?.cluster) {
+            redis = new Redis.Cluster(config.redis.cluster, {
+                maxRedirections: 3,
+                retryStrategy: (times) => {
+                    if (times > 10) {
+                        console.error("Redis cluster connection failed after 10 retries");
+                        connectionFailed = true;
+                        return null;
+                    }
+                    const delay = Math.min(times * 50, 2000);
+                    return delay;
+                },
+                enableOfflineQueue: true,
+                enableReadyCheck: true,
+                clusterRetryStrategy: (times) => {
+                    if (times > 10) {
+                        console.error("Redis cluster retry failed after 10 attempts");
+                        connectionFailed = true;
+                        return null;
+                    }
+                    return Math.min(times * 50, 2000);
+                }
+            });
+        } else {
+            const redis_url = process.env.REDIS_URL || config.redis?.url || 'redis://localhost:6379';
+            redis = new Redis(redis_url, {
+                retryStrategy: (times) => {
+                    if (times > 10) {
+                        console.error("Redis connection failed after 10 retries");
+                        connectionFailed = true;
+                        return null;
+                    }
+                    const delay = Math.min(times * 50, 2000);
+                    return delay;
+                },
+                enableOfflineQueue: true,
+                enableReadyCheck: true
+            });
+        }
+
+        redis.on("error", (err) => {
+            // Don't log "Connection is closed" errors repeatedly
+            if (!err.message.includes("Connection is closed")) {
+                console.error("Redis error", err);
+            }
+        });
+        
+        redis.on("close", () => {
+            console.warn("Redis connection closed");
+            // Don't reset connectionFailed here - let retryStrategy handle it
+        });
+        
+        redis.on("ready", () => {
+            connectionFailed = false;
+        });
+        
+        return redis;
+    } catch (err) {
+        console.error("Failed to create Redis connection:", err);
+        connectionFailed = true;
+        throw err;
+    }
 }
-
-redis.on("error", (err) => {
-    console.error("Redis error", err);
-});
 
 /**
  * Calculates the MD5 hash of a given string.
@@ -52,7 +137,7 @@ class Cache {
         this.debug = opts.debug || false;
         this.prefix = opts.prefix || "revengine";
         this.ttl = opts.ttl || 60;
-        this.redis = redis;
+        this.redis = getRedisConnection();
         this.debug = opts.debug || false;
     }
 
@@ -63,13 +148,20 @@ class Cache {
      */
     async get(key) {
         try {
+            if (connectionFailed) {
+                return null;
+            }
             this.debug && console.log(`Getting ${key}`);
             const result = await this.redis.get(`${this.prefix}:${key}`);
             this.debug && console.log(`Got result for ${key}`)
             if (result) return JSON.parse(result);
             return null;
         } catch (err) {
-            console.error(err);
+            if (!err.message.includes("Too many Cluster redirections") && 
+                !err.message.includes("Connection is closed") &&
+                !err.message.includes("Cluster isn't ready")) {
+                console.error(`Error getting cache key ${key}:`, err);
+            }
             return null;
         }
     }
@@ -82,10 +174,23 @@ class Cache {
      * @returns {Promise<void>} - A promise that resolves when the value is set in the cache.
      */
     async set(key, value, ttl) {
-        ttl = ttl || this.ttl;
-        const json_value = JSON.stringify(value);
-        this.debug && console.log(`Setting ${key} to ${json_value.length}`)
-        return await this.redis.set(`${this.prefix}:${key}`, json_value, "EX", ttl);
+        try {
+            if (connectionFailed) {
+                return null;
+            }
+            ttl = ttl || this.ttl;
+            const json_value = JSON.stringify(value);
+            this.debug && console.log(`Setting ${key} to ${json_value.length}`)
+            return await this.redis.set(`${this.prefix}:${key}`, json_value, "EX", ttl);
+        } catch (err) {
+            if (!err.message.includes("Too many Cluster redirections") && 
+                !err.message.includes("Connection is closed") &&
+                !err.message.includes("Cluster isn't ready")) {
+                console.error(`Error setting cache key ${key}:`, err);
+            }
+            // Don't throw - allow application to continue if cache operation fails
+            return null;
+        }
     }
 
     /**
@@ -94,7 +199,22 @@ class Cache {
      * @returns {Promise<void>} - A promise that resolves when the value is deleted from the cache.
      */
     async del(key) {
-        return await this.redis.del(`${this.prefix}:${key}`);
+        try {
+            // Check if connection is in a failed state
+            if (connectionFailed) {
+                return null;
+            }
+            return await this.redis.del(`${this.prefix}:${key}`);
+        } catch (err) {
+            // Suppress "Too many Cluster redirections" and "Connection is closed" errors
+            if (!err.message.includes("Too many Cluster redirections") && 
+                !err.message.includes("Connection is closed") &&
+                !err.message.includes("Cluster isn't ready")) {
+                console.error(`Error deleting cache key ${key}:`, err);
+            }
+            // Don't throw - allow application to continue if cache operation fails
+            return null;
+        }
     }
 
     /**
@@ -103,7 +223,19 @@ class Cache {
      * @returns {Promise<string[]>} - A promise that resolves to an array of keys.
      */
     async keys(search = "*") {
-        return await this.redis.keys(`${this.prefix}:${search}`);
+        try {
+            if (connectionFailed) {
+                return [];
+            }
+            return await this.redis.keys(`${this.prefix}:${search}`);
+        } catch (err) {
+            if (!err.message.includes("Too many Cluster redirections") && 
+                !err.message.includes("Connection is closed") &&
+                !err.message.includes("Cluster isn't ready")) {
+                console.error(`Error getting cache keys with pattern ${search}:`, err);
+            }
+            return [];
+        }
     }
 
     /**
@@ -111,8 +243,20 @@ class Cache {
      * @param {string} key - The key to check for existence.
      * @returns {Promise<boolean>} - A promise that resolves to true if the key exists, false otherwise.
      */
-    exists(key) {
-        return this.redis.exists(`${this.prefix}:${key}`);
+    async exists(key) {
+        try {
+            if (connectionFailed) {
+                return false;
+            }
+            return await this.redis.exists(`${this.prefix}:${key}`);
+        } catch (err) {
+            if (!err.message.includes("Too many Cluster redirections") && 
+                !err.message.includes("Connection is closed") &&
+                !err.message.includes("Cluster isn't ready")) {
+                console.error(`Error checking cache key existence ${key}:`, err);
+            }
+            return false;
+        }
     }
 
     /**
@@ -122,7 +266,19 @@ class Cache {
      * @returns {Promise<void>} - A promise that resolves when the time-to-live is set for the key.
      */
     async expire(key, ttl) {
-        return await this.redis.expire(`${this.prefix}:${key}`, ttl);
+        try {
+            if (connectionFailed) {
+                return null;
+            }
+            return await this.redis.expire(`${this.prefix}:${key}`, ttl);
+        } catch (err) {
+            if (!err.message.includes("Too many Cluster redirections") && 
+                !err.message.includes("Connection is closed") &&
+                !err.message.includes("Cluster isn't ready")) {
+                console.error(`Error setting expiry for cache key ${key}:`, err);
+            }
+            return null;
+        }
     }
 
     /**
@@ -131,9 +287,12 @@ class Cache {
      */
     async close() {
         try {
-            await this.redis.quit();
-            if (this.debug) {
-                console.log("Redis connection closed");
+            if (this.redis) {
+                await this.redis.quit();
+                redis = null;
+                if (this.debug) {
+                    console.log("Redis connection closed");
+                }
             }
         } catch (err) {
             console.error("Error closing Redis connection:", err);

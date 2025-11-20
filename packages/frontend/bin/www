@@ -4,17 +4,18 @@
  * Module dependencies.
  */
 
-const app = require('../app');
-const debug = require('debug')('dm-insiders:server');
-const http = require('http');
-
-const config = require("config").get("frontend");
+import app from '../app.js';
+import debug from 'debug';
+const debugLogger = debug('dm-insiders:server');
+import http from 'http';
+import config from "config";
+const frontendConfig = config.get("frontend");
 
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || config.port || '3000');
+var port = normalizePort(process.env.PORT || frontendConfig.port || '3000');
 app.set('port', port);
 
 /**
@@ -88,5 +89,5 @@ function onListening() {
   var bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;
-  debug('Listening on ' + bind);
+  debugLogger('Listening on ' + bind);
 }

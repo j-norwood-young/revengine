@@ -1,9 +1,13 @@
-const path = require('path');
-const MiniCssExtractPlugin = require("mini-css-extract-plugin")
-const MomentLocalesPlugin = require('moment-locales-webpack-plugin');
-const MomentTimezoneDataPlugin = require('moment-timezone-data-webpack-plugin');
+import path from 'path';
+import { fileURLToPath } from 'url';
+import MiniCssExtractPlugin from "mini-css-extract-plugin";
+import MomentLocalesPlugin from 'moment-locales-webpack-plugin';
+import MomentTimezoneDataPlugin from 'moment-timezone-data-webpack-plugin';
 
-module.exports = {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+export default {
     entry: ["./src/javascripts/index.js"],
     output: {
         path: path.resolve(__dirname, 'public/assets'),

@@ -1,10 +1,10 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const config = require("config");
+import config from "config";
 
-const JXPHelper = require("jxp-helper");
+import JXPHelper from "jxp-helper";
 const apihelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server });
-const Collections = require("../libs/collections");
+import Collections from "../libs/collections.js";
 const collections = new Collections;
 
 const populate = ((req, res, next) => {
@@ -104,4 +104,4 @@ router.get("/:type", (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

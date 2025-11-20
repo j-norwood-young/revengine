@@ -1,9 +1,10 @@
-const config = require("config");
-const puppeteer = require('puppeteer');
-require("dotenv").config();
-const pug = require("pug");
-const path = require("path")
-const moment = require("moment")
+import config from "config";
+import puppeteer from 'puppeteer';
+import dotenv from "dotenv";
+dotenv.config();
+import pug from "pug";
+import path from "path";
+import moment from "moment";
 const numberFormat = new Intl.NumberFormat(config.locale || "en-GB", { maximumFractionDigits: 1 });
 
 const content = async (params = {}) => {
@@ -32,4 +33,4 @@ const content = async (params = {}) => {
     }
 }
 
-module.exports = { content }
+export { content }

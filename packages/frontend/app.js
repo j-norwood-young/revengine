@@ -1,26 +1,32 @@
-const config = require("config");
-const createError = require('http-errors');
-const express = require('express');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const logger = require('morgan');
-const redis = require("redis");
-const dotenv = require("dotenv");
+import config from "config";
+import createError from 'http-errors';
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import cookieParser from 'cookie-parser';
+import logger from 'morgan';
+import redis from "redis";
+import dotenv from "dotenv";
 dotenv.config();
 
-const redis_url = process.env.REDIS_URL || config.redis.url;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Get Redis URL - prefer env var, then config, then default to localhost
+const redis_url = process.env.REDIS_URL || config.redis?.url || 'redis://localhost:6379';
 
 const client = redis.createClient({
 	url: redis_url
 });
 
-const indexRouter = require('./routes/index');
+import indexRouter from './routes/index.js';
 
 const app = express();
 
 /* Sessions */
-const session = require('express-session');
-const RedisStore = require('connect-redis')(session);
+import session from 'express-session';
+import connectRedis from 'connect-redis';
+const RedisStore = connectRedis(session);
 
 app.use(session({
 	secret: config.frontend.secret,
@@ -65,4 +71,4 @@ app.use(function(err, req, res, next) {
 	res.render('error');
 });
 
-module.exports = app;
+export default app;

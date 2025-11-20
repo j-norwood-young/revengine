@@ -1,14 +1,13 @@
-const { Command } = require("commander");
-const CryptoJS = require("crypto-js");
-const padZeroPadding = require('crypto-js/pad-zeropadding');
-require("dotenv").config();
-const config = require("config");
-const expect = require("expect");
-const Apihelper = require("jxp-helper");
-const apihelper = new Apihelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
-const axios = require("axios");
-const tbp = require('@revengine/mailer/touchbase');
-
+import { Command } from "commander";
+import CryptoJS from "crypto-js";
+import dotenv from "dotenv";
+dotenv.config();
+import config from "config";
+import expect from "expect";
+import JXPHelper from "jxp-helper";
+const apihelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
+import axios from "axios";
+import { ensure_custom_fields, add_readers_to_list } from '@revengine/mailer/touchbase.js';
 const program = new Command();
 program
     .option('-t, --test', 'test encryption')
@@ -19,23 +18,18 @@ program
 
 const options = program.opts();
 
-if (require.main === module && !options.mailer) {
-    // console.log("Loading wordpress-auth...");
-    // Do some work here
-}
-
 const encrypt = data => {
     // return Buffer.from(CryptoJS.AES.encrypt(JSON.stringify(data), process.env.HEX_KEY, { iv: process.env.IV }).toString(), "utf8").toString("base64");
     const key = CryptoJS.enc.Hex.parse(process.env.HEX_KEY);
     const iv = CryptoJS.enc.Hex.parse(process.env.IV);
-    const encrypted = CryptoJS.AES.encrypt(JSON.stringify(data), key, { iv, padding: padZeroPadding }).toString();
+    const encrypted = CryptoJS.AES.encrypt(JSON.stringify(data), key, { iv, padding: CryptoJS.pad.ZeroPadding }).toString();
     return Buffer.from(encrypted, "utf8").toString("base64");
 }
 
 const decrypt = encrypted => {
     const key = CryptoJS.enc.Hex.parse(process.env.HEX_KEY);
     const iv = CryptoJS.enc.Hex.parse(process.env.IV);
-    const decrypted = CryptoJS.AES.decrypt(Buffer.from(encrypted, "base64").toString("utf8"), key, { iv, padding: padZeroPadding }).toString(CryptoJS.enc.Utf8);
+    const decrypted = CryptoJS.AES.decrypt(Buffer.from(encrypted, "base64").toString("utf8"), key, { iv, padding: CryptoJS.pad.ZeroPadding }).toString(CryptoJS.enc.Utf8);
     return JSON.parse(decrypted);
 }
 
@@ -59,8 +53,8 @@ const add_reader_to_list = async (reader_id, list_id, custom_fields = {}) => {
         console.log("add_reader_to_list", reader_id, list_id);
         const reader = (await apihelper.getOne("reader", reader_id)).data;
         const list = (await apihelper.getOne("touchbaselist", list_id)).data;
-        await tbp.ensure_custom_fields(list.list_id, ["auto_login_id"]);
-        await tbp.ensure_custom_fields(list.list_id, Object.keys(custom_fields));
+        await ensure_custom_fields(list.list_id, ["auto_login_id"]);
+        await ensure_custom_fields(list.list_id, Object.keys(custom_fields));
         const data = {
             "wordpress_id": reader.wordpress_id,
             "revengine_id": reader._id,
@@ -71,7 +65,7 @@ const add_reader_to_list = async (reader_id, list_id, custom_fields = {}) => {
             ...custom_fields
         }
         console.log("custom_fields_data", custom_fields_data);
-        const result = await tbp.add_readers_to_list([{
+        const result = await add_readers_to_list([{
             email: reader.email,
             first_name: reader.first_name,
             last_name: reader.last_name,
@@ -144,7 +138,7 @@ const sync_reader = async (reader_id) => {
 const sync_list = async (list_id) => {
     try {
         const list = (await apihelper.getOne("touchbaselist", list_id)).data;
-        await tbp.ensure_custom_fields(list.list_id, ["auto_login_id"]);
+        await ensure_custom_fields(list.list_id, ["auto_login_id"]);
         const pipeline = [
             { $match: { "list_id": `ObjectId(\"${list_id}\")` } },
             { $lookup: { from: "readers", localField: "email", foreignField: "email", as: "reader" } },
@@ -182,7 +176,7 @@ const sync_list = async (list_id) => {
             }
         });
         // console.log(JSON.stringify(update, null, 2));
-        const result = await tbp.add_readers_to_list(update, list.list_id);
+        const result = await add_readers_to_list(update, list.list_id);
         console.log(result);
     } catch (err) {
         console.error(JSON.stringify(err.response.data, null, 2));
@@ -199,7 +193,7 @@ const force_sync_reader = async (reader_id, list_id) => {
             "email": reader.email
         }
         const list = (await apihelper.getOne("touchbaselist", list_id)).data;
-        await tbp.ensure_custom_fields(list.list_id, ["auto_login_id"]);
+        await ensure_custom_fields(list.list_id, ["auto_login_id"]);
         const encrypted = encrypt(data);
         const url = `https://api.touchbasepro.com/email/subscribers/${list.list_id}?email=${reader.email}`;
         const result = await axios.put(url, {
@@ -274,7 +268,7 @@ if (options.generate) {
     generate(options.generate);
 }
 
-module.exports = {
+export {
     sync_reader,
     sync_list,
     encrypt,

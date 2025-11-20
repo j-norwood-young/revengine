@@ -1,9 +1,10 @@
-const config = require("config");
-const axios = require("axios");
-require("dotenv").config();
-const JXPHelper = require("jxp-helper");
-const moment = require("moment");
-const wordpress_auth = require("@revengine/wordpress_auth");
+import config from "config";
+import axios from "axios";
+import dotenv from "dotenv";
+dotenv.config();
+import JXPHelper from "jxp-helper";
+import moment from "moment";
+import { encrypt } from "@revengine/wordpress_auth";
 const apihelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 const auth = {
     username: process.env.TOUCHBASE_APIKEY,
@@ -116,7 +117,7 @@ const group_actions = () => {
                     "To": [to],
                     "Data": {
                         "name": data.user.first_name,
-                        "auto_login_id": wordpress_auth.encrypt(reader_data)
+                        "auto_login_id": encrypt(reader_data)
                     },
                     "ConsentToTrack": "unchanged"
                 }
@@ -224,7 +225,7 @@ const sync_subscription = async user_id => {
     return (await apihelper.postput("woocommerce_subscription", "id", subscription)).data;
 }
 
-exports.woocommerce_subscriptions_callback = async (req, res) => {
+export const woocommerce_subscriptions_callback = async (req, res) => {
     try {
         const subscription = req.body.subscription;
         await sync_user(subscription.customer_id);
@@ -235,7 +236,7 @@ exports.woocommerce_subscriptions_callback = async (req, res) => {
     }
 };
 
-exports.woocommerce_subscriptions_zapier_callback = async (req, res) => {
+export const woocommerce_subscriptions_zapier_callback = async (req, res) => {
     try {
         const data = JSON.parse(req.body.data);
         // console.log(req.body);
@@ -254,7 +255,7 @@ exports.woocommerce_subscriptions_zapier_callback = async (req, res) => {
 };
 
 // Can be called as restify middleware or asynchronously
-exports.monthly_uber_mail = async (req, res) => {
+export const monthly_uber_mail = async (req, res) => {
     try {
         const per_page = 500;
         const transactional_id = config.touchbase.transactional_ids.uber_monthly_mail;
@@ -373,7 +374,7 @@ exports.monthly_uber_mail = async (req, res) => {
     }
 }
 
-exports.test_monthly_uber_mail = async (reader_email, to, tid) => {
+export const test_monthly_uber_mail = async (reader_email, to, tid) => {
     try {
         const vouchertypes = await get_vouchertypes();
         const transactional_id = config.touchbase.transactional_ids[tid];
@@ -468,7 +469,7 @@ const run_mailrun = async mailrun_id => {
         await apihelper.put("mailrun", mailrun_id, { state: "running", start_time: new Date() });
         for (let reader of mailrun.queued) {
             try {
-                await this.run_transactional(reader.email, reader.email, mailrun.touchbasetransactional_id);
+                await run_transactional(reader.email, reader.email, mailrun.touchbasetransactional_id);
                 await apihelper.call("mailrun", "move_to_sent", { mailrun_id, reader_id: reader._id });
                 await apihelper.put("mailrun", mailrun_id, { state: "running" });
             } catch (err) {
@@ -564,12 +565,14 @@ const get_transactional_templates = async () => {
     return templates;
 }
 
-exports.run_mailrun = run_mailrun;
-exports.run_transactional = run_transactional;
-exports.add_readers_to_list = add_readers_to_list;
-exports.create_list = create_list;
-exports.get_touchbase_lists = get_touchbase_lists;
-exports.get_touchbase_list = get_touchbase_list;
-exports.get_transactional_templates = get_transactional_templates;
-exports.get_voucher = get_voucher;
-exports.ensure_custom_fields = ensure_custom_fields;
+export {
+    run_mailrun,
+    run_transactional,
+    add_readers_to_list,
+    create_list,
+    get_touchbase_lists,
+    get_touchbase_list,
+    get_transactional_templates,
+    get_voucher,
+    ensure_custom_fields
+};

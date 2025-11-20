@@ -23,7 +23,6 @@
     "dev-track-test:event_tracker": "env NODE_ENV=development env TRACKER_NAME=event_tracker_test env TRACKER_KAFKA_TOPIC=event_tracker_test INDEX=event_tracker_test env PORT=5015 npx jest --forceExit packages/tracker/test/*.test.ts",
     "test:revengine_wordpress": "env NODE_ENV=development npx jest packages/common/tests/revengine_wordpress.test.js",
     "dev:api": "env NODE_ENV=development env NODE_OPTIONS=--max-old-space-size=8192 nodemon --inspect --verbose --watch packages/api packages/api",
-    "dev:content": "env NODE_ENV=development nodemon packages/content",
     "dev:pipeline": "env NODE_ENV=development nodemon packages/pipeline",
     "dev:frontend": "npm-run-all -p dev:frontend:*",
     "dev:frontend:run": "env NODE_ENV=development nodemon --config packages/frontend/nodemon.json packages/frontend/bin/www",

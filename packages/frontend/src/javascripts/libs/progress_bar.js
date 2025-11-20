@@ -1,4 +1,4 @@
-const axios = require("axios");
+import axios from "axios";
 
 class Progressbar {
     constructor() {
@@ -51,4 +51,4 @@ class Progressbar {
     }
 }
 
-module.exports = Progressbar;
+export default Progressbar;

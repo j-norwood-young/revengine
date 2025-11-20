@@ -1,10 +1,9 @@
 "use strict";
-const formatNumber = require("./utils").formatNumber;
-const $ = require("jquery");
-const moment = require("moment-timezone");
-const { data } = require("jquery");
+import { formatNumber } from "./utils.js";
+import $ from "jquery";
+import moment from "moment-timezone";
 const rating_template = [{ _id: 5, name: "5" }, { _id: 4, name: "4" }, { _id: 3, name: "3" }, { _id: 2, name: "2" }, { _id: 1, name: "1" }, { _id: 0, name: "0" }];
-const nlp = require("@revengine/frontend/libs/nlp");
+import * as nlp from "./nlp.js";
 
 class Collections {
     constructor(opts) {
@@ -412,4 +411,4 @@ class Collections {
     }
 }
 
-module.exports = Collections;
+export default Collections;

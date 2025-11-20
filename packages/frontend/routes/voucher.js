@@ -1,7 +1,7 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const moment = require("moment");
-const fileUpload = require('express-fileupload');
+import moment from "moment";
+import fileUpload from 'express-fileupload';
 
 router.use("/", async(req, res, next) => {
     res.locals.pg = "voucher";
@@ -213,4 +213,4 @@ router.post("/pnp", fileUpload(), async (req, res) => {
     // res.render("voucher/pnp_results", { title: "PnP Vouchers", formatted_codes });
 })
 
-module.exports = router;
+export default router;

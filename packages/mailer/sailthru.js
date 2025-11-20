@@ -1,16 +1,15 @@
-require("dotenv").config();
-const config = require("config");
-const Apihelper = require("jxp-helper");
-const apihelper = new Apihelper({ server: config.api.cluster_server, apikey: process.env.SAILTHRU_REVENGINE_APIKEY });
-const sailthru_client = require("sailthru-client").createSailthruClient(process.env.SAILTHRU_KEY, process.env.SAILTHRU_SECRET);
-const wordpress_auth = require("@revengine/wordpress_auth");
-const dotenv = require("dotenv");
+import dotenv from "dotenv";
 dotenv.config();
+import config from "config";
+import JXPHelper from "jxp-helper";
+const apihelper = new JXPHelper({ server: config.api.cluster_server, apikey: process.env.SAILTHRU_REVENGINE_APIKEY });
+import sailthru_client from "sailthru-client";
+import { encrypt } from "@revengine/wordpress_auth";
 
-const errs = require('restify-errors');
-const Cache = require("@revengine/common/cache");
+import errs from 'restify-errors';
+import Cache from "@revengine/common/cache.js";
 const cache = new Cache({ prefix: "sailthru", debug: true, ttl: 60 * 60 });
-const { fetch_csv } = require("@revengine/common/csv");
+import { fetch_csv } from "@revengine/common/csv.js";
 
 const USER_FIELDS = "email,segmentation_id,label_id,wordpress_id,display_name,first_name,last_name,cc_expiry_date,cc_last4_digits";
 const SUBSCRIPTIONS_CACHE_KEY = "sailthru_subscriptions_cache";
@@ -380,7 +379,7 @@ let subscriptions_cache = [];
  */
 async function map_reader_to_sailthru(reader, use_cache = true, cached_subscriptions) {
     // const cached_subscriptions = await get_subscriptions();
-    const login_token = wordpress_auth.encrypt({
+    const login_token = encrypt({
         "wordpress_id": reader.wordpress_id,
         "revengine_id": reader._id,
         "email": reader.email
@@ -803,21 +802,23 @@ async function send_template_to_reader(reader_id, template_name, vars = {}) {
     });
 }
 
-exports.get_lists = get_lists;
-exports.get_list = get_list;
-exports.get_users_in_list = get_users_in_list;
-exports.create_list = create_list;
-exports.subscribe_email_to_list = subscribe_email_to_list;
-exports.unsubscribe_email_from_list = unsubscribe_email_from_list;
-exports.serve_job_status = serve_job_status;
-exports.serve_push = serve_push;
-exports.serve_queue = serve_queue;
-exports.serve_full_queue = serve_full_queue;
-exports.sync_user_by_email = sync_user_by_email;
-exports.sync_user_by_wordpress_id = sync_user_by_wordpress_id;
-exports.get_templates = get_templates;
-exports.get_user = get_user;
-exports.subscribe_reader_to_list = subscribe_reader_to_list;
-exports.unsubscribe_reader_from_list = unsubscribe_reader_from_list;
-exports.send_template_to_reader = send_template_to_reader;
-exports.sync_user_by_reader_id = sync_user_by_reader_id;
+export {
+    get_lists,
+    get_list,
+    get_users_in_list,
+    create_list,
+    subscribe_email_to_list,
+    unsubscribe_email_from_list,
+    serve_job_status,
+    serve_push,
+    serve_queue,
+    serve_full_queue,
+    sync_user_by_email,
+    sync_user_by_wordpress_id,
+    get_templates,
+    get_user,
+    subscribe_reader_to_list,
+    unsubscribe_reader_from_list,
+    send_template_to_reader,
+    sync_user_by_reader_id
+};

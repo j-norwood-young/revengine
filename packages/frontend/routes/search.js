@@ -1,6 +1,6 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const config = require("config");
+import config from "config";
 
 router.post("/q/", async (req, res) => {
     const search = req.body.search;
@@ -23,4 +23,4 @@ router.post("/q/", async (req, res) => {
     }
 })
 
-module.exports = router;
+export default router;

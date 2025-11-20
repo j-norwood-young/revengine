@@ -1,5 +1,4 @@
-const axios = require("axios");
-const CancelToken = axios.CancelToken;
+import axios, { CancelToken } from "axios";
 let cancel;
 
 class Search {
@@ -89,4 +88,4 @@ class Search {
     }
 }
 
-module.exports = Search;
+export default Search;

@@ -1,4 +1,4 @@
-const Typedef = require("./typedef");
+import Typedef from "./typedef.js";
 
 class Reader extends Typedef  {
     constructor(state) {
@@ -48,4 +48,4 @@ class Reader extends Typedef  {
     }
 }
 
-module.exports = Reader;
+export default Reader;

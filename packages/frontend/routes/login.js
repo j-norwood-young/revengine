@@ -1,9 +1,9 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const config = require("config");
-const jwt = require("jsonwebtoken")
-const Mail = require("@revengine/common/mail")
-const JXPHelper = require("jxp-helper");
+import config from "config";
+import jwt from "jsonwebtoken";
+import Mail from "@revengine/common/mail.js";
+import JXPHelper from "jxp-helper";
 const apihelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 
 router.use((req, res, next) => {
@@ -54,4 +54,4 @@ router.get("/token/:token", async (req, res) => {
     }
 })
 
-module.exports = router;
+export default router;

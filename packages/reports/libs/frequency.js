@@ -1,10 +1,11 @@
-const config = require("config");
-const JXPHelper = require("jxp-helper");
-require("dotenv").config();
+import config from "config";
+import JXPHelper from "jxp-helper";
+import dotenv from "dotenv";
+dotenv.config();
 const jxphelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
-const moment = require("moment-timezone");
+import moment from "moment-timezone";
 moment.tz.setDefault(config.timezone || "UTC");
-const esclient = require("@revengine/common/esclient");
+import esclient from "@revengine/common/esclient.js";
 
 // Frequency score
 // 100 = 5
@@ -12,7 +13,7 @@ const esclient = require("@revengine/common/esclient");
 // 25 = 3
 // 10 = 2
 // 1 = 1
-const Frequency = async (reader_id, months = 3) => {
+export default async function Frequency(reader_id, months = 3) {
 
     const months_ago = moment().subtract(months, "months");
     // ES
@@ -75,5 +76,3 @@ const Frequency = async (reader_id, months = 3) => {
     }
     return { count, score };
 }
-
-module.exports = Frequency;

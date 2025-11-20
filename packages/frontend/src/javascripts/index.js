@@ -1,20 +1,25 @@
 import stylesheet from "../stylesheets/style.scss";
-require("bootstrap/dist/js/bootstrap.bundle.js")
-require("./libs/confirm_passwords");
-require("./libs/email_typeahead");
+import "bootstrap/dist/js/bootstrap.bundle.js";
+import "./libs/confirm_passwords.js";
+import "./libs/email_typeahead.js";
 
-const CheckboxFixPost = require("checkbox-fix-post");
-const List = require("./list");
-global.Edit = require("./edit");
+import CheckboxFixPost from "checkbox-fix-post";
+import List from "./list.js";
+import Edit from "./edit.js";
+global.Edit = Edit;
 const checkboxfixpost = new CheckboxFixPost();
 
-window.ActivitiesD3 = require("./libs/activities_d3");
-window.Beam = require("../../libs/beam");
-window.Charts = require("../../libs/charts");
-window.$ = require("jquery");
+import ActivitiesD3 from "./libs/activities_d3.js";
+window.ActivitiesD3 = ActivitiesD3;
+import Beam from "../../libs/beam.js";
+window.Beam = Beam;
+import Charts from "../../libs/charts.js";
+window.Charts = Charts;
+import $ from "jquery";
+window.$ = $;
 
-const CodeMirror = require("codemirror");
-const js = require("codemirror/mode/javascript/javascript");
+import CodeMirror from "codemirror";
+import "codemirror/mode/javascript/javascript.js";
 
 // const Reader = require("./typedefs/reader");
 document.addEventListener("DOMContentLoaded", async e => {
@@ -53,11 +58,11 @@ $(function() {
 //     });
 // });
 
-const Search = require("./libs/search");
+import Search from "./libs/search.js";
 const search = new Search();
 
-const Progressbar = require("./libs/progress_bar");
+import Progressbar from "./libs/progress_bar.js";
 const progressbar = new Progressbar();
 
-const ReaderView = require("./reader/reader_view");
+import ReaderView from "./reader/reader_view.js";
 const reader_view = new ReaderView();

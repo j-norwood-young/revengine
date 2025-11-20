@@ -1,5 +1,5 @@
-const Collections = require("../../libs/collections");
-const $ = require("jquery");
+import Collections from "../../libs/collections.js";
+import $ from "jquery";
 
 class Edit {
     constructor(_id, type) {
@@ -75,4 +75,4 @@ class Edit {
 
 }
 
-module.exports = Edit;
+export default Edit;

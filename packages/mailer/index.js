@@ -1,16 +1,17 @@
-const cron = require("node-cron");
-const Apihelper = require("jxp-helper");
-const config = require("config");
-require("dotenv").config();
-const nodemailer = require("nodemailer");
-const apihelper = new Apihelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
-const server = require("@revengine/http_server");
+import cron from "node-cron";
+import JXPHelper from "jxp-helper";
+import config from "config";
+import dotenv from "dotenv";
+dotenv.config();
+import nodemailer from "nodemailer";
+const apihelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
+import server from "@revengine/http_server";
 const schedule = "* * * * *";
-const crypto = require('crypto');
-const moment = require("moment-timezone");
-const touchbase = require("./touchbase");
+import crypto from 'crypto';
+import moment from "moment-timezone";
+import { run_mailrun } from "./touchbase.js";
 moment.tz.setDefault(config.timezone || "UTC");
-const { Command } = require("commander");
+import { Command } from "commander";
 
 const mailer_names = [
     "newsletter_content_report",
@@ -20,8 +21,8 @@ const mailer_names = [
 ]
 
 const mailers = {};
-for (mailer_name of mailer_names) {
-    mailers[mailer_name] = require(`@revengine/reports/reports/${mailer_name}`);
+for (const mailer_name of mailer_names) {
+    mailers[mailer_name] = import(`@revengine/reports/reports/${mailer_name}.js`);
 }
 
 const render = async report => {
@@ -131,7 +132,7 @@ const mailrun_schedule = async () => {
     for (let mailrun of mailruns) {
         if (!mailrun.start_time) continue;
         if (+new Date(mailrun.start_time) > +new Date()) continue;
-        touchbase.run_mailrun(mailrun._id);
+        run_mailrun(mailrun._id);
     }
 }
 
@@ -143,7 +144,7 @@ program
 program.parse(process.argv);
 const options = program.opts();
 
-if (require.main === module && !options.mailer) {
+if (import.meta.url === `file://${process.argv[1]}` && !options.mailer) {
     console.log("Loading mailer...");
     if (!options.server) {
         scheduler();
@@ -164,4 +165,4 @@ if (options.mailer) {
     send_single_mailer(options.mailer);
 }
 
-module.exports = { render, mail, mailer_names }
+export { render, mail, mailer_names };
