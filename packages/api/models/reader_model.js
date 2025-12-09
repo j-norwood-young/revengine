@@ -20,34 +20,39 @@ const ReaderSchema = new JXPSchema({
     label_update: Date,
     segmentation_id: [{ type: ObjectId, link: "segmentation", map_to: "segment" }],
     segment_update: Date,
+    label_data: Mixed,
 
-    // General Data
+    // Dates
     last_login: Date,
     last_update: Date,
     first_login: Date,
-    paying_customer: Boolean,
+    user_registered: { type: Date, index: true, default: Date.now },
 
+    // Commmercial relationship
+    paying_customer: { type: Boolean, index: true, default: false },
+    payment_method: String,
+    member: { type: Boolean, index: true, default: false },
+    monthly_contribution: { type: Number, index: true, default: 0 },
+    subscription_total: { type: Number, index: true, default: 0 },
+    subscription_product: String,
+    subscription_period: String,
+    subscription_status: String,
+    subscription_next_payment: Date,
+    subscription_start: Date,
+    subscription_end: Date,
+    subscription_cancellation_request_date: Date,
+    subscription_cancellation_reason: String,
+
+    // External IDs
     wordpress_id: { type: Number, index: true, unique: true },
     external_id: { type: Number, index: true, unique: true },
-    test_wordpress_id: { type: Number, index: true }, // To be deprecated after testing
-
-    remp_beam_id: Number,
 
     user_registered_on_wordpress: Date,
 
-    member: Boolean,
-    monthly_contribution: Number,
-
+    // Content preferences
     authors: [{ type: String, index: true }],
     sections: [{ type: String, index: true }],
-    authors_last_30_days: [{
-        count: Number,
-        name: String
-    }],
-    sections_last_30_days: [{
-        count: Number,
-        name: String
-    }],
+    
     favourite_author: String,
     favourite_section: String,
 
@@ -55,11 +60,9 @@ const ReaderSchema = new JXPSchema({
     email_client: String,
     newsletters: [String],
 
+    // User Agent
+    app_user: { type: Boolean, index: true, default: false },
     uas: { type: Mixed, set: toSet },
-
-    medium: String,
-    source: String,
-    campaign: String,
     browser: String,
     browser_version: String,
     device: String,
@@ -69,18 +72,17 @@ const ReaderSchema = new JXPSchema({
     height: Number,
     width: Number,
 
+    // UTM parameters
+    medium: String,
+    source: String,
+    campaign: String,
+
     // Location data
     country: String,
     region: String,
     city: String,
     latitude: Number,
     longitude: Number,
-
-    // Label Data
-    label_data: Mixed,
-
-    // Uber Code Overrides
-    uber_code_override: { type: String, enum: ['send', 'withhold', 'auto'], default: "auto", index: true },
 
     // Credit Cards
     cc_expiry_date: Date,
@@ -102,8 +104,6 @@ const ReaderSchema = new JXPSchema({
     total_lifetime_value: Number,
 
     sent_insider_welcome_email: { type: Date, index: true },
-
-    app_user: { type: Boolean, index: true, default: false },
 },
     {
         perms: {
