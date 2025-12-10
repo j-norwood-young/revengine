@@ -18,3 +18,4 @@ dist/*
 docker/crontab/data/*
 docker/bqsync/application_default_credentials.json
 packages/tracker/mmdb/*
+data/*
