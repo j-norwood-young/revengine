@@ -28,7 +28,7 @@ export const connect = async () => {
  */
 export const insertOne = async (collection, data) => {
     try {
-        if (!is_connected) await this.connect();
+        if (!is_connected) await connect();
         const db = client.db(config.api.mongo.db);
         const result = await db.collection(collection).insertOne(data);
         return result;
@@ -46,7 +46,7 @@ export const insertOne = async (collection, data) => {
  */
 export const insertMany = async (collection, data) => {
     try {
-        if (!is_connected) await this.connect();
+        if (!is_connected) await connect();
         const db = client.db(config.api.mongo.db);
         const result = await db.collection(collection).insertMany(data);
         return result;
@@ -64,7 +64,7 @@ export const insertMany = async (collection, data) => {
  */
 export const findOne = async (collection, query) => {
     try {
-        if (!is_connected) await this.connect();
+        if (!is_connected) await connect();
         const db = client.db(config.api.mongo.db);
         const result = await db.collection(collection).findOne(query);
         return result;
@@ -82,7 +82,7 @@ export const findOne = async (collection, query) => {
  */
 export const find = async (collection, query) => {
     try {
-        if (!is_connected) await this.connect();
+        if (!is_connected) await connect();
         const db = client.db(config.api.mongo.db);
         const result = await db.collection(collection).find(query).toArray();
         return result;
@@ -101,7 +101,7 @@ export const find = async (collection, query) => {
  */
 export const updateOne = async (collection, query, update) => {
     try {
-        if (!is_connected) await this.connect();
+        if (!is_connected) await connect();
         const db = client.db(config.api.mongo.db);
         const result = await db.collection(collection).updateOne(query, update);
         return result;
@@ -120,7 +120,7 @@ export const updateOne = async (collection, query, update) => {
  */
 export const updateMany = async (collection, query, update) => {
     try {
-        if (!is_connected) await this.connect();
+        if (!is_connected) await connect();
         const db = client.db(config.api.mongo.db);
         const result = await db.collection(collection).updateMany(query, update);
         return result;
@@ -138,7 +138,7 @@ export const updateMany = async (collection, query, update) => {
  */
 export const deleteOne = async (collection, query) => {
     try {
-        if (!is_connected) await this.connect();
+        if (!is_connected) await connect();
         const db = client.db(config.api.mongo.db);
         const result = await db.collection(collection).deleteOne(query);
         return result;
@@ -156,7 +156,7 @@ export const deleteOne = async (collection, query) => {
  */
 export const deleteMany = async (collection, query) => {
     try {
-        if (!is_connected) await this.connect();
+        if (!is_connected) await connect();
         const db = client.db(config.api.mongo.db);
         const result = await db.collection(collection).deleteMany(query);
         return result;
@@ -173,7 +173,7 @@ export const deleteMany = async (collection, query) => {
  */
 export const dropCollection = async (collection) => {
     try {
-        if (!is_connected) await this.connect();
+        if (!is_connected) await connect();
         const db = client.db(config.api.mongo.db);
         const result = await db.collection(collection).drop();
         return result;
@@ -190,7 +190,7 @@ export const dropCollection = async (collection) => {
  */
 export const collectionExists = async (collection) => {
     try {
-        if (!is_connected) await this.connect();
+        if (!is_connected) await connect();
         const db = client.db(config.api.mongo.db);
         const collections = await db.collections();
         return collections.map(c => c.s.namespace.collection).includes(collection);
@@ -208,7 +208,7 @@ export const collectionExists = async (collection) => {
  */
 export const aggregate = async (collection, pipeline) => {
     try {
-        if (!is_connected) await this.connect();
+        if (!is_connected) await connect();
         const db = client.db(config.api.mongo.db);
         const result = await db.collection(collection).aggregate(pipeline).toArray();
         return result;
@@ -226,7 +226,7 @@ export const aggregate = async (collection, pipeline) => {
  */
 export const bulkWrite = async (collection, operations) => {
     try {
-        if (!is_connected) await this.connect();
+        if (!is_connected) await connect();
         const db = client.db(config.api.mongo.db);
         const result = await db.collection(collection).bulkWrite(operations);
         return result;
@@ -237,7 +237,7 @@ export const bulkWrite = async (collection, operations) => {
 
 export const ensureIndex = async (collection, index) => {
     try {
-        if (!is_connected) await this.connect();
+        if (!is_connected) await connect();
         const db = client.db(config.api.mongo.db);
         await db.collection(collection).createIndex(index);
     } catch (err) {
