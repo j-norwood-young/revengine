@@ -15,7 +15,7 @@
         "server": "http://api:3002",
         "cluster_server": "http://api:3002",
         "mongo": {
-            "connection_string": "mongodb://rfvengine1,rfvengine3,rfvengine4/revengine-prod?replicaSet=rs1&readPreference=secondaryPreferred",
+            "connection_string": "mongodb://rfvengine1,rfvengine2,rfvengine3/revengine-prod?replicaSet=rs1&readPreference=secondaryPreferred",
             "options": {}
         },
         "token_expiry": 86400,
@@ -100,32 +100,7 @@
         "server": "http://api.revengine.dailymaverick.co.za:3018"
     },
     "redis": {
-        "cluster": [
-            {
-                "host": "10.0.1.3",
-                "port": 7000
-            },
-            {
-                "host": "10.0.1.4",
-                "port": 7000
-            },
-            {
-                "host": "10.0.1.5",
-                "port": 7000
-            },
-            {
-                "host": "10.0.1.6",
-                "port": 7000
-            },
-            {
-                "host": "10.0.0.3",
-                "port": 7000
-            },
-            {
-                "host": "10.0.0.4",
-                "port": 7000
-            }
-        ]
+        "url": "redis://localhost:6379"
     },
     "rfv": {
         "days": 30,
