@@ -10,6 +10,13 @@ It is developed by [Daily Maverick](https://dailymaverick.co.za) and Jason Norwo
 
 ## Installing
 
+### Node version
+
+This repo targets **Node.js 22 LTS**.
+
+- Use `.nvmrc` (`lts/jod`) with `nvm`
+- Use `.node-version` (`22`) with `fnm`/`asdf`
+
 ## Running
 
 

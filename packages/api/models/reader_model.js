@@ -21,6 +21,9 @@ const ReaderSchema = new JXPSchema({
     segmentation_id: [{ type: ObjectId, link: "segmentation", map_to: "segment" }],
     segment_update: Date,
     label_data: Mixed,
+    // Segment v2 (condition-based)
+    segment_id: [{ type: ObjectId, link: "segment", map_to: "segment_v2" }],
+    segment_update_v2: Date,
 
     // Dates
     last_login: Date,

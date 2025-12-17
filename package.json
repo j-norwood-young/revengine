@@ -58,6 +58,9 @@
     "url": "https://github.com/j-norwood-young/revengine/issues"
   },
   "homepage": "https://github.com/j-norwood-young/revengine#readme",
+  "engines": {
+    "node": "^22.0.0"
+  },
   "dependencies": {
     "axios": "^1.6.2",
     "commander": "^11.1.0",
