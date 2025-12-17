@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Get yesterday's date in the format YYYYMMDD
+current_date=$(date -d "yesterday 13:00" '+%Y%m%d')
+
+# Create the directory if it doesn't exist
+mkdir -p /data/dm-sailthru-data-explorer
+
+# Get the profile data from S3
+echo "Downloading profile.${current_date}.json.gz from S3..."
+aws s3 cp s3://dm-sailthru-data-explorer/9943_profile.${current_date}.json.gz /data/dm-sailthru-data-explorer/.
+
+cd /data/dm-sailthru-data-explorer
+gunzip -f *.gz
+
+# Delete older files
+find /data/dm-sailthru-data-explorer -type f -mtime +7 -exec rm {} \; 
