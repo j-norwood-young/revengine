@@ -188,6 +188,65 @@ SegmentSchema.statics.apply_segment = async function (data) {
 	}
 };
 
+// JXP /call endpoint: /call/segment/preview_segment
+// Returns:
+// - count: number of matching readers
+// - readers: random sample of matching readers for UI preview
+SegmentSchema.statics.preview_segment = async function (data) {
+	try {
+		const Reader = require("./reader_model");
+
+		const conditions = Array.isArray(data?.conditions) ? data.conditions : [];
+		const rawSampleSize = data?.sampleSize ?? data?.limit ?? 5;
+		let sampleSize = Number(rawSampleSize);
+		if (!Number.isFinite(sampleSize)) sampleSize = 5;
+		sampleSize = Math.max(0, Math.min(25, Math.floor(sampleSize)));
+
+		const query = buildMongoQueryFromSegmentConditions(conditions);
+
+		const projection = {
+			_id: 1,
+			external_id: 1,
+			email: 1,
+			display_name: 1,
+			first_name: 1,
+			last_name: 1,
+			country: 1,
+			region: 1,
+			city: 1,
+			paying_customer: 1,
+			member: 1,
+			app_user: 1,
+			monthly_contribution: 1,
+			subscription_status: 1,
+			subscription_product: 1,
+			subscription_period: 1,
+			monetary_value: 1,
+			last_login: 1,
+			user_registered: 1,
+		};
+
+		const [result] = await Reader.aggregate([
+			{ $match: query },
+			{
+				$facet: {
+					count: [{ $count: "count" }],
+					readers:
+						sampleSize > 0 ? [{ $sample: { size: sampleSize } }, { $project: projection }] : [],
+				},
+			},
+		]);
+
+		return {
+			count: result?.count?.[0]?.count ?? 0,
+			readers: result?.readers ?? [],
+		};
+	} catch (err) {
+		console.error(err);
+		return Promise.reject(err);
+	}
+};
+
 SegmentSchema.post("save", async function (doc) {
 	if (process.env.NODE_ENV !== "production") console.log(`Applying segment (v2) ${doc.name}`);
 	await applySegment(doc);
