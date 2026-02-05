@@ -156,6 +156,10 @@ const ensure_index = async () => await esclient.ensure_index(index, {
     time_updated: { type: "date" },
     seconds_on_page: { type: "integer" },
     scroll_depth: { type: "integer" },
+    dm_key_theme: { type: "keyword" },
+    dm_article_theme: { type: "keyword" },
+    dm_user_need: { type: "keyword" },
+    dm_disable_comments: { type: "boolean" },
 });
 
 const get_ip = (req) => {

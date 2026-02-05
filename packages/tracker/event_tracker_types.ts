@@ -24,6 +24,10 @@ export interface EventTrackerMessage {
     tags?: string;
     date_published?: string;
     author_id?: string;
+    dm_key_theme?: string[];
+    dm_article_theme?: string[];
+    dm_user_need?: string[];
+    dm_disable_comments?: boolean;
     data?: any;
     test_id?: string;
     time_updated?: string;
