@@ -14,7 +14,6 @@ const WHITEBEARD_API_KEY = process.env.WHITEBEARD_API_KEY ?? config.whitebeard?.
 
 if (!WHITEBEARD_API_URL || !WHITEBEARD_API_KEY) {
     console.warn("revengine_whitebeard: WHITEBEARD_API_URL or WHITEBEARD_API_KEY not set");
-    return null;
 }
 
 const headers = {

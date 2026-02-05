@@ -1,12 +1,6 @@
 import config from "config";
 import JXPHelper from "jxp-helper";
 import * as dotenv from "dotenv";
-import {
-    fetchContent,
-    normalizeForWhitebeardContent,
-    mapToArticlePayload,
-    getTrackerArticleFields,
-} from "@revengine/common/revengine_whitebeard";
 
 dotenv.config();
 const jxphelper = new JXPHelper({
@@ -39,14 +33,17 @@ const EMPTY_ARTICLE_FIELDS = {
 export const get_article_data = async function (post_id: string | number) {
     if (!post_id || IGNORE_POST_IDS.includes(String(post_id))) return EMPTY_ARTICLE_FIELDS;
 
-    const save_to_db = !config.debug && process.env.NODE_ENV !== "test";
-
-    const article = (
-        await jxphelper.get("article", {
+    let article: any = null;
+    try {
+        const res = await jxphelper.get("article", {
             "filter[post_id]": post_id,
             fields: "tags,sections,date_published,author,title,dm_key_theme,dm_article_theme,dm_user_need,dm_disable_comments",
-        })
-    ).data?.pop();
+        });
+        article = res?.data?.pop();
+    } catch (err: any) {
+        const msg = err?.response?.data ?? err?.message ?? String(err);
+        console.warn("get_article_data: JXP/API unreachable or error, falling back to Whitebeard:", msg);
+    }
 
     if (article) {
         return {
@@ -60,29 +57,10 @@ export const get_article_data = async function (post_id: string | number) {
             dm_user_need: article.dm_user_need ?? null,
             dm_disable_comments: article.dm_disable_comments ?? null,
         };
+    } else {
+        console.log("No article found for post_id:", post_id);
+        return EMPTY_ARTICLE_FIELDS;
     }
-
-    const wb = await fetchContent(post_id);
-    if (!wb) return EMPTY_ARTICLE_FIELDS;
-
-    const trackerFields = getTrackerArticleFields(wb);
-
-    if (save_to_db) {
-        try {
-            const whitebeardPayload = normalizeForWhitebeardContent(wb);
-            const wbSaved = (await jxphelper.post("whitebeardcontent", whitebeardPayload))?.data;
-            const whitebeardContentId = wbSaved?._id ?? null;
-            const articlePayload = mapToArticlePayload(wb, whitebeardContentId);
-            if (articlePayload) {
-                console.log("Saving article to database", articlePayload.title);
-                await jxphelper.post("article", articlePayload);
-            }
-        } catch (err) {
-            console.error("Failed to save Whitebeard content/article to JXP:", err);
-        }
-    }
-
-    return trackerFields;
 }
 
 export const get_article_data_test = async function () {
