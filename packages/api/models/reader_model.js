@@ -1,5 +1,13 @@
 /* global JXPSchema ObjectId Mixed */
 
+const HomeLocationSchema = new JXPSchema({
+    country: String,
+    region: String,
+    city: String,
+    weight: Number,
+});
+HomeLocationSchema.index({ country: 1, region: 1, city: 1, weight: 1 });
+
 const ReaderSchema = new JXPSchema({
     // Basics
     email: { type: String, index: true, unique: true, lowercase: true, trim: true, sparse: true },
@@ -33,18 +41,20 @@ const ReaderSchema = new JXPSchema({
 
     // Commmercial relationship
     paying_customer: { type: Boolean, index: true, default: false },
-    payment_method: String,
+    payment_method: { type: String, index: true },
     member: { type: Boolean, index: true, default: false },
     monthly_contribution: { type: Number, index: true, default: 0 },
+    first_payment: { type: Date, index: true },
+    last_payment: { type: Date, index: true },
     subscription_total: { type: Number, index: true, default: 0 },
-    subscription_product: String,
-    subscription_period: String,
-    subscription_status: String,
-    subscription_next_payment: Date,
-    subscription_start: Date,
-    subscription_end: Date,
-    subscription_cancellation_request_date: Date,
-    subscription_cancellation_reason: String,
+    subscription_product: { type: String, index: true },
+    subscription_period: { type: String, index: true },
+    subscription_status: { type: String, index: true },
+    subscription_next_payment: { type: Date, index: true },
+    subscription_start: { type: Date, index: true },
+    subscription_end: { type: Date, index: true },
+    subscription_cancellation_request_date: { type: Date, index: true },
+    subscription_cancellation_reason: { type: String, index: true },
 
     // External IDs
     wordpress_id: { type: Number, index: true, unique: true },
@@ -56,21 +66,21 @@ const ReaderSchema = new JXPSchema({
     authors: [{ type: String, index: true }],
     sections: [{ type: String, index: true }],
     
-    favourite_author: String,
-    favourite_section: String,
+    favourite_author: { type: String, index: true },
+    favourite_section: { type: String, index: true },
 
     email_state: { type: String, index: true },
-    email_client: String,
+    email_client: { type: String, index: true },
     newsletters: [String],
 
     // User Agent
     app_user: { type: Boolean, index: true, default: false },
     uas: { type: Mixed, set: toSet },
-    browser: String,
+    browser: { type: String, index: true },
     browser_version: String,
-    device: String,
+    device: { type: String, index: true },
     operating_system: String,
-    os_version: String,
+    os_version: { type: String, index: true },
     platform: String,
     height: Number,
     width: Number,
@@ -86,6 +96,7 @@ const ReaderSchema = new JXPSchema({
     city: String,
     latitude: Number,
     longitude: Number,
+    home_locations: [HomeLocationSchema],
 
     // Credit Cards
     cc_expiry_date: Date,
