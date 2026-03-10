@@ -1,3 +1,5 @@
+// DEPRECAED: Use subscription_model.js instead
+
 /* global JXPSchema ObjectId Mixed */
 
 const Woocommerce_SubscriptionSchema = new JXPSchema({

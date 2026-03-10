@@ -1,3 +1,5 @@
+// DEPRECAED: Use order_model.js instead
+
 /* global JXPSchema ObjectId Mixed */
 
 const Woocommerce_OrderSchema = new JXPSchema({
