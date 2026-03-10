@@ -20,7 +20,7 @@ const ReaderSchema = new JXPSchema({
     // touchbasesubscriber_id: [{ type: ObjectId, link: "touchbasesubscriber" }],
     // woocommercecustomer_id: [{ type: ObjectId, link: "WoocommerceCustomer" }],
     // woocommercesubscription_id: [{ type: ObjectId, link: "WoocommerceSubscription" }],
-    wordpressuser_id: { type: ObjectId, link: "wordpressuser", index: true },
+    wordpressuser_id: { type: ObjectId, link: "wordpressuser", index: true }, // DEPRECATED
     whitebeardcustomer_id: { type: ObjectId, link: "whitebeard_customer", index: true },
 
     // Segments and labels
@@ -57,7 +57,7 @@ const ReaderSchema = new JXPSchema({
     subscription_cancellation_reason: { type: String, index: true },
 
     // External IDs
-    wordpress_id: { type: Number, index: true, unique: true },
+    wordpress_id: { type: Number, index: true, unique: true }, // DEPRECATED, use external_id instead
     external_id: { type: Number, index: true, unique: true },
 
     user_registered_on_wordpress: Date,
@@ -72,6 +72,11 @@ const ReaderSchema = new JXPSchema({
     email_state: { type: String, index: true },
     email_client: { type: String, index: true },
     newsletters: [String],
+
+    // Demographics
+    gender: { type: String, index: true },
+    dob: { type: Date, index: true },
+    industry: { type: String, index: true },
 
     // User Agent
     app_user: { type: Boolean, index: true, default: false },
