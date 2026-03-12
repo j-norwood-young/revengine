@@ -1,9 +1,9 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const config = require("config");
-const { createCanvas } = require('canvas');
-const esclient = require("@revengine/common/esclient");
-const Charts = require("../libs/charts");
+import config from "config";
+import { createCanvas } from 'canvas';
+import esclient from "@revengine/common/esclient.js";
+import Charts from "../libs/charts.js";
 const charts = new Charts();
 
 router.get("/canvas_test", async(req, res) => {
@@ -201,4 +201,4 @@ router.get("/articles", async (req, res) => {
     }
 })
 
-module.exports = router;
+export default router;

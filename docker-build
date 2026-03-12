@@ -1,0 +1,129 @@
+#!/bin/bash
+
+# Array of available components
+components=(
+    "revengine-api"
+    "revengine-frontend"
+    "revengine-mavio-tracker"
+    "revengine-tracker"
+    "revengine-consolidator"
+    "revengine-crossword-tracker"
+    "revengine-listeners"
+    "revengine-wordpress-api"
+    "revengine-bqsync"
+)
+
+# Function to build a specific component
+build_component() {
+    component=$1
+    echo "Building $component"
+    
+    case $component in
+        "revengine-api")
+            docker build -t $component:latest -f docker/api/Dockerfile .
+            docker tag $component:latest harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            docker push harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            ;;
+        "revengine-frontend")
+            docker build -t $component:latest -f docker/frontend/Dockerfile .
+            docker tag $component:latest harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            docker push harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            ;;
+        "revengine-mavio-tracker")
+            docker build -t $component:latest -f docker/mavio-tracker/Dockerfile .
+            docker tag $component:latest harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            docker push harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            ;;
+        "revengine-tracker")
+            docker build -t $component:latest -f docker/tracker/Dockerfile .
+            docker tag $component:latest harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            docker push harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            ;;
+        "revengine-consolidator")
+            docker build -t $component:latest -f docker/consolidator/Dockerfile .
+            docker tag $component:latest harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            docker push harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            ;;
+        "revengine-crossword-tracker")
+            docker build -t $component:latest -f docker/crossword-tracker/Dockerfile .
+            docker tag $component:latest harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            docker push harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            ;;
+        "revengine-listeners")
+            docker build -t $component:latest -f docker/listeners/Dockerfile .
+            docker tag $component:latest harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            docker push harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            ;;
+        "revengine-wordpress-api")
+            docker build -t $component:latest -f docker/wordpress-api/Dockerfile .
+            docker tag $component:latest harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            docker push harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            ;;
+        "revengine-bqsync")
+            docker build -t $component:latest -f docker/bqsync/Dockerfile .
+            docker tag $component:latest harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            docker push harbor.revengine.dailymaverick.co.za/revengine/$component:latest
+            ;;
+    esac
+    
+    echo "----------------------------------------"
+}
+
+# Display menu function
+display_menu() {
+    clear
+    echo "=== Docker Build Menu ==="
+    echo "Select components to build (comma-separated numbers) or choose an option:"
+    echo ""
+    
+    for i in "${!components[@]}"; do
+        echo "[$((i+1))] ${components[$i]}"
+    done
+    
+    echo ""
+    echo "[a] Build all components"
+    echo "[q] Quit"
+    echo ""
+    echo -n "Your choice: "
+}
+
+# Main function
+main() {
+    while true; do
+        display_menu
+        read -r choice
+        
+        # Handle quit option
+        if [[ "$choice" == "q" || "$choice" == "Q" ]]; then
+            echo "Exiting docker build script."
+            exit 0
+        fi
+        
+        # Handle build all option
+        if [[ "$choice" == "a" || "$choice" == "A" ]]; then
+            echo "Building all components..."
+            for component in "${components[@]}"; do
+                build_component "$component"
+            done
+            echo "All components built successfully."
+            read -p "Press Enter to continue..."
+            continue
+        fi
+        
+        # Handle multiple selections (comma-separated)
+        IFS=',' read -ra selected <<< "$choice"
+        for sel in "${selected[@]}"; do
+            if [[ "$sel" =~ ^[0-9]+$ ]] && [ "$sel" -ge 1 ] && [ "$sel" -le "${#components[@]}" ]; then
+                build_component "${components[$((sel-1))]}"
+            else
+                echo "Invalid selection: $sel"
+            fi
+        done
+        
+        read -p "Press Enter to continue..."
+    done
+}
+
+# Run the main function
+main
+

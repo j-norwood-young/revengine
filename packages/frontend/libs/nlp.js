@@ -1,4 +1,4 @@
-const vader = require('vader-sentiment');
+import vader from 'vader-sentiment';
 
 const convert_sentiment = sentiment_score => {
     if (sentiment_score < -0.9) return "very negative";
@@ -13,7 +13,7 @@ const convert_sentiment = sentiment_score => {
     return "overwhelmingly positive";
 }
 
-const sentiment = content => {
+export const sentiment = content => {
     try {
         const sentiment_score = vader.SentimentIntensityAnalyzer.polarity_scores(content).compound;
         const sentiment = convert_sentiment(sentiment_score);
@@ -22,7 +22,3 @@ const sentiment = content => {
         return { sentiment: "Unknown", sentiment_score: 0 }
     }
 };
-
-module.exports = {
-    sentiment
-}

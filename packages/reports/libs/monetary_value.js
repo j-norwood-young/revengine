@@ -2,7 +2,7 @@
 const config = require("config");
 const JXPHelper = require("jxp-helper");
 require("dotenv").config();
-const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
+const jxphelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 const moment = require("moment-timezone");
 moment.tz.setDefault(config.timezone || "UTC");
 
@@ -31,17 +31,17 @@ const Monetary_Value = async () => {
         },
         {
             $addFields: {
-                total_per_month: { 
-                    $cond:  {
+                total_per_month: {
+                    $cond: {
                         if: {
                             $eq: ["$billing_period", "year"]
                         },
                         then: {
-                            $divide: [ "$total", 12 ]
+                            $divide: ["$total", 12]
                         },
-                        else: "$total" 
+                        else: "$total"
                     }
-                    
+
                 }
             }
         },

@@ -1,3 +1,5 @@
+// DEPRECAED
+
 /* global JXPSchema ObjectId Mixed */
 
 const Woocommerce_MembershipSchema = new JXPSchema({

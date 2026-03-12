@@ -1,5 +1,5 @@
-require("./typeahead");
-const Bloodhound = require("bloodhound-js");
+import "./typeahead.js";
+import Bloodhound from "bloodhound-js";
 const email_matcher = new Bloodhound({
     datumTokenizer: Bloodhound.tokenizers.whitespace,
     queryTokenizer: Bloodhound.tokenizers.whitespace,

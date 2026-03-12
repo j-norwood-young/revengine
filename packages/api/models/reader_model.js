@@ -1,8 +1,12 @@
 /* global JXPSchema ObjectId Mixed */
 
-const TouchbaseSubscriber = require("./touchbasesubscriber_model");
-const TouchbaseList = require("./touchbaselist_model");
-const WoocommerceSubscription = require("./woocommerce_subscription_model");
+const HomeLocationSchema = new JXPSchema({
+    country: String,
+    region: String,
+    city: String,
+    weight: Number,
+});
+HomeLocationSchema.index({ country: 1, region: 1, city: 1, weight: 1 });
 
 const ReaderSchema = new JXPSchema({
     // Basics
@@ -16,60 +20,80 @@ const ReaderSchema = new JXPSchema({
     // touchbasesubscriber_id: [{ type: ObjectId, link: "touchbasesubscriber" }],
     // woocommercecustomer_id: [{ type: ObjectId, link: "WoocommerceCustomer" }],
     // woocommercesubscription_id: [{ type: ObjectId, link: "WoocommerceSubscription" }],
-    wordpressuser_id: { type: ObjectId, link: "wordpressuser", index: true },
+    wordpressuser_id: { type: ObjectId, link: "wordpressuser", index: true }, // DEPRECATED
+    whitebeardcustomer_id: { type: ObjectId, link: "whitebeard_customer", index: true },
 
     // Segments and labels
     label_id: [{ type: ObjectId, link: "Label", map_to: "label" }],
     label_update: Date,
     segmentation_id: [{ type: ObjectId, link: "segmentation", map_to: "segment" }],
     segment_update: Date,
+    label_data: Mixed,
+    // Segment v2 (condition-based)
+    segment_id: [{ type: ObjectId, link: "segment", map_to: "segment_v2" }],
+    segment_update_v2: Date,
 
-    // General Data
+    // Dates
     last_login: Date,
     last_update: Date,
     first_login: Date,
-    paying_customer: Boolean,
+    user_registered: { type: Date, index: true, default: Date.now },
 
-    wordpress_id: { type: Number, index: true, unique: true },
-    test_wordpress_id: { type: Number, index: true }, // To be deprecated after testing
+    // Commmercial relationship
+    paying_customer: { type: Boolean, index: true, default: false },
+    payment_method: { type: String, index: true },
+    member: { type: Boolean, index: true, default: false },
+    monthly_contribution: { type: Number, index: true, default: 0 },
+    first_payment: { type: Date, index: true },
+    last_payment: { type: Date, index: true },
+    subscription_total: { type: Number, index: true, default: 0 },
+    subscription_product: { type: String, index: true },
+    subscription_period: { type: String, index: true },
+    subscription_status: { type: String, index: true },
+    subscription_next_payment: { type: Date, index: true },
+    subscription_start: { type: Date, index: true },
+    subscription_end: { type: Date, index: true },
+    subscription_cancellation_request_date: { type: Date, index: true },
+    subscription_cancellation_reason: { type: String, index: true },
 
-    remp_beam_id: Number,
+    // External IDs
+    wordpress_id: { type: Number, index: true, unique: true }, // DEPRECATED, use external_id instead
+    external_id: { type: Number, index: true, unique: true },
 
     user_registered_on_wordpress: Date,
 
-    member: Boolean,
-    monthly_contribution: Number,
-
+    // Content preferences
     authors: [{ type: String, index: true }],
     sections: [{ type: String, index: true }],
-    authors_last_30_days: [{
-        count: Number,
-        name: String
-    }],
-    sections_last_30_days: [{
-        count: Number,
-        name: String
-    }],
-    favourite_author: String,
-    favourite_section: String,
+    
+    favourite_author: { type: String, index: true },
+    favourite_section: { type: String, index: true },
 
     email_state: { type: String, index: true },
-    email_client: String,
+    email_client: { type: String, index: true },
     newsletters: [String],
 
-    uas: { type: Mixed, set: toSet },
+    // Demographics
+    gender: { type: String, index: true },
+    dob: { type: Date, index: true },
+    industry: { type: String, index: true },
 
-    medium: String,
-    source: String,
-    campaign: String,
-    browser: String,
+    // User Agent
+    app_user: { type: Boolean, index: true, default: false },
+    uas: { type: Mixed, set: toSet },
+    browser: { type: String, index: true },
     browser_version: String,
-    device: String,
+    device: { type: String, index: true },
     operating_system: String,
-    os_version: String,
+    os_version: { type: String, index: true },
     platform: String,
     height: Number,
     width: Number,
+
+    // UTM parameters
+    medium: String,
+    source: String,
+    campaign: String,
 
     // Location data
     country: String,
@@ -77,12 +101,7 @@ const ReaderSchema = new JXPSchema({
     city: String,
     latitude: Number,
     longitude: Number,
-
-    // Label Data
-    label_data: Mixed,
-
-    // Uber Code Overrides
-    uber_code_override: { type: String, enum: ['send', 'withhold', 'auto'], default: "auto", index: true },
+    home_locations: [HomeLocationSchema],
 
     // Credit Cards
     cc_expiry_date: Date,
@@ -104,8 +123,6 @@ const ReaderSchema = new JXPSchema({
     total_lifetime_value: Number,
 
     sent_insider_welcome_email: { type: Date, index: true },
-
-    app_user: { type: Boolean, index: true, default: false },
 },
     {
         perms: {
@@ -119,73 +136,6 @@ function toSet(a) {
     return [...new Set(a)];
 }
 
-// Trimmed lowercase email
-// ReaderSchema.pre("save", function() {
-//     this.email = this.email.toLowerCase().trim();
-// })
-
-// Newsletters
-ReaderSchema.pre("save", async function () {
-    const item = this;
-    let lists = [];
-    if (!item.touchbasesubscriber) {
-        item.newsletters = lists;
-        return;
-    }
-    for (touchbasesubscriber_id of item.touchbasesubscriber) {
-        try {
-            let tbp = await TouchbaseSubscriber.findById(touchbasesubscriber_id);
-            let list = await TouchbaseList.findById(tbp.list_id);
-            if (list.name !== "Daily Maverick Main List") {
-                lists.push(list.name);
-            } else {
-                for (d of tbp.data) {
-                    if (d.Key === "[DailyMaverickNewsletters]") lists.push(d.Value);
-                }
-            }
-        } catch (err) {
-            console.error(`Failed to find touchbase subscriber ${touchbasesubscriber_id}`);
-        }
-    }
-    item.newsletters = lists;
-    // await item.save();
-})
-
-// first_name and last_name
-ReaderSchema.pre("save", async function () {
-    const item = this;
-    // wordpresslocal > woocommercecustomer > woocommercesubscription > touchbasesubscriber
-    if (item.touchbasesubscriber && item.touchbasesubscriber.length) {
-        let user = await TouchbaseSubscriber.findById(item.touchbasesubscriber[0]);
-        if (user.name) {
-            item.first_name = user.name;
-        }
-        let last_name = user.data.find(d => (d.Key === "[Surname]"));
-        if (last_name) item.last_name = last_name.Value;
-    }
-    if (item.woocommercesubscription && item.woocommercesubscription.length) {
-        let user = await WoocommerceSubscription.findById(item.woocommercesubscription[0]);
-        if (user.first_name) item.first_name = user.first_name;
-        if (user.last_name) item.last_name = user.last_name;
-    }
-    if (item.woocommercecustomer && item.woocommercecustomer.length) {
-        let user = await WoocommerceCustomer.findById(item.woocommercecustomer[0]);
-        if (user.first_name) item.first_name = user.first_name;
-        if (user.last_name) item.last_name = user.last_name;
-    }
-});
-
-// Touchbase data
-ReaderSchema.pre("save", async function () {
-    const item = this;
-    if (!item.touchbasesubscriber) return;
-    if (!item.touchbasesubscriber.length) return;
-    for (let subscriber_id of item.touchbasesubscriber) {
-        let subscriber = await TouchbaseSubscriber.findById(subscriber_id);
-        if (subscriber.email_client) item.email_client = subscriber.email_client;
-    }
-
-});
 
 // const Reader 
 const Reader = JXPSchema.model('reader', ReaderSchema);

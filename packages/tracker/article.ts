@@ -1,51 +1,66 @@
 import config from "config";
 import JXPHelper from "jxp-helper";
 import * as dotenv from "dotenv";
-import { get_post } from "@revengine/common/revengine_wordpress"
+
 dotenv.config();
 const jxphelper = new JXPHelper({
-    server: config.api.server,
+    server: process.env.API_SERVER || config.api.server,
     apikey: process.env.APIKEY,
 });
 
-export const get_article_data = async function (post_id) {
-    const save_to_db = !config.debug && !(process.env.NODE_ENV === "test");
-    let sections = null;
-    let tags = null;
-    let date_published = null;
-    let author_id = null;
-    let title = null;
-    if (post_id) {
-        const article = (
-            await jxphelper.get("article", {
-                "filter[post_id]": post_id,
-                fields: "tags,sections,date_published,author,title",
-            })
-        ).data.pop();
-        if (!article) {
-            const wpdata = await get_post(post_id);
-            if (wpdata === null) return {};
-            if (wpdata?.data && wpdata.data.post_id === post_id) {
-                const wparticle = wpdata.data;
-                tags = wparticle.tags;
-                sections = wparticle.sections;
-                date_published = wparticle.date_published;
-                author_id = wparticle.author;
-                title = wparticle.title;
-            }
-            if (save_to_db) {
-                console.log("Saving article to database", wpdata.data.title);
-                await jxphelper.post("article", wpdata.data);
-            }
-        } else {
-            tags = article.tags;
-            sections = article.sections;
-            date_published = article.date_published;
-            author_id = article.author;
-            title = article.title;
-        }
+const IGNORE_POST_IDS = [
+    "0", // Home
+    "29",
+    "30",
+    "1855",
+    "387188",
+    "119012",
+    "150"
+];
+
+const EMPTY_ARTICLE_FIELDS = {
+    sections: null,
+    tags: null,
+    date_published: null,
+    author_id: null,
+    title: null,
+    dm_key_theme: null,
+    dm_article_theme: null,
+    dm_user_need: null,
+    dm_disable_comments: null,
+};
+
+export const get_article_data = async function (post_id: string | number) {
+    if (!post_id || IGNORE_POST_IDS.includes(String(post_id))) return EMPTY_ARTICLE_FIELDS;
+
+    let article: any = null;
+    try {
+        const res = await jxphelper.get("article", {
+            "filter[post_id]": post_id,
+            fields: "tags,sections,date_published,author,title,dm_key_theme,dm_article_theme,dm_user_need,dm_disable_comments",
+        });
+        article = res?.data?.pop();
+    } catch (err: any) {
+        const msg = err?.response?.data ?? err?.message ?? String(err);
+        console.warn("get_article_data: JXP/API unreachable or error, falling back to Whitebeard:", msg);
     }
-    return { sections, tags, date_published, author_id, title };
+
+    if (article) {
+        return {
+            sections: article.sections ?? null,
+            tags: article.tags ?? null,
+            date_published: article.date_published ?? null,
+            author_id: article.author ?? null,
+            title: article.title ?? null,
+            dm_key_theme: article.dm_key_theme ?? null,
+            dm_article_theme: article.dm_article_theme ?? null,
+            dm_user_need: article.dm_user_need ?? null,
+            dm_disable_comments: article.dm_disable_comments ?? null,
+        };
+    } else {
+        console.log("No article found for post_id:", post_id);
+        return EMPTY_ARTICLE_FIELDS;
+    }
 }
 
 export const get_article_data_test = async function () {

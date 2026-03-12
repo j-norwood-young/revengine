@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const config = require("config");
-const isEmpty = require("../libs/utils").isEmpty;
-const Collections = require("../libs/collections");
+import config from "config";
+import { isEmpty } from "../libs/utils.js";
+import Collections from "../libs/collections.js";
 const collections = new Collections();
 
 const loadForeignCollection = async (datadef, apihelper) => {
@@ -69,4 +69,4 @@ router.get("/delete/:type/:id", async(req, res) => {
     }
 })
 
-module.exports = router;
+export default router;

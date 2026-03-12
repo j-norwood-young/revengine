@@ -1,4 +1,4 @@
-const JXPHelper = require("jxp-helper");
+import JXPHelper from "jxp-helper";
 const jxphelper = new JXPHelper({ server: apiserver, apikey });
 
 class ReaderView {
@@ -21,4 +21,4 @@ class ReaderView {
     }
 }
 
-module.exports = ReaderView;
+export default ReaderView;

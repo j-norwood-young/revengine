@@ -1,3 +1,5 @@
+// DEPRECATED
+
 import config from "config";
 import http from "http";
 import { parse_user_agent } from "./user_agent";
@@ -6,6 +8,7 @@ import { parse_referer } from "./referer";
 import { parse_utm } from "./utm";
 import { get_article_data } from "./article";
 import { get_user_data } from "./user";
+import { get_session } from "./session";
 import { KafkaProducer } from "@revengine/common/kafka";
 import Cache from "@revengine/common/cache";
 
@@ -23,6 +26,8 @@ const topic = process.env.TRACKER_KAFKA_TOPIC || config.tracker.kafka_topic || `
 const cookie_name = process.env.TRACKER_COOKIE_NAME || config.tracker.cookie_name || "revengine_browser_id"
 const allow_origin = process.env.TRACKER_ALLOWED_ORIGINS || config.tracker.allow_origin || "*";
 
+console.log({ topic, debug: config.debug });
+
 const headers = {
     "Content-Type": "application/json; charset=UTF-8",
     "Content-Disposition": "inline",
@@ -32,7 +37,9 @@ const headers = {
     "Access-Control-Allow-Headers": "Content-Type",
     "X-Powered-By": `${name}`,
 };
-const index = process.env.INDEX || config.debug ? "pageviews_test" : "pageviews";
+const index = process.env.INDEX || (config.debug ? "pageviews_test" : "pageviews_copy");
+
+console.log({index, debug: config.debug});
 
 let producer = null;
 try {
@@ -79,6 +86,8 @@ const set_esdata = async (data) => {
             time_updated: new Date().toISOString(),
             seconds_on_page: Math.round(data.seconds_on_page) || 0,
             scroll_depth: Math.round(data.scroll_depth) || 0,
+            session: data.session,
+            email: data.email,
         },
         parse_user_agent(data.user_agent),
         await geolocate_ip(data.user_ip),
@@ -141,9 +150,10 @@ const post_hit = async (req, res) => {
                 );
                 if (!check_result) throw "Missing fields";
                 data.user_id = Number(data.user_id) || 0;
-                let { user_labels, user_segments } = await get_user_data(data.user_id);
+                let { user_labels, user_segments, user_email } = await get_user_data(data.user_id);
                 data.user_labels = user_labels || {};
                 data.user_segments = user_segments || {};
+                data.email = user_email || null;
                 if (config.debug) {
                     console.log(data);
                 }
@@ -161,7 +171,7 @@ const post_hit = async (req, res) => {
                 }
 
                 // Set the cookie with proper attributes
-                const cookieOptions: cookie.CookieSerializeOptions = {
+                const cookieOptions: cookie.SerializeOptions = {
                     httpOnly: true,
                     secure: process.env.NODE_ENV === 'production', // Set to true in production
                     sameSite: 'lax', // or 'strict' or 'none', depending on your requirements
@@ -171,6 +181,14 @@ const post_hit = async (req, res) => {
                 res.setHeader('Set-Cookie', cookie.serialize(cookie_name, data.browser_id, cookieOptions));
 
                 data.user_ip = data.user_ip || get_ip(req);
+                const location = await geolocate_ip(data.user_ip);
+                data.derived_city = location.derived_city;
+                data.derived_country = location.derived_country;
+                data.derived_country_code = location.derived_country_code;
+                data.derived_latitude = location.derived_latitude;
+                data.derived_longitude = location.derived_longitude;
+                data.derived_region = location.derived_region;
+                data.session = get_session(data.browser_id, data.user_ip);
                 res.writeHead(200, headers);
                 res.write(
                     JSON.stringify({
@@ -179,6 +197,14 @@ const post_hit = async (req, res) => {
                         user_segments,
                         browser_id: data.browser_id,
                         user_ip: data.user_ip,
+                        location: {
+                            city: data.derived_city,
+                            country: data.derived_country,
+                            country_code: data.derived_country_code,
+                            latitude: data.derived_latitude,
+                            longitude: data.derived_longitude,
+                            region: data.derived_region,
+                        }
                     })
                 );
                 res.end();
@@ -240,7 +266,7 @@ const get_hit = async (req, res) => {
         }
         
         // Set the cookie with proper attributes
-        const cookieOptions: cookie.CookieSerializeOptions = {
+        const cookieOptions: cookie.SerializeOptions = {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production', // Set to true in production
             sameSite: 'lax', // or 'strict' or 'none', depending on your requirements
@@ -258,13 +284,23 @@ const get_hit = async (req, res) => {
             if (config.debug) console.log("Cache hit", cached_user_data);
             data.user_labels = cached_user_data.user_labels;
             data.user_segments = cached_user_data.user_segments;
+            data.email = cached_user_data.user_email;
         } else {
             if (config.debug) console.log("Cache miss");
-            let { user_labels, user_segments } = await get_user_data(data.user_id);
+            let { user_labels, user_segments, user_email } = await get_user_data(data.user_id);
             data.user_labels = user_labels || {};
             data.user_segments = user_segments || {};
-            await cache.set(cache_id, {user_labels, user_segments});
+            data.email = user_email || null;
+            await cache.set(cache_id, {user_labels, user_segments, user_email});
         }
+        const location = await geolocate_ip(data.user_ip);
+        data.derived_city = location.derived_city;
+        data.derived_country = location.derived_country;
+        data.derived_country_code = location.derived_country_code;
+        data.derived_latitude = location.derived_latitude;
+        data.derived_longitude = location.derived_longitude;
+        data.derived_region = location.derived_region;
+        data.session = get_session(data.browser_id, data.user_ip);
     } catch (err) {
         console.error(err.toString());
     }
@@ -275,6 +311,14 @@ const get_hit = async (req, res) => {
             user_labels: data?.user_labels,
             user_segments: data?.user_segments,
             browser_id,
+            location: {
+                city: data?.derived_city,
+                country: data?.derived_country,
+                country_code: data?.derived_country_code,
+                latitude: data?.derived_latitude,
+                longitude: data?.derived_longitude,
+                region: data?.derived_region,
+            }
         })
     );
     res.end();

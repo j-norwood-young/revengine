@@ -1,9 +1,10 @@
-const config = require("config");
-require("dotenv").config();
-const pug = require("pug");
-const path = require("path");
-const moment = require("moment-timezone");
-const Reports = require("@revengine/reports");
+import config from "config";
+import dotenv from "dotenv";
+dotenv.config();
+import pug from "pug";
+import path from "path";
+import moment from "moment-timezone";
+import { ArticleHits, ArticleTags, ArticleSections, ArticleLongTails, CompareFeatures } from "@revengine/reports";
 const numberFormat = new Intl.NumberFormat(config.locale || "en-GB", { maximumFractionDigits: 1 });
 
 const authors_to_exclude = [
@@ -35,7 +36,7 @@ const content = async () => {
         const month_end_days_ago = 2;
 
         // Articles
-        const article_report = new Reports.ArticleHits();
+        const article_report = new ArticleHits();
         const one_day = await article_report.run(day_start_days_ago, day_end_days_ago);
         const one_week = await article_report.run(week_start_days_ago, week_end_days_ago);
         const template = pug.compileFile(path.join(__dirname, "../templates/website_content_report.pug"));
@@ -45,19 +46,19 @@ const content = async () => {
         const bottom_articles_one_week = one_week.filter(filter_articles).slice(-5).sort((a,b) => a.peak.count - b.peak.count);
         
         // Tags
-        const tag_report = new Reports.ArticleTags();
+        const tag_report = new ArticleTags();
         let tags_one_week = await tag_report.run(week_start_days_ago, week_end_days_ago);
         const tags_one_month = await tag_report.run(month_start_days_ago, month_end_days_ago);
-        const compare_report = new Reports.CompareFeatures();
+        const compare_report = new CompareFeatures();
         tags_one_week = compare_report.compare_position(tags_one_week, tags_one_month);
 
         // Sections
-        const section_report = new Reports.ArticleSections();
+        const section_report = new ArticleSections();
         const sections_one_week = await section_report.run(week_start_days_ago, week_end_days_ago);
         const sections_one_month = await section_report.run(month_start_days_ago, month_end_days_ago);
 
         // Long Tail Articles
-        const long_tail_report = new Reports.ArticleLongTails()
+        const long_tail_report = new ArticleLongTails()
         const long_tails = await long_tail_report.run();
 
         // Per Section
@@ -82,4 +83,4 @@ const content = async () => {
     }
 }
 
-module.exports = { content }
+export { content }

@@ -4,7 +4,7 @@ const streamrunner = require("./libs/streamrunner");
 const Apihelper = require("jxp-helper");
 const config = require("config");
 require("dotenv").config();
-const apihelper = new Apihelper({ server: config.api.server, apikey: process.env.APIKEY });
+const apihelper = new Apihelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 const schedule = "* * * * *";
 const crypto = require('crypto');
 const server = require("@revengine/http_server");
@@ -12,8 +12,8 @@ const { Command } = require('commander');
 const program = new Command();
 
 program
-.option('-s, --standalone', `Don't run the scheduler or listener, just the server`)
-.option('-p, --pipeline <pipeline_id>', `Immediately run pipeline_id`)
+    .option('-s, --standalone', `Don't run the scheduler or listener, just the server`)
+    .option('-p, --pipeline <pipeline_id>', `Immediately run pipeline_id`)
 
 program.parse(process.argv);
 const options = program.opts();
@@ -48,7 +48,7 @@ const run_pipeline = async pipeline_id => {
         console.error(err);
         const d_end = new Date();
         await apihelper.put("pipeline", pipeline_id, { running: false, last_run_start: d_start, last_run_end: d_end, last_run_result: JSON.stringify(err) });
-        throw(err)
+        throw (err)
     }
 }
 
@@ -65,7 +65,7 @@ const healthcheck = async () => { // Healthcheck
         try {
             console.log(`Unlocking blocked pipeline`, pipeline.name);
             await apihelper.put("pipeline", pipeline._id, { "running": false });
-        } catch(err) {
+        } catch (err) {
             console.error(err);
         }
     }
@@ -88,7 +88,7 @@ const scheduler = () => {
                 let schedule = cron.schedule(pipeline.cron, async () => {
                     try {
                         await run_pipeline(pipeline._id)
-                    } catch(err) {
+                    } catch (err) {
                         console.error(err);
                     }
                 });
@@ -105,7 +105,7 @@ server.get("/run/:pipeline_id", async (req, res) => {
         const result = await run_pipeline(pipeline_id);
         if (!result) throw `No result for pipeline ${pipeline_id}`;
         res.send(result);
-    } catch(err) {
+    } catch (err) {
         console.error(err);
         res.send("An error occured");
     }
@@ -122,7 +122,7 @@ if (options.pipeline) {
     (async () => {
         try {
             await run_pipeline(options.pipeline);
-        } catch(err) {
+        } catch (err) {
             console.trace(err);
         }
     })()

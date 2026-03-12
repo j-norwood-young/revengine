@@ -1,8 +1,10 @@
-const config = require("config");
-require("dotenv").config();
-const moment = require("moment-timezone");
+import config from "config";
+import dotenv from "dotenv";
+import moment from "moment-timezone";
+import esclient from "@revengine/common/esclient.js";
+
+dotenv.config();
 moment.tz.setDefault(config.timezone || "UTC");
-const esclient = require("@revengine/common/esclient");
 
 class TopLastHour {
     constructor(opts) {
@@ -92,4 +94,4 @@ class TopLastHour {
     }
 }
 
-module.exports = TopLastHour;
+export default TopLastHour;

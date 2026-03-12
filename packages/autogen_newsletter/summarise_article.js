@@ -1,6 +1,9 @@
-const OpenAI = require("openai");
-require("dotenv").config();
-const apihelper = require("@revengine/common/apihelper");
+import OpenAI from "openai";
+import dotenv from "dotenv";
+import config from "config";
+dotenv.config();
+import JXPHelper from "jxp-helper";
+const apihelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 
 const configuration = new OpenAI.Configuration({ apiKey: process.env.OPENAI_API_KEY});
 const openai = new OpenAI.OpenAIApi(configuration);
@@ -11,7 +14,7 @@ function generateSummaryPrompt(body) {
     ;
 }
 
-module.exports = async function summarise_article(article_id) {
+export default async function summarise_article(article_id) {
     const article = (await apihelper.getOne("article", article_id)).data;
     if (article.summary) return article.summary;
     const prompt = generateSummaryPrompt(article.content);

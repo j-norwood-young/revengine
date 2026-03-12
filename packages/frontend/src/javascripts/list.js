@@ -1,9 +1,9 @@
 /* global $ locations */
 "use strict";
 
-const Collections = require("../../libs/collections");
-const formatNumber = require("../../libs/utils").formatNumber;
-const $ = require("jquery");
+import Collections from "../../libs/collections.js";
+import { formatNumber } from "../../libs/utils.js";
+import $ from "jquery";
 
 class List {
     constructor(el) {
@@ -22,6 +22,7 @@ class List {
         this.sortdir = this.datadef.sortdir || 1;
         this.populate = this.datadef.populate || null;
         this.has_actions = this.datadef.actions && this.datadef.actions.length;
+        // Pug templates are loaded by webpack pug-loader
         this.templateColHead = require("../../views/list/template-col-head-th.pug");
         this.filterTemplate = require("../../views/list/listfilters.pug");
         this.clear();
@@ -243,4 +244,4 @@ class List {
     }
 }
 
-module.exports = List;
+export default List;

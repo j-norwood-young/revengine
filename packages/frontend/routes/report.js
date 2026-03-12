@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const Reports = require("@revengine/reports");
-const jsonexport = require("jsonexport");
-const moment = require("moment");
+import { Facets, RFV } from "@revengine/reports";
+import jsonexport from "jsonexport";
+import moment from "moment";
 
 router.use("/", (req, res, next) => {
     res.locals.pg = "report";
@@ -25,7 +25,7 @@ router.get("/membership", (req, res) => {
 router.get("/frequency", async (req, res) => {
     try {
         console.time("frequency");
-        const rfv = new Reports.RFV();
+        const rfv = new RFV();
         const frequency = await rfv.calculate_frequencies();
         res.send(frequency.slice(0, 100));
         console.timeEnd("frequency");
@@ -116,7 +116,8 @@ router.post("/facet/tag", async (req, res) => {
 })
 
 router.get("/mail_report/:report", async (req, res) => {
-    const report = require(`@revengine/reports/reports/${ req.params.report }`);
+    const reportModule = await import(`@revengine/reports/reports/${ req.params.report }.js`);
+    const report = reportModule.default || reportModule;
     const content = await report.content(res.locals.query);
     res.render("reports/mail_report", { content });
 })
@@ -156,4 +157,4 @@ router.get("/editorial_dashboard/journalists", (req, res) => {
     res.render("reports/editorial_dashboard", { title: "Editoral Dashboard - Journalists"})
 })
 
-module.exports = router;
+export default router;

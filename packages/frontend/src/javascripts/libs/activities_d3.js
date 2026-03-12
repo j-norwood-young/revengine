@@ -1,5 +1,5 @@
-const d3 = require("d3");
-const axios = require("axios");
+import * as d3 from "d3";
+import axios from "axios";
 class ActivitiesD3 {
     constructor(reader_id) {
         document.addEventListener("DOMContentLoaded", async (event) => {
@@ -85,4 +85,4 @@ class ActivitiesD3 {
     
 }
 
-module.exports = ActivitiesD3;
+export default ActivitiesD3;

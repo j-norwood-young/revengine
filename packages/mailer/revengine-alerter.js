@@ -5,7 +5,7 @@ const moment = require("moment-timezone");
 const Reports = require("@revengine/reports");
 const program = require('commander');
 
-const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
+const jxphelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 require("dotenv").config();
 
 moment.tz.setDefault(config.timezone || "UTC");
@@ -79,7 +79,7 @@ const main = async () => {
                     }
                 }
             );
-            
+
             for (let article of overperforming) {
                 blocks.push({
                     type: "section",
@@ -90,7 +90,7 @@ const main = async () => {
                 })
             }
         }
-        if(underperforming.length) {
+        if (underperforming.length) {
             blocks.push({
                 type: "section",
                 text: {
@@ -120,7 +120,7 @@ const main = async () => {
         if (program.dev) {
             console.log(blocks);
         } else {
-            await fetch(process.env.SLACK_WEBHOOK, 
+            await fetch(process.env.SLACK_WEBHOOK,
                 {
                     method: "post",
                     body: JSON.stringify({ blocks }),
@@ -128,7 +128,7 @@ const main = async () => {
                 }
             )
         }
-    } catch(err) {
+    } catch (err) {
         return Promise.reject(err);
     }
 }

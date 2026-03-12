@@ -1,4 +1,8 @@
-const apihelper = require("@revengine/common/apihelper");
+import JXPHelper from "jxp-helper";
+import config from "config";
+import dotenv from "dotenv";
+dotenv.config();
+const apihelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 
 const prediction_dump = async (req, res) => {
     try {
@@ -14,4 +18,4 @@ const prediction_dump = async (req, res) => {
     }
 }
 
-module.exports = {prediction_dump};
+export { prediction_dump };

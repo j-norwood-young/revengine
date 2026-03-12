@@ -2,7 +2,7 @@ const mysql = require("mysql");
 const config = require("config");
 const JXPHelper = require("jxp-helper");
 require("dotenv").config();
-const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
+const apihelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 const Stream = require("stream")
 const moment = require("moment");
 const cliProgress = require('cli-progress');
@@ -28,7 +28,7 @@ const truncate = async def => {
         const sql = `TRUNCATE ${def.table};`
         await query(connection, sql);
         console.log(`Truncated ${def.table}`);
-    } catch(err) {
+    } catch (err) {
         return Promise.reject(err);
     }
 }
@@ -42,7 +42,7 @@ const findLastUpdated = async def => {
         const result = await query(connection, sql);
         if (!result.length) return 0;
         return result.pop().date_updated;
-    } catch(err) {
+    } catch (err) {
         return Promise.reject(err);
     }
 }
@@ -56,12 +56,12 @@ function fetchRecords(def) {
         highWaterMark: 5000,
         async read(size) {
             try {
-                let data = (await apihelper.get(def.collection, { "limit": size, page: page++, "sort[updatedAt]": 1, "filter[updatedAt]": `$gte:${new Date(def.last_updated)}`  })).data;
+                let data = (await apihelper.get(def.collection, { "limit": size, page: page++, "sort[updatedAt]": 1, "filter[updatedAt]": `$gte:${new Date(def.last_updated)}` })).data;
                 if (!data.length) stream.push(null);
                 for (let record of data) {
                     stream.push({ def, record });
                 }
-            } catch(err) {
+            } catch (err) {
                 console.error(err);
                 stream.destroy();
             }
@@ -75,9 +75,9 @@ const upsert = (table, record) => {
     const values = Object.values(record);
     let update = [];
     for (key of keys) {
-        update.push(`${key} = ${ connection.escape(record[key])}`);
+        update.push(`${key} = ${connection.escape(record[key])}`);
     }
-    return `INSERT INTO ${table} (${ keys.join(",") }) VALUES (${ values.map(d => connection.escape(d)).join(",") }) ON DUPLICATE KEY UPDATE ${ update.join(",") }`;
+    return `INSERT INTO ${table} (${keys.join(",")}) VALUES (${values.map(d => connection.escape(d)).join(",")}) ON DUPLICATE KEY UPDATE ${update.join(",")}`;
 }
 
 // Convert into our Sql definition
@@ -122,13 +122,13 @@ const saveRecords = new Stream.Writable({
             // console.log({ sql });
             try {
                 await query(connection, sql);
-            } catch(err) {
+            } catch (err) {
                 console.error(err);
             }
             // console.log(result);
             bar1.increment();
             callback();
-        } catch(err) {
+        } catch (err) {
             console.error(err);
             // this.destroy();
             // callback(err);
@@ -143,7 +143,7 @@ const query = (connection, query) => {
                 if (err) return reject(err);
                 return resolve(result);
             })
-        } catch(err) {
+        } catch (err) {
             console.error(err);
             return reject(err);
         }
@@ -157,7 +157,7 @@ const connection = mysql.createPool({
     database: config.mysql.database || "revengine"
 });
 
-const main = async() => {
+const main = async () => {
     try {
         const timeStart = new Date();
         let limited_defs = defs;
@@ -181,7 +181,7 @@ const main = async() => {
         // console.log("Found", articles.length, "articles");
         // Calculate total size
         for (let def of limited_defs) {
-            def.count = await apihelper.count(def.collection, { "filter[updatedAt]": `$gte:${ new Date(def.last_updated) }`});
+            def.count = await apihelper.count(def.collection, { "filter[updatedAt]": `$gte:${new Date(def.last_updated)}` });
             max += def.count;
         }
         bar1.start(max, 0);
@@ -195,7 +195,7 @@ const main = async() => {
         }
         // const result = await query(connection, 'SELECT 1 + 1 AS solution');
         // console.log(result);
-    } catch(err) {
+    } catch (err) {
         console.error(err);
         process.exit(1);
     }

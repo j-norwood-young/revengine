@@ -1,8 +1,9 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const config = require("config");
-const moment = require("moment");
-const encrypt = require("@revengine/wordpress_auth").encrypt;
+import config from "config";
+import moment from "moment";
+import { encrypt } from "@revengine/wordpress_auth";
+import { stringify as csv } from "csv-stringify";
 
 const opts = {
     "fields": "email,first_name,last_name,createdAt,updatedAt,label_id,segmentation_id,cc_expiry_date,cc_last4_digits,wordpress_id,paying_customer"
@@ -67,7 +68,6 @@ router.get("/label/autologins/:label_id", async (req, res) => {
             ])
         }
         // console.log(data);
-        const csv = require("csv-stringify");
         csv(data, (err, output) => {
             if (err) throw err;
             
@@ -80,4 +80,4 @@ router.get("/label/autologins/:label_id", async (req, res) => {
 })
 
 
-module.exports = router;
+export default router;

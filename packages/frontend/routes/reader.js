@@ -1,14 +1,14 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const config = require("config");
-const crypto = require('crypto');
-const esclient = require("@revengine/common/esclient");
-const jsonexport = require('jsonexport');
-const moment = require("moment");
-const recency = require("@revengine/reports/libs/recency");
-const frequency = require("@revengine/reports/libs/frequency");
-const value = require("@revengine/reports/libs/value");
-const Sailthru = require("@revengine/mailer/sailthru");
+import config from "config";
+import crypto from 'crypto';
+import esclient from "@revengine/common/esclient.js";
+import jsonexport from 'jsonexport';
+import moment from "moment";
+import recency from "@revengine/reports/libs/recency.js";
+import frequency from "@revengine/reports/libs/frequency.js";
+import value from "@revengine/reports/libs/value.js";
+import { get_user, get_templates, get_lists, subscribe_reader_to_list, unsubscribe_reader_from_list, send_template_to_reader } from "@revengine/mailer/sailthru.js";
 
 function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
@@ -77,7 +77,7 @@ const render_reader_view = async (req, res) => {
         let sailthru_user = null;
         let sailthru_user_lists = [];
         try {
-            sailthru_user = await Sailthru.get_user(reader.wordpress_id);
+            sailthru_user = await get_user(reader.wordpress_id);
             if (sailthru_user.lists) {
                 for (let list in sailthru_user.lists) {
                     sailthru_user_lists.push(list);
@@ -87,9 +87,9 @@ const render_reader_view = async (req, res) => {
         } catch (err) {
             console.error(err);
         }
-        const sailthru_templates = await Sailthru.get_templates();
+        const sailthru_templates = await get_templates();
         sailthru_templates.sort((a, b) => a.name.localeCompare(b.name));
-        const sailthru_lists = await Sailthru.get_lists();
+        const sailthru_lists = await get_lists();
         sailthru_lists.sort((a, b) => a.name.localeCompare(b.name));
         res.render("readers/reader", { title: `Reader: ${display_name}`, reader, sailthru_templates, sailthru_lists, sailthru_user, sailthru_user_lists });
     } catch (err) {
@@ -570,4 +570,4 @@ router.post("/sailthru/send/:reader_id", async (req, res, next) => {
     }
 }, render_reader_view);
 
-module.exports = router;
+export default router;

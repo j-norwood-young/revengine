@@ -1,6 +1,6 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const Reports = require("@revengine/reports");
+import { Hits24H } from "@revengine/reports";
 
 
 router.get("/", async (req, res) => {
@@ -21,7 +21,7 @@ router.get("/daily_email", async(req, res) => {
 router.get("/article_hits", async(req, res) => {
     try {
         let interval = req.query.interval || "minute";
-        const data = await (new Reports.Hits24H()).run(interval);
+        const data = await (new Hits24H()).run(interval);
         res.send(data);
     } catch(err) {
         console.error(err);
@@ -29,4 +29,4 @@ router.get("/article_hits", async(req, res) => {
     }
 
 })
-module.exports = router;
+export default router;

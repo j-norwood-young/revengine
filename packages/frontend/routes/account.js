@@ -1,4 +1,4 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
 const logged_in_only = (req, res, next) => {
@@ -36,4 +36,4 @@ router.post("/settings", logged_in_only, async (req, res) => {
     }
 })
 
-module.exports = router;
+export default router;

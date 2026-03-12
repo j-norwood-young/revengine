@@ -9,4 +9,4 @@ const formatNumber = (num, dec) => {
     return n;
 };
 
-module.exports = formatNumber;
+export default formatNumber;

@@ -1,7 +1,7 @@
 // Inspiration for how to draw chart.js server-side from https://github.com/shellyln/chart.js-node-ssr-example
-const ChartJS = require("chart.js");
-const { createCanvas } = require('canvas');
-const Color = require("color");
+import ChartJS from "chart.js";
+import { createCanvas } from 'canvas';
+import Color from "color";
 
 class Charts {
     constructor(width, height) {
@@ -173,4 +173,4 @@ class Charts {
     }
 }
 
-module.exports = Charts;
+export default Charts;

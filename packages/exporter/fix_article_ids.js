@@ -1,7 +1,7 @@
 const mysql = require("mysql");
 const config = require("config");
 const JXPHelper = require("jxp-helper");
-const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
+const apihelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 require("dotenv").config();
 
 const connection = mysql.createPool({
@@ -18,7 +18,7 @@ const query = (connection, query) => {
                 if (err) return reject(err);
                 return resolve(result);
             })
-        } catch(err) {
+        } catch (err) {
             console.error(err);
             return reject(err);
         }
@@ -49,7 +49,7 @@ const main = async () => {
                 }
                 await query(connection, `UPDATE touchbase_events SET article_uid="${article.uid}" WHERE url = ${connection.escape(missing_url.url)} AND article_uid IS NULL`);
                 console.timeEnd(slug);
-            } catch(err) {
+            } catch (err) {
                 console.error(err);
                 console.log(missing_url);
             }
@@ -61,7 +61,7 @@ const main = async () => {
         for (let article of articles) {
             await query(`UPDATE touchbase_events SET article_uid="${article.uid}" WHERE article_uid IS NULL AND url LIKE "https://www.dailymaverick.co.za/article/${article.slug}%"`);
         }
-    } catch(err) {
+    } catch (err) {
         console.error(err);
         process.exit(1);
     }

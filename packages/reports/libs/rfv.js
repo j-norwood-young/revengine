@@ -1,11 +1,13 @@
 // Combines recency, frequency, value in one step, and can handle multiple readers
-const config = require("config");
-const JXPHelper = require("jxp-helper");
-require("dotenv").config();
-const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
-const moment = require("moment-timezone");
+import config from "config";
+import JXPHelper from "jxp-helper";
+import dotenv from "dotenv";
+import moment from "moment-timezone";
+import { quantileRankSorted } from "simple-statistics";
+
+dotenv.config();
+const jxphelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 moment.tz.setDefault(config.timezone || "UTC");
-const ss = require("simple-statistics");
 
 const calc_recency_score = last_hit => {
     const now = moment();
@@ -86,7 +88,7 @@ class RFV {
     // How many times has this reader clicked on a link in the last 30 days?
     async calculate_frequencies() {
         const f_pipeline = [
-            { 
+            {
                 $match: {
                     "timestamp": {
                         $gte: `new Date(\"${this.d30}\")`
@@ -136,17 +138,17 @@ class RFV {
         ]
         const frequency_result = (await jxphelper.aggregate("touchbaseevent", f_pipeline)).data;
         frequency_result.sort((a, b) => b.count - a.count);
-        const values = frequency_result.map(a => a.count).sort((a, b) => a-b);
+        const values = frequency_result.map(a => a.count).sort((a, b) => a - b);
         for (let frequency of frequency_result) {
             frequency.email = frequency.email.toLowerCase();
-            frequency.quantile_rank = ss.quantileRankSorted(values, frequency.count)
+            frequency.quantile_rank = quantileRankSorted(values, frequency.count)
         }
         return frequency_result;
     }
 
     async calculate_recencies() {
         const r_pipeline = [
-            { 
+            {
                 $match: {
                     "timestamp": {
                         $gte: `new Date(\"${this.y1}\")`
@@ -186,14 +188,14 @@ class RFV {
         const values = recency_result.map(a => a.recency);
         // console.log(values.length);
         for (let recency of recency_result) {
-            recency.quantile_rank = ss.quantileRankSorted(values, recency.recency)
+            recency.quantile_rank = quantileRankSorted(values, recency.recency)
         }
         return recency_result;
     }
 
     async calculate_volumes() {
         const v_pipeline = [
-            { 
+            {
                 $match: {
                     "timestamp": {
                         $gte: `new Date(\"${this.d30}\")`
@@ -224,13 +226,13 @@ class RFV {
         ]
         const volume_result = (await jxphelper.aggregate("touchbaseevent", v_pipeline)).data;
         volume_result.sort((a, b) => b.count - a.count);
-        const values = volume_result.map(a => a.count).sort((a, b) => a-b);
+        const values = volume_result.map(a => a.count).sort((a, b) => a - b);
         for (let volume of volume_result) {
             volume.email = volume.email.toLowerCase();
-            volume.quantile_rank = ss.quantileRankSorted(values, volume.count)
+            volume.quantile_rank = quantileRankSorted(values, volume.count)
         }
         return volume_result;
     }
 }
 
-module.exports = RFV;
+export default RFV;

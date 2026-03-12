@@ -1,8 +1,10 @@
-const config = require("config");
-const JXPHelper = require("jxp-helper");
-const jxphelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
-require("dotenv").config();
-const moment = require("moment-timezone");
+import config from "config";
+import JXPHelper from "jxp-helper";
+import dotenv from "dotenv";
+import moment from "moment-timezone";
+
+dotenv.config();
+const jxphelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 moment.tz.setDefault(config.timezone || "UTC");
 
 const sort_obj = obj => {
@@ -55,7 +57,7 @@ class Newsletter {
                     timestamp: 1
                 }
             }
-            
+
         ];
         console.time("touchbaseevent-aggregate");
         const aggregate_result = await jxphelper.aggregate("touchbaseevent", aggregate);
@@ -107,7 +109,7 @@ class Newsletter {
     async list_report() {
         // console.log("list_report");
         const lists = (await jxphelper.get("touchbaselist", { "sort[name]": 1 })).data;
-        const stats = (await jxphelper.get("touchbaseliststats", { "sort[total_active_subscribers]": -1, "filter[date]": `${ moment().utc().startOf("day").format("YYYY-MM-DD") }`, "populate[touchbaselist]": "name" })).data;
+        const stats = (await jxphelper.get("touchbaseliststats", { "sort[total_active_subscribers]": -1, "filter[date]": `${moment().utc().startOf("day").format("YYYY-MM-DD")}`, "populate[touchbaselist]": "name" })).data;
         return {
             lists,
             stats
@@ -115,4 +117,4 @@ class Newsletter {
     }
 }
 
-module.exports = Newsletter;
+export default Newsletter;

@@ -1,7 +1,6 @@
-const fetch = require('node-fetch')
-const config = require('config')
-const dotenv = require('dotenv')
-const moment = require('moment')
+import config from 'config'
+import dotenv from 'dotenv'
+import moment from 'moment'
 dotenv.config()
 
 const headers = {
@@ -20,35 +19,35 @@ const _get_endpoint = async (endpoint, page, per_page, modified_after) => {
     return json
 }
 
-const get_articles = async (page=1, per_page=10, modified_after) => {
+const get_articles = async (page = 1, per_page = 10, modified_after) => {
     return _get_endpoint('articles', page, per_page, modified_after)
 }
 
-const get_opinions = async (page=1, per_page=10, modified_after) => {
+const get_opinions = async (page = 1, per_page = 10, modified_after) => {
     return _get_endpoint('opinions', page, per_page, modified_after)
 }
 
-const get_cartoons = async (page=1, per_page=10, modified_after) => {
+const get_cartoons = async (page = 1, per_page = 10, modified_after) => {
     return _get_endpoint('cartoons', page, per_page, modified_after)
 }
 
-const get_featured = async (page=1, per_page=10, modified_after) => {
+const get_featured = async (page = 1, per_page = 10, modified_after) => {
     return _get_endpoint('featured', page, per_page, modified_after)
 }
 
-const get_users = async (page=1, per_page=10, modified_after) => {
+const get_users = async (page = 1, per_page = 10, modified_after) => {
     return _get_endpoint('users', page, per_page, modified_after)
 }
 
-const get_woocommerce_orders = async (page=1, per_page=10, modified_after) => {
+const get_woocommerce_orders = async (page = 1, per_page = 10, modified_after) => {
     return _get_endpoint('woocommerce_orders', page, per_page, modified_after)
 }
 
-const get_woocommerce_subscriptions = async (page=1, per_page=10, modified_after) => {
+const get_woocommerce_subscriptions = async (page = 1, per_page = 10, modified_after) => {
     return _get_endpoint('woocommerce_subscriptions', page, per_page, modified_after)
 }
 
-const get_woocommerce_memberships = async (page=1, per_page=10, modified_after) => {
+const get_woocommerce_memberships = async (page = 1, per_page = 10, modified_after) => {
     return _get_endpoint('woocommerce_memberships', page, per_page, modified_after)
 }
 
@@ -71,7 +70,7 @@ const get_post = async (post_id) => {
     }
 }
 
-module.exports = {
+export {
     get_articles,
     get_post,
     get_opinions,

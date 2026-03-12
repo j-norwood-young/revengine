@@ -23,4 +23,4 @@ const period_filter = (query, period = "week") => {
     return query;
 }
 
-module.exports = period_filter;
+export default period_filter;

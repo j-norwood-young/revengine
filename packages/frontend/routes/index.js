@@ -1,18 +1,20 @@
-var express = require('express');
-var router = express.Router();
-const config = require("config");
-const JXPHelper = require("jxp-helper");
-require("dotenv").config();
+import express from 'express';
+const router = express.Router();
+import config from "config";
+import JXPHelper from "jxp-helper";
+import dotenv from "dotenv";
+dotenv.config();
 
-router.use("/login", require("./login"));
+import loginRouter from "./login.js";
+router.use("/login", loginRouter);
 
 /* Login */
 router.use(async (req, res, next) => {
-	res.locals.sitename = config.name 
+	res.locals.sitename = config.name
 	if (!req.body.login) return next();
 	try {
-		const apihelper = new JXPHelper({ server: config.api.server, apikey: process.env.APIKEY });
-		// console.log({ server: config.api.server, apikey: process.env.APIKEY });
+		const apihelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
+		// console.log({ server: process.env.API_SERVER || config.api.server, apikey: process.env.APIKEY });
 		let login_data = await apihelper.login(req.body.email, req.body.password);
 		if (login_data.status === "fail") {
 			res.render('login', { title: 'Login', "msg": "Incorrect username or password" });
@@ -25,7 +27,7 @@ router.use(async (req, res, next) => {
 		req.session.apikey = login_data.data.apikey;
 		req.session.user = login_data.user;
 		res.redirect("/");
-	} catch(err) {
+	} catch (err) {
 		console.error(err);
 		res.render('login', { title: 'Login', "msg": err.msg || "An unknown error occured" });
 		return;
@@ -44,18 +46,18 @@ router.use((req, res, next) => {
 })
 
 /* Log in from Wordpress */
-router.use(async(req, res, next) => {
+router.use(async (req, res, next) => {
 	if (res.locals.query.apikey) {
 		req.session.apikey = res.locals.query.apikey;
 		try {
 			if (!res.locals.query.user_id) {
-				throw("Missing user_id");
+				throw ("Missing user_id");
 			}
 			const user_id = res.locals.query.user_id;
-			const user_apihelper = new JXPHelper({ server: config.api.server, apikey: req.session.apikey });
+			const user_apihelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: req.session.apikey });
 			req.session.user = await user_apihelper.getOne("user", user_id);
 			next();
-		} catch(err) {
+		} catch (err) {
 			res.status(400).send({ error: err });
 		}
 	} else {
@@ -72,8 +74,8 @@ router.use((req, res, next) => {
 });
 
 /* State Variables */
-router.use((req, res, next) => {
-	const Reader = require("../src/javascripts/typedefs/reader");
+router.use(async (req, res, next) => {
+	const { default: Reader } = await import("../src/javascripts/typedefs/reader.js");
 	const reader = new Reader();
 	res.locals.typedefs = { reader };
 	res.locals.sitename = config.frontend.sitename;
@@ -82,19 +84,21 @@ router.use((req, res, next) => {
 	res.locals.apiserver = config.api.server;
 	res.locals.pipelineserver = config.pipeline.server;
 	// res.locals.daemonserver = config.daemon_api.url;
-	req.apihelper = new JXPHelper({ server: config.api.server, apikey: req.session.apikey });
+	req.apihelper = new JXPHelper({ server: process.env.API_SERVER || config.api.server, apikey: req.session.apikey });
 	next();
 })
 
 /* Useful shit */
-router.use((req, res, next) => {
-	res.locals.moment = require("moment-timezone");
-	res.locals.formatNumber = require("../libs/formatNumber");
+router.use(async (req, res, next) => {
+	const moment = (await import("moment-timezone")).default;
+	const formatNumber = (await import("../libs/formatNumber.js")).default;
+	res.locals.moment = moment;
+	res.locals.formatNumber = formatNumber;
 	next();
 })
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
+router.get('/', function (req, res, next) {
 	res.redirect("/dashboard");
 });
 
@@ -103,23 +107,42 @@ router.get("/test", (req, res) => {
 	res.render("test")
 })
 
-router.use("/account", require("./account"));
-router.use("/dashboard", require("./dashboard"));
-router.use("/list", require("./list"));
-router.use("/item", require("./item"));
-router.use("/search", require("./search"));
-router.use("/reader", require("./reader"));
-router.use("/stats", require("./stats"));
-router.use("/api", require("./api"));
-router.use("/config", require("./config"));
-router.use("/mails", require("./mails"));
-router.use("/report", require("./report"));
-router.use("/voucher", require("./voucher"));
-router.use("/label", require("./label"));
-router.use("/segmentation", require("./segmentation"));
-router.use("/goals", require("./goals"));
-router.use("/settings", require("./settings"));
-router.use("/article", require("./article"));
-router.use("/download", require("./download"));
+import accountRouter from "./account.js";
+import dashboardRouter from "./dashboard.js";
+import listRouter from "./list.js";
+import itemRouter from "./item.js";
+import searchRouter from "./search.js";
+import readerRouter from "./reader.js";
+import statsRouter from "./stats.js";
+import apiRouter from "./api.js";
+import configRouter from "./config.js";
+import mailsRouter from "./mails.js";
+import reportRouter from "./report.js";
+import voucherRouter from "./voucher.js";
+import labelRouter from "./label.js";
+import segmentationRouter from "./segmentation.js";
+import goalsRouter from "./goals.js";
+import settingsRouter from "./settings.js";
+import articleRouter from "./article.js";
+import downloadRouter from "./download.js";
 
-module.exports = router;
+router.use("/account", accountRouter);
+router.use("/dashboard", dashboardRouter);
+router.use("/list", listRouter);
+router.use("/item", itemRouter);
+router.use("/search", searchRouter);
+router.use("/reader", readerRouter);
+router.use("/stats", statsRouter);
+router.use("/api", apiRouter);
+router.use("/config", configRouter);
+router.use("/mails", mailsRouter);
+router.use("/report", reportRouter);
+router.use("/voucher", voucherRouter);
+router.use("/label", labelRouter);
+router.use("/segmentation", segmentationRouter);
+router.use("/goals", goalsRouter);
+router.use("/settings", settingsRouter);
+router.use("/article", articleRouter);
+router.use("/download", downloadRouter);
+
+export default router;
