@@ -42,30 +42,76 @@ function resolveRelativeDate(value, now) {
 	const direction = value.direction === "future" ? "future" : "past";
 	const unit = value.unit;
 	const amount = Number.isInteger(value.amount) && value.amount > 0 ? value.amount : null;
+	const calendar = Boolean(value.calendar);
 
 	if (!amount) return null;
 
 	const base = new Date(now.getTime());
 	const sign = direction === "future" ? 1 : -1;
 
+	if (!calendar) {
+		switch (unit) {
+			case "day":
+				base.setDate(base.getDate() + sign * amount);
+				break;
+			case "week":
+				base.setDate(base.getDate() + sign * amount * 7);
+				break;
+			case "month":
+				base.setMonth(base.getMonth() + sign * amount);
+				break;
+			case "quarter":
+				base.setMonth(base.getMonth() + sign * amount * 3);
+				break;
+			case "year":
+				base.setFullYear(base.getFullYear() + sign * amount);
+				break;
+			default:
+				return null;
+		}
+
+		return Number.isNaN(base.getTime()) ? null : base;
+	}
+
+	// Calendar-based semantics: snap to the start of the period first, then move by whole periods.
+	const cal = new Date(now.getTime());
+	cal.setHours(0, 0, 0, 0);
+
 	switch (unit) {
-		case "day":
-			base.setDate(base.getDate() + sign * amount);
+		case "day": {
+			// Already at start of day.
+			cal.setDate(cal.getDate() + sign * amount);
 			break;
-		case "week":
-			base.setDate(base.getDate() + sign * amount * 7);
+		}
+		case "week": {
+			// ISO week: Monday as first day.
+			const day = cal.getDay() || 7; // Sunday=0 -> 7
+			cal.setDate(cal.getDate() - (day - 1));
+			cal.setDate(cal.getDate() + sign * amount * 7);
 			break;
-		case "month":
-			base.setMonth(base.getMonth() + sign * amount);
+		}
+		case "month": {
+			cal.setDate(1);
+			cal.setMonth(cal.getMonth() + sign * amount);
 			break;
-		case "year":
-			base.setFullYear(base.getFullYear() + sign * amount);
+		}
+		case "quarter": {
+			const currentMonth = cal.getMonth(); // 0-11
+			const quarterStartMonth = currentMonth - (currentMonth % 3);
+			cal.setMonth(quarterStartMonth, 1); // first day of quarter
+			cal.setMonth(cal.getMonth() + sign * amount * 3);
 			break;
+		}
+		case "year": {
+			cal.setMonth(0, 1); // Jan 1
+			cal.setFullYear(cal.getFullYear() + sign * amount);
+			break;
+		}
 		default:
 			return null;
 	}
 
-	return Number.isNaN(base.getTime()) ? null : base;
+	return Number.isNaN(cal.getTime()) ? null : cal;
 }
 
 function normalizeArray(v) {
@@ -139,20 +185,54 @@ function buildSingleConditionQuery(cond) {
 		case "date_between": {
 			let from = null;
 			let to = null;
+
 			if (Array.isArray(value)) {
-				from = resolveRelativeDate(value[0], now) || coerceDate(value[0]);
-				to = resolveRelativeDate(value[1], now) || coerceDate(value[1]);
+				const fromRaw = value[0];
+				const toRaw = value[1];
+
+				const fromResolved =
+					fromRaw === "now"
+						? now
+						: resolveRelativeDate(fromRaw, now) || coerceDate(fromRaw);
+				const toResolved =
+					toRaw === "now" ? now : resolveRelativeDate(toRaw, now) || coerceDate(toRaw);
+
+				from = fromResolved;
+				to = toResolved;
 			} else if (value && typeof value === "object") {
 				if (value.mode === "relative") {
-					from = resolveRelativeDate(value, now);
-					to = from;
+					const resolved = resolveRelativeDate(value, now);
+					from = now;
+					to = resolved;
 				} else {
-					from = resolveRelativeDate(value.from, now) || coerceDate(value.from);
-					to = resolveRelativeDate(value.to, now) || coerceDate(value.to);
+					const fromRaw = value.from;
+					const toRaw = value.to;
+
+					const fromResolved =
+						fromRaw === "now"
+							? now
+							: resolveRelativeDate(fromRaw, now) || coerceDate(fromRaw);
+					const toResolved =
+						toRaw === "now"
+							? now
+							: resolveRelativeDate(toRaw, now) || coerceDate(toRaw);
+
+					from = fromResolved;
+					to = toResolved;
 				}
+			} else if (typeof value === "string") {
+				// Legacy: single date string – treat symmetrically.
+				const d = coerceDate(value);
+				from = d;
+				to = d;
 			}
+
 			if (!from || !to) throw new Error("date_between requires {from,to} or [from,to]");
-			return { [field]: { $gte: from, $lte: to } };
+
+			const start = from <= to ? from : to;
+			const end = from <= to ? to : from;
+
+			return { [field]: { $gte: start, $lte: end } };
 		}
 		default:
 			throw new Error(`Unsupported operator: ${operator}`);
