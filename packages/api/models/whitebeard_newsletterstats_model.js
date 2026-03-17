@@ -12,7 +12,7 @@ const WhitebeardNewsletterStatsSchema = new JXPSchema(
 		id: { type: Number, index: true, unique: true },
 
 		// Link back to the parent Whitebeard newsletter channel record in JXP
-		whitebeardnewsletter_id: { type: ObjectId, link: 'whitebeardnewsletters', index: true },
+		whitebeard_newsletter_id: { type: ObjectId, link: 'whitebeard_newsletters', index: true },
 
 		// Raw Whitebeard channel id and name for convenience
 		newsletterId: { type: Number, index: true },
