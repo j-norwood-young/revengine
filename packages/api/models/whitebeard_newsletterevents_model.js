@@ -2,6 +2,7 @@
 
 const WhitebeardNewsletterEventSchema = new JXPSchema(
 	{
+		uid: { type: String, index: true, unique: true },
 		event: {
 			type: String,
 			index: true,
