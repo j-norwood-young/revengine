@@ -35,6 +35,39 @@ function coerceDate(v) {
 	return null;
 }
 
+function resolveRelativeDate(value, now) {
+	if (!value || typeof value !== "object") return null;
+	if (value.mode !== "relative") return null;
+
+	const direction = value.direction === "future" ? "future" : "past";
+	const unit = value.unit;
+	const amount = Number.isInteger(value.amount) && value.amount > 0 ? value.amount : null;
+
+	if (!amount) return null;
+
+	const base = new Date(now.getTime());
+	const sign = direction === "future" ? 1 : -1;
+
+	switch (unit) {
+		case "day":
+			base.setDate(base.getDate() + sign * amount);
+			break;
+		case "week":
+			base.setDate(base.getDate() + sign * amount * 7);
+			break;
+		case "month":
+			base.setMonth(base.getMonth() + sign * amount);
+			break;
+		case "year":
+			base.setFullYear(base.getFullYear() + sign * amount);
+			break;
+		default:
+			return null;
+	}
+
+	return Number.isNaN(base.getTime()) ? null : base;
+}
+
 function normalizeArray(v) {
 	if (Array.isArray(v)) return v;
 	if (v == null) return [];
@@ -51,6 +84,8 @@ function buildSingleConditionQuery(cond) {
 	if (typeof operator !== "string" || !operator.length) {
 		throw new Error("operator required");
 	}
+
+	const now = new Date();
 
 	switch (operator) {
 		case "equals":
@@ -90,12 +125,14 @@ function buildSingleConditionQuery(cond) {
 		case "is_not_null":
 			return { $and: [{ [field]: { $ne: null } }, { [field]: { $exists: true } }] };
 		case "date_before": {
-			const d = coerceDate(value);
+			const rel = resolveRelativeDate(value, now);
+			const d = rel || coerceDate(value);
 			if (!d) throw new Error("date_before requires a valid date value");
 			return { [field]: { $lt: d } };
 		}
 		case "date_after": {
-			const d = coerceDate(value);
+			const rel = resolveRelativeDate(value, now);
+			const d = rel || coerceDate(value);
 			if (!d) throw new Error("date_after requires a valid date value");
 			return { [field]: { $gt: d } };
 		}
@@ -103,11 +140,16 @@ function buildSingleConditionQuery(cond) {
 			let from = null;
 			let to = null;
 			if (Array.isArray(value)) {
-				from = coerceDate(value[0]);
-				to = coerceDate(value[1]);
+				from = resolveRelativeDate(value[0], now) || coerceDate(value[0]);
+				to = resolveRelativeDate(value[1], now) || coerceDate(value[1]);
 			} else if (value && typeof value === "object") {
-				from = coerceDate(value.from);
-				to = coerceDate(value.to);
+				if (value.mode === "relative") {
+					from = resolveRelativeDate(value, now);
+					to = from;
+				} else {
+					from = resolveRelativeDate(value.from, now) || coerceDate(value.from);
+					to = resolveRelativeDate(value.to, now) || coerceDate(value.to);
+				}
 			}
 			if (!from || !to) throw new Error("date_between requires {from,to} or [from,to]");
 			return { [field]: { $gte: from, $lte: to } };
