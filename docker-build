@@ -5,8 +5,6 @@ components=(
     "revengine-api"
     "revengine-frontend"
     "revengine-mavio-tracker"
-    "revengine-tracker"
-    "revengine-consolidator"
     "revengine-crossword-tracker"
     "revengine-listeners"
     "revengine-wordpress-api"
@@ -31,16 +29,6 @@ build_component() {
             ;;
         "revengine-mavio-tracker")
             docker build -t $component:latest -f docker/mavio-tracker/Dockerfile .
-            docker tag $component:latest harbor.revengine.dailymaverick.co.za/revengine/$component:latest
-            docker push harbor.revengine.dailymaverick.co.za/revengine/$component:latest
-            ;;
-        "revengine-tracker")
-            docker build -t $component:latest -f docker/tracker/Dockerfile .
-            docker tag $component:latest harbor.revengine.dailymaverick.co.za/revengine/$component:latest
-            docker push harbor.revengine.dailymaverick.co.za/revengine/$component:latest
-            ;;
-        "revengine-consolidator")
-            docker build -t $component:latest -f docker/consolidator/Dockerfile .
             docker tag $component:latest harbor.revengine.dailymaverick.co.za/revengine/$component:latest
             docker push harbor.revengine.dailymaverick.co.za/revengine/$component:latest
             ;;
