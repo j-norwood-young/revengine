@@ -20,7 +20,7 @@ export default async function Frequency(reader_id, months = 3) {
     const reader = (await jxphelper.getOne("reader", reader_id)).data;
     let hits = 0;
     const query = {
-        index: "pageviews_copy",
+        index: "pageviews*",
         body: {
             "size": 0,
             "query": {

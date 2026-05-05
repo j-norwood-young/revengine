@@ -16,7 +16,7 @@ class Hits24H {
     async run(interval) {
         interval = interval || "minute";
         const query = {
-            index: "pageviews_copy",
+            index: "pageviews*",
             body: {
                 "aggs": {
                     "result": {

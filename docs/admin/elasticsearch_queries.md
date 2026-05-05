@@ -2,12 +2,12 @@
 
 ## Setup
 
-### Add dm_* fields to pageviews_copy (Whitebeard article metadata)
+### Add dm_* fields to pageviews* (Whitebeard article metadata)
 
-Use this when adding the `dm_key_theme`, `dm_article_theme`, `dm_user_need`, and `dm_disable_comments` fields to an existing `pageviews_copy` index (e.g. after revengine_whitebeard / tracker changes):
+Use this when adding the `dm_key_theme`, `dm_article_theme`, `dm_user_need`, and `dm_disable_comments` fields to existing `pageviews*` indices (e.g. after revengine_whitebeard / tracker changes):
 
 ```http
-PUT pageviews_copy/_mapping
+PUT pageviews*/_mapping
 {
   "properties": {
     "dm_key_theme": { "type": "keyword" },
@@ -159,7 +159,7 @@ PUT pageviews_copy/_mapping
 ## Users over 10 visits
 
 ```JSON
-GET pageviews_copy/_search
+GET pageviews*/_search
 {
   "size": 0,
   "query": {

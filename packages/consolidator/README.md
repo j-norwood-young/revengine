@@ -1,4 +1,4 @@
-# REMP Consolidator
+# REMP Consolidator - DEPRECATED
 
 Reads data from Kafka and writes it to Elasticsearch
 

@@ -32,7 +32,7 @@ class TopLastPeriod {
                 console.log({opts});
             }
             const query = {
-                index: "pageviews_copy",
+                index: "pageviews*",
                 body: {
                     "size": 0,
                     "query": {

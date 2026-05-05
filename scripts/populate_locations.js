@@ -107,7 +107,7 @@ const main = async () => {
             }
             
             const es_result = await esclient.search({
-                index: 'pageviews_copy',
+                index: 'pageviews*',
                 body: query_body
             });
             

@@ -19,7 +19,7 @@ class Random {
 
     async random_articles() {
         const query = {
-            index: "pageviews_copy",
+            index: "pageviews*",
             body: {
                 "size": 0,
                 "query": {

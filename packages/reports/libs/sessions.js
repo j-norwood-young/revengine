@@ -15,7 +15,7 @@ class Sessions {
 
     async get_logged_in_hits() {
         const query = {
-            index: "pageviews_copy",
+            index: "pageviews*",
             track_total_hits: true,
             body: {
                 "size": 0,
@@ -63,7 +63,7 @@ class Sessions {
 
     async get_logged_in_users(period = "week") {
         let query = {
-            index: "pageviews_copy",
+            index: "pageviews*",
             track_total_hits: true,
             body: {
                 "size": 0,
@@ -117,7 +117,7 @@ class Sessions {
 
     async get_users_by_utm_source(utm_source, period = "week") {
         let query = {
-            index: "pageviews_copy",
+            index: "pageviews*",
             track_total_hits: true,
             body: {
                 "size": 0,
@@ -172,7 +172,7 @@ class Sessions {
 
     async get_users_by_label(label, period = "week") {
         let query = {
-            index: "pageviews_copy",
+            index: "pageviews*",
             track_total_hits: true,
             body: {
                 "size": 0,
@@ -227,7 +227,7 @@ class Sessions {
 
     async get_users_by_segment(segment, period = "week") {
         let query = {
-            index: "pageviews_copy",
+            index: "pageviews*",
             track_total_hits: true,
             body: {
                 "size": 0,

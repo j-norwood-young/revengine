@@ -58,7 +58,7 @@ export class AppUsers {
             }
         }
         const res = await esclient.search({
-            index: "pageviews_copy",
+            index: "pageviews*",
             body: query
         });
         res.aggregations.unique_user_ids.buckets.forEach(bucket => {

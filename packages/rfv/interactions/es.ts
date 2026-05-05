@@ -59,7 +59,7 @@ async function get_es_interactions(mday: moment.Moment): Promise<TInteraction[]>
     const dateEnd = mday.clone().endOf("day")
     // console.log(`Processing web interactions for ${dateStart.toISOString()} to ${dateEnd.toISOString()}`);
     const query = {
-        index: "pageviews_copy",
+        index: "pageviews*",
         size: 0,
         body: {
             query: {

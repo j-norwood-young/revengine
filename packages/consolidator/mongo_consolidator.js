@@ -136,7 +136,7 @@ const merge_es_hits = async (start_time, end_time) => {
     const articles = (await apihelper.get("article", { fields: "post_id" })).data;
     const readers = (await apihelper.get("reader", { fields: "wordpress_id" })).data;
     const query = {
-        index: "pageviews_copy",
+        index: "pageviews*",
         body: {
             "size": 5000,
             "query": {

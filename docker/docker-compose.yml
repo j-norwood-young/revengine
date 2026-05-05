@@ -107,7 +107,6 @@ services:
       - REDIS_PORT=6379
       - QUEUE_NAME=tracker
       - NODE_ENV=production
-      - INDEX=pageviews_copy
       - TRACKER_NAME=Pageviews
       - KAFKA_SERVER=kafka1:9092
       - KAFKA_TOPIC=Pageviews_events_1
@@ -149,7 +148,6 @@ services:
       - KAFKA_SERVER=kafka1:9092
       - REDIS_URL=redis://redis1:6379
       - KAFKA_SERVER=kafka1:9092
-      - INDEX=pageviews_copy
     depends_on:
       - api
       - kafka1

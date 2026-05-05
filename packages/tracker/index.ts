@@ -37,7 +37,14 @@ const headers = {
     "Access-Control-Allow-Headers": "Content-Type",
     "X-Powered-By": `${name}`,
 };
-const index = process.env.INDEX || (config.debug ? "pageviews_test" : "pageviews_copy");
+const getCurrentMonthIndex = (prefix: string) => {
+    const now = new Date();
+    const year = now.getUTCFullYear();
+    const month = String(now.getUTCMonth() + 1).padStart(2, "0");
+    return `${prefix}-${year}.${month}`;
+};
+
+const index = process.env.INDEX || (config.debug ? "pageviews_test" : getCurrentMonthIndex("pageviews"));
 
 console.log({index, debug: config.debug});
 

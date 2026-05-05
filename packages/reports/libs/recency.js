@@ -17,7 +17,7 @@ export default async function Recency(reader_id) {
     const reader = (await jxphelper.getOne("reader", reader_id)).data;
     let timestamps = [];
     const query = {
-        index: "pageviews_copy",
+        index: "pageviews*",
         body: {
             "size": 1,
             "query": {

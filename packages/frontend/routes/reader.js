@@ -289,7 +289,7 @@ router.post("/facet/author", async (req, res) => {
     try {
         const author = req.body.author;
         const query = {
-            index: "pageviews_copy",
+            index: "pageviews*",
             body: {
                 "size": 1,
                 "query": {
@@ -350,7 +350,7 @@ router.post("/facet/tag", async (req, res) => {
     try {
         const tag = req.body.tag;
         const query = {
-            index: "pageviews_copy",
+            index: "pageviews*",
             body: {
                 "size": 1,
                 "query": {

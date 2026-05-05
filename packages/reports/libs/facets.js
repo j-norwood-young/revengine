@@ -19,7 +19,7 @@ class Facets {
 
     async author(author) {
         const query = {
-            index: "pageviews_copy",
+            index: "pageviews*",
             body: {
                 "size": 0,
                 "query": {
@@ -74,7 +74,7 @@ class Facets {
 
     async tag(tag) {
         const query = {
-            index: "pageviews_copy",
+            index: "pageviews*",
             body: {
                 "size": 1,
                 "query": {

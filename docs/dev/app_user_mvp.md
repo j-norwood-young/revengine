@@ -14,7 +14,7 @@ node packages/rfv/app_users.js
 
 First page:
 
-GET pageviews_copy/_search
+GET pageviews*/_search
 ```json
 {
   "size": 0,

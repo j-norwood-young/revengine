@@ -21,7 +21,7 @@ class TopLastHour {
         }, opts);
         const size = opts.size + 5;
         const query = {
-            index: "pageviews_copy",
+            index: "pageviews*",
             body: {
                 "size": 0,
                 "query": {
