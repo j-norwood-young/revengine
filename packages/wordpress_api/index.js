@@ -244,6 +244,13 @@ app.post('/random', async (request, reply) => {
     }
 });
 
+const isTruthy = (v) => {
+    if (v === undefined || v === null) return false;
+    if (typeof v === 'boolean') return v;
+    const s = String(v).toLowerCase();
+    return s === '1' || s === 'true' || s === 'yes';
+};
+
 // Top articles report function
 const top_articles_report = async (params) => {
     try {
@@ -254,11 +261,38 @@ const top_articles_report = async (params) => {
             end_period: "now/h",
         }
         params = Object.assign(default_params, params);
-        const top_articles = await report.run(params);
+        const size = Number(params.size);
+        const unfiltered_fallback = isTruthy(params.unfiltered_fallback);
+
+        const filtered_buckets = await report.run(params);
+        const filtered_keys = new Set(filtered_buckets.map(b => b.key));
+
+        // Fallback: if the filtered ES query didn't yield enough buckets and the
+        // caller asked for it, re-run without the published_date_gte filter and
+        // append any new article ids. Filtered results always take priority.
+        let merged_buckets = filtered_buckets;
+        if (
+            unfiltered_fallback &&
+            filtered_buckets.length < size &&
+            params.published_date_gte
+        ) {
+            const fallback_params = Object.assign({}, params);
+            delete fallback_params.published_date_gte;
+            const fallback_buckets = await report.run(fallback_params);
+            merged_buckets = filtered_buckets.slice();
+            for (const bucket of fallback_buckets) {
+                if (!filtered_keys.has(bucket.key)) {
+                    merged_buckets.push(bucket);
+                }
+            }
+        }
+
+        if (merged_buckets.length === 0) return [];
+
         const pipeline = [
             {
                 $match: {
-                    post_id: { $in: top_articles.map(a => a.key) }
+                    post_id: { $in: merged_buckets.map(a => a.key) }
                 }
             },
             {
@@ -281,11 +315,19 @@ const top_articles_report = async (params) => {
         ];
         let articles = (await jxphelper.aggregate("article", pipeline)).data;
         for (let article of articles) {
-            article.hits = top_articles.find(hit => hit.key === article.post_id).doc_count;
+            const bucket = merged_buckets.find(hit => hit.key === article.post_id);
+            article.hits = bucket ? bucket.doc_count : 0;
             article.url = `https://www.dailymaverick.co.za/article/${article.date_published.substring(0, 10)}-${article.urlid}`;
         }
-        articles.sort((a, b) => b.hits - a.hits);
-        return articles.slice(0, params.size);
+        // Filtered results first (sorted by hits desc), then fallback results
+        // (also sorted by hits desc), so the date-filtered articles always win.
+        articles.sort((a, b) => {
+            const a_filtered = filtered_keys.has(a.post_id) ? 1 : 0;
+            const b_filtered = filtered_keys.has(b.post_id) ? 1 : 0;
+            if (a_filtered !== b_filtered) return b_filtered - a_filtered;
+            return b.hits - a.hits;
+        });
+        return articles.slice(0, size);
     } catch (err) {
         throw err;
     }
@@ -410,37 +452,37 @@ app.get('/top_articles_by_section/:section', async (request, reply) => {
     }
 });
 
-// Reader endpoint
-app.get('/reader/:wordpress_id', async (request, reply) => {
-    try {
-        const wordpress_id = request.params.wordpress_id;
-        const reader = (await jxphelper.get("reader", {
-            "filter[wordpress_id]": wordpress_id,
-            "populate[segment]": "code",
-            "fields": "segmentation_id"
-        })).data.pop();
+// // Reader endpoint
+// app.get('/reader/:wordpress_id', async (request, reply) => {
+//     try {
+//         const wordpress_id = request.params.wordpress_id;
+//         const reader = (await jxphelper.get("reader", {
+//             "filter[wordpress_id]": wordpress_id,
+//             "populate[segment]": "code",
+//             "fields": "segmentation_id"
+//         })).data.pop();
 
-        if (!reader) {
-            log.info(`Reader not found for wordpress_id: ${wordpress_id}`);
-            return reply.status(404).send({ status: "error", message: "Reader not found" });
-        }
+//         if (!reader) {
+//             log.info(`Reader not found for wordpress_id: ${wordpress_id}`);
+//             return reply.status(404).send({ status: "error", message: "Reader not found" });
+//         }
 
-        return {
-            status: "ok",
-            data: {
-                segments: reader.segment ? reader.segment.map(segment => segment.code) : [],
-                labels: reader.lbl || [],
-                authors: reader.authors || [],
-                sections: reader.sections || []
-            }
-        };
-    } catch (err) {
-        log.error('Error in /reader endpoint:', err);
-        log.error('Request params:', request.params);
-        log.error('Stack trace:', err.stack);
-        throw err;
-    }
-});
+//         return {
+//             status: "ok",
+//             data: {
+//                 segments: reader.segment ? reader.segment.map(segment => segment.code) : [],
+//                 labels: reader.lbl || [],
+//                 authors: reader.authors || [],
+//                 sections: reader.sections || []
+//             }
+//         };
+//     } catch (err) {
+//         log.error('Error in /reader endpoint:', err);
+//         log.error('Request params:', request.params);
+//         log.error('Stack trace:', err.stack);
+//         throw err;
+//     }
+// });
 
 // Analytics posts GET endpoint
 app.get('/analytics/posts', async (request, reply) => {
